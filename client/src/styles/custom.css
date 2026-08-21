@@ -1,0 +1,217 @@
+/* Custom High-Contrast Luxury Dark Theme for Kiskintha Mens Wear */
+
+:root {
+  --primary-gold: #f3e5ab;
+  --gold-hover: #e6c875;
+  --dark-bg: #0b0f19;
+  --dark-card: #151c2e;
+  --dark-input: #242436;
+  --light-text: #ffffff;
+  --label-text: #f8fafc;
+  --muted-text: #cbd5e1;
+  --accent-gold: #d4af37;
+  --font-heading: 'Cinzel', serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+}
+
+body {
+  background-color: var(--dark-bg);
+  color: var(--light-text);
+  font-family: var(--font-body);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: var(--font-heading);
+  letter-spacing: 0.5px;
+}
+
+/* High Contrast Form Controls & Text Inputs */
+.form-label {
+  color: var(--label-text) !important;
+  font-weight: 600 !important;
+  font-size: 0.92rem;
+  letter-spacing: 0.3px;
+  margin-bottom: 0.4rem;
+}
+
+.form-control-dark, .form-select-dark {
+  background-color: var(--dark-input) !important;
+  color: #ffffff !important;
+  border: 1px solid #475569 !important;
+  border-radius: 6px;
+  padding: 0.65rem 0.9rem;
+}
+
+.form-control-dark:focus, .form-select-dark:focus {
+  background-color: #1e2436 !important;
+  color: #ffffff !important;
+  border-color: var(--primary-gold) !important;
+  box-shadow: 0 0 0 0.25rem rgba(243, 229, 171, 0.25) !important;
+}
+
+.form-control-dark::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1;
+}
+
+/* Chrome/Safari Autofill High Contrast Fix */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0px 1000px #242436 inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.input-group-text {
+  background-color: #1a2236 !important;
+  color: var(--primary-gold) !important;
+  border: 1px solid #475569 !important;
+}
+
+.form-check-label {
+  color: #e2e8f0 !important;
+  font-weight: 500;
+}
+
+.text-muted {
+  color: var(--muted-text) !important;
+}
+
+.text-gold {
+  color: var(--primary-gold) !important;
+}
+
+.bg-gold {
+  background-color: var(--primary-gold) !important;
+}
+
+/* Custom Buttons */
+.btn-gold {
+  background: linear-gradient(135deg, #f3e5ab 0%, #d4af37 100%);
+  color: #0b0f19 !important;
+  font-weight: 700;
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem 1.4rem;
+  transition: all 0.3s ease;
+}
+
+.btn-gold:hover {
+  background: linear-gradient(135deg, #e6c875 0%, #b89628 100%);
+  color: #000000 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+}
+
+.btn-outline-gold {
+  border: 1px solid var(--primary-gold);
+  color: var(--primary-gold);
+  background: transparent;
+  font-weight: 600;
+}
+
+.btn-outline-gold:hover {
+  background-color: var(--primary-gold);
+  color: #0b0f19;
+}
+
+/* Navbar */
+.kmw-navbar {
+  background-color: rgba(11, 15, 25, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(243, 229, 171, 0.15);
+}
+
+.nav-link {
+  color: #cbd5e1 !important;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--primary-gold) !important;
+}
+
+/* Cards */
+.kmw-card {
+  background-color: var(--dark-card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+}
+
+.kmw-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(243, 229, 171, 0.15);
+  border-color: rgba(243, 229, 171, 0.3);
+}
+
+/* Badges */
+.badge-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-bestseller {
+  background-color: #d97706;
+  color: #ffffff;
+}
+
+.badge-new {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.badge-discount {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  background-color: #dc2626;
+  color: #ffffff;
+}
+
+.product-img-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 125%;
+  overflow: hidden;
+  background-color: #1e2436;
+}
+
+.product-img-wrapper img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.kmw-card:hover .product-img-wrapper img {
+  transform: scale(1.06);
+}
+
+/* Footer */
+.kmw-footer {
+  background-color: #070910;
+  border-top: 1px solid rgba(243, 229, 171, 0.15);
+}

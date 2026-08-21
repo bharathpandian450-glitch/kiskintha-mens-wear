@@ -1,0 +1,20 @@
+{
+  "name": "kiskintha-mens-wear-server",
+  "version": "1.0.0",
+  "description": "Backend server for Kiskintha Mens Wear E-Commerce",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node seeders/seed.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.23.3"
+  }
+}
