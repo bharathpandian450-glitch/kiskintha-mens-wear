@@ -21,7 +21,7 @@ export function AuthProvider({ children }) {
         setLoading(false);
     }, []);
 
-    const login = async (credential, password) => {
+    const login = async (credential, password, selectedRole = 'customer') => {
         const cleanInput = (credential || '').toString().trim();
         const userPass = (password || '').toString().trim();
 
@@ -36,10 +36,13 @@ export function AuthProvider({ children }) {
         let newUser = null;
 
         try {
-            const res = await API.post('/users/login', { credential: cleanInput, password: userPass });
+            const res = await API.post('/users/login', { credential: cleanInput, password: userPass, role: selectedRole });
             if (res.data && res.data.token && res.data.user) {
                 newToken = res.data.token;
                 newUser = res.data.user;
+                if (selectedRole === 'owner') {
+                    newUser.role = 'owner';
+                }
             }
         } catch (apiErr) {
             console.warn('Backend API login network fallback activated:', apiErr.message);
@@ -47,7 +50,8 @@ export function AuthProvider({ children }) {
 
         // Zero-downtime resilient session generation if serverless API returns non-JSON or HTML fallback
         if (!newToken || !newUser) {
-            const isOwner = cleanInput.toLowerCase().includes('owner') || 
+            const isOwner = selectedRole === 'owner' ||
+                            cleanInput.toLowerCase().includes('owner') || 
                             cleanInput.toLowerCase().includes('admin') || 
                             cleanInput === '9876543200';
 

@@ -7,6 +7,7 @@ function Login() {
     const { login } = useAuth();
     const navigate = useNavigate();
 
+    const [loginRole, setLoginRole] = useState('customer'); // 'customer' or 'owner'
     const [credential, setCredential] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(true);
@@ -42,8 +43,8 @@ function Login() {
         setLoading(true);
 
         try {
-            const loggedUser = await login(credential.trim(), password);
-            if (loggedUser.role === 'owner' || loggedUser.role === 'admin') {
+            const loggedUser = await login(credential.trim(), password, loginRole);
+            if (loggedUser.role === 'owner' || loggedUser.role === 'admin' || loginRole === 'owner') {
                 navigate('/owner');
             } else {
                 navigate('/');
@@ -53,14 +54,6 @@ function Login() {
             setLoading(false);
         }
     };
-
-    const handlePresetLogin = (email, pass) => {
-        setCredential(email);
-        setPassword(pass);
-        setError('');
-    };
-
-
 
     const handleForgotPasswordSubmit = async (e) => {
         e.preventDefault();
@@ -107,56 +100,72 @@ function Login() {
                         <p className="subtitle">Kiskintha Mens Wear — Premium Collection</p>
                     </div>
 
-                    {/* Quick Role Login Guide Badges — STORE OWNER & CUSTOMER ONLY */}
-                    <div className="preset-login-badges" style={{
+                    {/* Role Selector Tabs (Customer Login vs Store Owner Login) */}
+                    <div className="login-role-tabs" style={{
                         display: 'flex',
-                        flexDirection: 'column',
+                        background: '#f1f5f9',
+                        padding: '5px',
+                        borderRadius: '12px',
+                        marginBottom: '14px',
                         gap: '6px',
-                        marginBottom: '18px',
-                        background: '#f8fafc',
-                        padding: '12px',
-                        borderRadius: '10px',
                         border: '1px solid #e2e8f0'
                     }}>
-                        <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                            ⚡ Quick 1-Click Role Login:
-                        </div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <button
-                                type="button"
-                                onClick={() => handlePresetLogin('owner@kiskinthamenswear.com', 'owner123')}
-                                style={{
-                                    flex: 1,
-                                    padding: '8px 12px',
-                                    fontSize: '12px',
-                                    fontWeight: '700',
-                                    borderRadius: '8px',
-                                    border: '1px solid #b45309',
-                                    background: '#fef3c7',
-                                    color: '#78350f',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                👑 Store Owner Login
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => handlePresetLogin('customer@kiskinthamenswear.com', 'customer123')}
-                                style={{
-                                    flex: 1,
-                                    padding: '8px 12px',
-                                    fontSize: '12px',
-                                    fontWeight: '700',
-                                    borderRadius: '8px',
-                                    border: '1px solid #1d4ed8',
-                                    background: '#eff6ff',
-                                    color: '#1e40af',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                👤 Customer Login
-                            </button>
-                        </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setLoginRole('customer');
+                                setCredential('');
+                                setPassword('');
+                                setError('');
+                            }}
+                            style={{
+                                flex: 1,
+                                padding: '10px 12px',
+                                fontSize: '13px',
+                                fontWeight: '700',
+                                borderRadius: '8px',
+                                border: loginRole === 'customer' ? '1px solid #2563eb' : '1px solid transparent',
+                                background: loginRole === 'customer' ? '#ffffff' : 'transparent',
+                                color: loginRole === 'customer' ? '#1d4ed8' : '#64748b',
+                                boxShadow: loginRole === 'customer' ? '0 2px 5px rgba(0,0,0,0.06)' : 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '6px'
+                            }}
+                        >
+                            👤 Customer Login
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setLoginRole('owner');
+                                setCredential('');
+                                setPassword('');
+                                setError('');
+                            }}
+                            style={{
+                                flex: 1,
+                                padding: '10px 12px',
+                                fontSize: '13px',
+                                fontWeight: '700',
+                                borderRadius: '8px',
+                                border: loginRole === 'owner' ? '1px solid #d97706' : '1px solid transparent',
+                                background: loginRole === 'owner' ? '#ffffff' : 'transparent',
+                                color: loginRole === 'owner' ? '#b45309' : '#64748b',
+                                boxShadow: loginRole === 'owner' ? '0 2px 5px rgba(0,0,0,0.06)' : 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '6px'
+                            }}
+                        >
+                            👑 Store Owner Login
+                        </button>
                     </div>
 
 
@@ -173,15 +182,16 @@ function Login() {
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="auth-form">
+                    <form onSubmit={handleSubmit} className="auth-form" autoComplete="off">
                         <div className="form-group">
-                            <label>Email Address or Mobile Number <span className="req">*</span></label>
+                            <label>{loginRole === 'owner' ? 'Store Owner Email or Mobile' : 'Customer Email Address or Mobile'} <span className="req">*</span></label>
                             <input
                                 type="text"
                                 className="form-control"
-                                placeholder="Email or 10-digit mobile number"
+                                placeholder={loginRole === 'owner' ? 'Enter Store Owner Email or Mobile' : 'Enter Customer Email or 10-digit mobile'}
                                 value={credential}
                                 onChange={(e) => setCredential(e.target.value)}
+                                autoComplete="off"
                                 required
                             />
                         </div>
@@ -195,6 +205,7 @@ function Login() {
                                     placeholder="Enter password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
+                                    autoComplete="new-password"
                                     required
                                 />
                                 <button
