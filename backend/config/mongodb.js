@@ -35,6 +35,7 @@ const productSchema = new mongoose.Schema({
     category_id: { type: Number, required: true },
     category_name: { type: String, required: true },
     subcategory: { type: String, default: '' },
+    sleeve_type: { type: String, default: '' },
     size: { type: String, default: 'S,M,L,XL,XXL' },
     color: { type: String, default: 'Assorted' },
     rating: { type: Number, default: 4.5 },

@@ -44,13 +44,13 @@ function Login() {
 
         try {
             const loggedUser = await login(credential.trim(), password, loginRole);
-            if (loggedUser.role === 'owner' || loggedUser.role === 'admin' || loginRole === 'owner') {
+            if (loggedUser && loggedUser.role === 'owner') {
                 navigate('/owner');
             } else {
                 navigate('/');
             }
         } catch (err) {
-            setError(err.response?.data?.message || err.message || 'Invalid Email/Mobile Number or Password.');
+            setError(err.response?.data?.message || err.message || (loginRole === 'owner' ? 'Invalid owner credentials' : 'Invalid Email/Mobile Number or Password.'));
             setLoading(false);
         }
     };
@@ -184,11 +184,11 @@ function Login() {
 
                     <form onSubmit={handleSubmit} className="auth-form" autoComplete="off">
                         <div className="form-group">
-                            <label>{loginRole === 'owner' ? 'Store Owner Email or Mobile' : 'Customer Email Address or Mobile'} <span className="req">*</span></label>
+                            <label>{loginRole === 'owner' ? 'Store Owner Username / Email' : 'Customer Email Address or Mobile'} <span className="req">*</span></label>
                             <input
                                 type="text"
                                 className="form-control"
-                                placeholder={loginRole === 'owner' ? 'Enter Store Owner Email or Mobile' : 'Enter Customer Email or 10-digit mobile'}
+                                placeholder={loginRole === 'owner' ? 'Enter Owner Username or Email' : 'Enter Customer Email or 10-digit mobile'}
                                 value={credential}
                                 onChange={(e) => setCredential(e.target.value)}
                                 autoComplete="off"

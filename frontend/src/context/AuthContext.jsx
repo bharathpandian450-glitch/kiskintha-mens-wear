@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
 
     const login = async (credential, password, selectedRole = 'customer') => {
         const cleanInput = (credential || '').toString().trim();
-        const userPass = (password || '').toString().trim();
+        const userPass = (password || '').toString();
 
         if (!cleanInput) {
             throw new Error('Please enter username/email');
@@ -32,48 +32,28 @@ export function AuthProvider({ children }) {
             throw new Error('Please enter password');
         }
 
-        let newToken = null;
-        let newUser = null;
-
         try {
-            const res = await API.post('/users/login', { credential: cleanInput, password: userPass, role: selectedRole });
+            const res = await API.post('/users/login', {
+                credential: cleanInput,
+                password: userPass,
+                role: selectedRole
+            });
+
             if (res.data && res.data.token && res.data.user) {
-                newToken = res.data.token;
-                newUser = res.data.user;
-                if (selectedRole === 'owner') {
-                    newUser.role = 'owner';
-                }
+                const newToken = res.data.token;
+                const newUser = res.data.user;
+                localStorage.setItem('token', newToken);
+                localStorage.setItem('user', JSON.stringify(newUser));
+                setToken(newToken);
+                setUser(newUser);
+                return newUser;
+            } else {
+                throw new Error(selectedRole === 'owner' ? 'Invalid owner credentials' : 'Login failed');
             }
         } catch (apiErr) {
-            console.warn('Backend API login network fallback activated:', apiErr.message);
+            const errMsg = apiErr.response?.data?.message || apiErr.message || (selectedRole === 'owner' ? 'Invalid owner credentials' : 'Invalid email or password');
+            throw new Error(errMsg);
         }
-
-        // Zero-downtime resilient session generation if serverless API returns non-JSON or HTML fallback
-        if (!newToken || !newUser) {
-            const isOwner = selectedRole === 'owner' ||
-                            cleanInput.toLowerCase().includes('owner') || 
-                            cleanInput.toLowerCase().includes('admin') || 
-                            cleanInput === '9876543200';
-
-            const displayName = isOwner ? 'Kiskintha (Store Owner)' : 
-                               (cleanInput.includes('@') ? cleanInput.split('@')[0] : cleanInput);
-
-            newUser = {
-                id: isOwner ? 3 : Date.now(),
-                name: displayName.charAt(0).toUpperCase() + displayName.slice(1),
-                email: cleanInput.includes('@') ? cleanInput.toLowerCase() : `${cleanInput.toLowerCase()}@kiskinthamenswear.com`,
-                phone: cleanInput.includes('@') ? '' : cleanInput,
-                address: isOwner ? 'Kiskintha Mens Wear Main Branch, Chennai' : '',
-                role: isOwner ? 'owner' : 'customer'
-            };
-            newToken = 'kiskintha_jwt_token_' + Date.now();
-        }
-
-        localStorage.setItem('token', newToken);
-        localStorage.setItem('user', JSON.stringify(newUser));
-        setToken(newToken);
-        setUser(newUser);
-        return newUser;
     };
 
     const register = async (data) => {

@@ -29,6 +29,16 @@ router.get('/', async (req, res) => {
             params.push(req.query.category);
         }
 
+        if (req.query.sleeve_type) {
+            conditions.push('p.sleeve_type = ?');
+            params.push(req.query.sleeve_type);
+        }
+
+        if (req.query.color) {
+            conditions.push('p.color = ?');
+            params.push(req.query.color);
+        }
+
         if (req.query.search) {
             conditions.push('(p.name LIKE ? OR p.description LIKE ?)');
             params.push(`%${req.query.search}%`, `%${req.query.search}%`);

@@ -23,18 +23,18 @@ const auth = (req, res, next) => {
     }
 };
 
-// Check if user is Store Owner (All administrative access granted to Store Owner)
+// Check if user is Admin
 const isAdmin = (req, res, next) => {
-    if (req.user && (req.user.role === 'owner' || req.user.role === 'admin')) {
+    if (req.user && req.user.role === 'admin') {
         next();
     } else {
-        return res.status(403).json({ message: 'Access denied. Store Owner authorization required.' });
+        return res.status(403).json({ message: 'Access denied. Admin authorization required.' });
     }
 };
 
 // Check if user is Store Owner
 const isOwner = (req, res, next) => {
-    if (req.user && (req.user.role === 'owner' || req.user.role === 'admin')) {
+    if (req.user && req.user.role === 'owner') {
         next();
     } else {
         return res.status(403).json({ message: 'Access denied. Store Owner authorization required.' });

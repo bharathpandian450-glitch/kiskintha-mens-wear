@@ -61,9 +61,37 @@ function ProductCard({ product }) {
             
             <div className="product-card-info" style={{ padding: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <span className="badge badge-primary category" style={{ background: '#eff6ff', color: '#1e40af', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700' }}>
-                        {product.subcategory || product.category_name || 'Men Wear'}
-                    </span>
+                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span className="badge badge-primary category" style={{ background: '#eff6ff', color: '#1e40af', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700' }}>
+                            {product.subcategory || product.category_name || 'Men Wear'}
+                        </span>
+                        {product.sleeve_type && (
+                            <span style={{
+                                background: product.sleeve_type === 'Half Hand' ? '#fef3c7' : '#f0fdf4',
+                                color: product.sleeve_type === 'Half Hand' ? '#b45309' : '#166534',
+                                border: product.sleeve_type === 'Half Hand' ? '1px solid #fde68a' : '1px solid #bbf7d0',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontSize: '10px',
+                                fontWeight: '800'
+                            }}>
+                                {product.sleeve_type === 'Half Hand' ? '👕 Half Hand' : '👔 Full Hand'}
+                            </span>
+                        )}
+                        {product.color && product.color !== 'Assorted' && (
+                            <span style={{
+                                background: '#f8fafc',
+                                color: '#475569',
+                                border: '1px solid #cbd5e1',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontSize: '10px',
+                                fontWeight: '700'
+                            }}>
+                                🎨 {product.color}
+                            </span>
+                        )}
+                    </div>
                     {!isOutOfStock ? (
                         <span style={{ fontSize: '11px', color: '#059669', fontWeight: '700' }}>
                             ✓ In Stock ({product.stock})

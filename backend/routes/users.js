@@ -147,7 +147,7 @@ router.post('/register', async (req, res) => {
 // POST login user (Accepts ANY non-empty credentials for development/testing)
 router.post('/login', async (req, res) => {
     try {
-        const { credential, email, username, mobile, phone, password } = req.body || {};
+        const { credential, email, username, mobile, phone, password, role } = req.body || {};
         const loginInput = (credential || email || username || mobile || phone || '').toString().trim();
         const rawPassword = (password !== undefined && password !== null) ? password.toString().trim() : '';
 
@@ -162,23 +162,36 @@ router.post('/login', async (req, res) => {
         }
 
         const cleanInput = loginInput.toLowerCase();
-        const userPassword = password;
+        const userPassword = rawPassword;
         let user = null;
 
-        // Check if Admin/Store Owner attempt
-        const isAdminAttempt = cleanInput.includes('owner') || cleanInput.includes('admin') || cleanInput === '9876543200';
+        const OWNER_USER = (process.env.OWNER_USERNAME || 'kiskinthaowner').toLowerCase();
+        const OWNER_PASS = process.env.OWNER_PASSWORD || 'Gowtham@123';
 
-        if (isAdminAttempt) {
+        // Check if Owner login attempt
+        const isOwnerRoleSelected = (role === 'owner');
+        const isOwnerInput = cleanInput === OWNER_USER || cleanInput === `${OWNER_USER}@kiskinthamenswear.com`;
+
+        if (isOwnerRoleSelected || isOwnerInput) {
+            // Strict verification for Owner:
+            // Username must match 'kiskinthaowner' (or 'kiskinthaowner@kiskinthamenswear.com')
+            // Password must match 'Gowtham@123'
+            const isOwnerValid = (cleanInput === OWNER_USER || cleanInput === `${OWNER_USER}@kiskinthamenswear.com`) && (userPassword === OWNER_PASS);
+
+            if (!isOwnerValid) {
+                return res.status(401).json({ message: 'Invalid owner credentials' });
+            }
+
             user = {
                 id: 3,
                 name: 'Kiskintha (Store Owner)',
-                email: 'owner@kiskinthamenswear.com',
+                email: 'kiskinthaowner@kiskinthamenswear.com',
                 phone: '9876543200',
                 address: 'Kiskintha Mens Wear Main Branch, Chennai',
                 role: 'owner'
             };
         } else {
-            // Customer attempt - Accept any non-empty credentials
+            // Customer attempt - Flexible credentials for customer shop
             let displayName = 'Customer';
             if (cleanInput.includes('@')) {
                 const prefix = cleanInput.split('@')[0];

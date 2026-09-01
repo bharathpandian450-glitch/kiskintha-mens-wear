@@ -45,12 +45,31 @@ function ProtectedRoute({ children }) {
     return children;
 }
 
+// Protected Route Component for Store Owner Only (Redirects non-owners to Customer Home, unauthenticated to Login)
+function ProtectedOwnerRoute({ children }) {
+    const { user, loading } = useAuth();
+    if (loading) {
+        return (
+            <div className="loading" style={{ minHeight: '60vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <div className="spinner"></div>
+            </div>
+        );
+    }
+    if (!user) {
+        return <Navigate to="/login" replace />;
+    }
+    if (user.role !== 'owner') {
+        return <Navigate to="/" replace />;
+    }
+    return children;
+}
+
 // Public Auth Route Component (Redirects to Home if already logged in)
 function PublicAuthRoute({ children }) {
     const { user, loading } = useAuth();
     if (loading) return null;
     if (user) {
-        return <Navigate to="/" replace />;
+        return <Navigate to={user.role === 'owner' ? "/owner" : "/"} replace />;
     }
     return children;
 }
@@ -79,7 +98,7 @@ function App() {
                     <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
                     <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                     <Route path="/admin" element={<Navigate to="/owner" replace />} />
-                    <Route path="/owner" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />
+                    <Route path="/owner" element={<ProtectedOwnerRoute><OwnerDashboard /></ProtectedOwnerRoute>} />
 
                     {/* Fallback route */}
                     <Route path="*" element={<Navigate to={user ? "/" : "/welcome"} replace />} />

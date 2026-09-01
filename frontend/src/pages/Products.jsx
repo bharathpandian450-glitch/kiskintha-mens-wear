@@ -3,17 +3,29 @@ import { useSearchParams } from 'react-router-dom';
 import API from '../api';
 import ProductCard from '../components/ProductCard';
 
-const pagePantsTitles = {
-    1: '👖 Page 1: Slim Fit Denim Jeans Collection',
-    2: '👖 Page 2: Executive Chino Pants Collection',
-    3: '👖 Page 3: Formal Trouser Slacks Collection',
-    4: '👖 Page 4: Utility 6-Pocket Cargo Pants Collection',
-    5: '👖 Page 5: Stretch Casual Cotton Pants Collection',
-    6: '👖 Page 6: Straight Fit Heavyweight Jeans Collection',
-    7: '👖 Page 7: Relaxed Fit Linen-Cotton Slacks Collection',
-    8: '👖 Page 8: Tapered Ankle Fit Pants Collection',
-    9: '👖 Page 9: Vintage Washed Denim Pants Collection'
-};
+const categoriesList = [
+    { id: '', name: 'All Products', icon: '🛍️' },
+    { id: '2', name: 'Shirts', icon: '👔' },
+    { id: '1', name: 'T-Shirts', icon: '👕' },
+    { id: '3', name: 'Pants', icon: '👖' },
+    { id: '4', name: 'Trousers', icon: '👖' },
+    { id: '7', name: 'Hoodies', icon: '🧥' },
+    { id: '8', name: 'Group Shirts', icon: '👔' }
+];
+
+const colorOptions = [
+    { label: 'All Colors', value: 'All', colorCode: '#e2e8f0', textColor: '#0f172a' },
+    { label: 'Black', value: 'Black', colorCode: '#09090b', textColor: '#ffffff' },
+    { label: 'White', value: 'White', colorCode: '#ffffff', textColor: '#0f172a', border: '#cbd5e1' },
+    { label: 'Blue', value: 'Blue', colorCode: '#2563eb', textColor: '#ffffff' },
+    { label: 'Red', value: 'Red', colorCode: '#dc2626', textColor: '#ffffff' },
+    { label: 'Green', value: 'Green', colorCode: '#16a34a', textColor: '#ffffff' },
+    { label: 'Yellow', value: 'Yellow', colorCode: '#eab308', textColor: '#000000' },
+    { label: 'Pink', value: 'Pink', colorCode: '#ec4899', textColor: '#ffffff' },
+    { label: 'Brown', value: 'Brown', colorCode: '#78350f', textColor: '#ffffff' },
+    { label: 'Grey', value: 'Grey', colorCode: '#64748b', textColor: '#ffffff' },
+    { label: 'Other', value: 'Other', colorCode: '#a855f7', textColor: '#ffffff' }
+];
 
 function Products() {
     const [products, setProducts] = useState([]);
@@ -25,10 +37,10 @@ function Products() {
 
     // Filter and Sort states
     const [search, setSearch] = useState(searchQuery);
+    const [productType, setProductType] = useState('All'); // 'All', 'Full Hand', 'Half Hand'
+    const [selectedColor, setSelectedColor] = useState('All'); // 'All', 'Black', 'White', 'Blue', 'Red', ...
     const [selectedSize, setSelectedSize] = useState('All');
     const [priceRange, setPriceRange] = useState('All');
-    const [sleeveType, setSleeveType] = useState('All');
-    const [pantType, setPantType] = useState('All');
     const [sortBy, setSortBy] = useState('featured');
 
     // Pagination state
@@ -64,25 +76,71 @@ function Products() {
         fetchProducts();
     }, [activeCategory, searchQuery]);
 
-    const handleSearchSubmit = (e) => {
-        e.preventDefault();
-        const params = {};
-        if (activeCategory) params.category = activeCategory;
-        if (search.trim()) params.search = search.trim();
-        setSearchParams(params);
+    const handleCategoryClick = (catId) => {
+        const newParams = {};
+        if (catId) newParams.category = catId;
+        if (searchQuery) newParams.search = searchQuery;
+        setSearchParams(newParams);
         setCurrentPage(1);
     };
 
-    // Filter products dynamically (Size, Rate, Full Hand vs Off Hand, Pant Type)
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        const newParams = {};
+        if (activeCategory) newParams.category = activeCategory;
+        if (search.trim()) newParams.search = search.trim();
+        setSearchParams(newParams);
+        setCurrentPage(1);
+    };
+
+    const handleResetAllFilters = () => {
+        setProductType('All');
+        setSelectedColor('All');
+        setSelectedSize('All');
+        setPriceRange('All');
+        setSortBy('featured');
+        setSearch('');
+        setSearchParams({});
+        setCurrentPage(1);
+    };
+
+    // Filter products dynamically (Category, Product Type: Full Hand/Half Hand, Color, Size, Rate, Search, Sort)
     const filteredProducts = useMemo(() => {
         let list = [...products];
 
-        // 1. Size filter
+        // 1. Category Filter
+        if (activeCategory) {
+            list = list.filter(p => {
+                if (String(p.category_id) === String(activeCategory)) return true;
+                const activeCatObj = categoriesList.find(c => c.id === activeCategory);
+                if (activeCatObj && p.category_name && p.category_name.toLowerCase() === activeCatObj.name.toLowerCase()) return true;
+                return false;
+            });
+        }
+
+        // 2. Product Type / Sleeve Filter: STRICT Full Hand vs Half Hand
+        if (productType === 'Full Hand') {
+            list = list.filter(p => p.sleeve_type === 'Full Hand');
+        } else if (productType === 'Half Hand') {
+            list = list.filter(p => p.sleeve_type === 'Half Hand');
+        }
+
+        // 3. Color Filter: STRICT Exact Color Matching (Black, White, Blue, Red, Green, Yellow, Pink, Brown, Grey, Other)
+        if (selectedColor !== 'All') {
+            if (selectedColor === 'Other') {
+                const standardColors = ['black', 'white', 'blue', 'red', 'green', 'yellow', 'pink', 'brown', 'grey'];
+                list = list.filter(p => p.color && !standardColors.includes(p.color.trim().toLowerCase()));
+            } else {
+                list = list.filter(p => p.color && p.color.trim().toLowerCase() === selectedColor.trim().toLowerCase());
+            }
+        }
+
+        // 4. Size filter
         if (selectedSize !== 'All') {
             list = list.filter(p => p.size && p.size.split(',').map(s => s.trim()).includes(selectedSize));
         }
 
-        // 2. Rate / Price filter
+        // 5. Rate / Price filter
         if (priceRange === 'under500') {
             list = list.filter(p => Number(p.price) <= 500);
         } else if (priceRange === '500-999') {
@@ -93,34 +151,20 @@ function Products() {
             list = list.filter(p => Number(p.price) >= 1500);
         }
 
-        // 3. Sleeve Type filter (Full Hand vs Off Hand / Half Hand)
-        if (sleeveType === 'full') {
-            list = list.filter(p => {
-                const text = (p.name + ' ' + (p.description || '') + ' ' + (p.subcategory || '')).toLowerCase();
-                return text.includes('full') || text.includes('long') || text.includes('full sleeve') || text.includes('full hand');
-            });
-        } else if (sleeveType === 'half') {
-            list = list.filter(p => {
-                const text = (p.name + ' ' + (p.description || '') + ' ' + (p.subcategory || '')).toLowerCase();
-                return text.includes('half') || text.includes('short') || text.includes('off hand') || text.includes('polo') || !text.includes('full');
-            });
+        // 6. Search Query
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase();
+            list = list.filter(p =>
+                (p.name && p.name.toLowerCase().includes(q)) ||
+                (p.description && p.description.toLowerCase().includes(q)) ||
+                (p.subcategory && p.subcategory.toLowerCase().includes(q)) ||
+                (p.category_name && p.category_name.toLowerCase().includes(q)) ||
+                (p.color && p.color.toLowerCase().includes(q)) ||
+                (p.sleeve_type && p.sleeve_type.toLowerCase().includes(q))
+            );
         }
 
-        // 4. Pant Type filter (Cotton, Linen, Lycra, Jeans, Chino, Cargo)
-        if (pantType !== 'All') {
-            list = list.filter(p => {
-                const text = (p.name + ' ' + (p.description || '') + ' ' + (p.subcategory || '')).toLowerCase();
-                if (pantType === 'jeans') return text.includes('jeans') || text.includes('denim');
-                if (pantType === 'cotton') return text.includes('cotton') || text.includes('stretch casual');
-                if (pantType === 'linen') return text.includes('linen') || text.includes('relaxed fit');
-                if (pantType === 'lycra') return text.includes('lycra') || text.includes('stretch') || text.includes('ankle fit');
-                if (pantType === 'chino') return text.includes('chino') || text.includes('formal') || text.includes('trouser') || text.includes('slacks');
-                if (pantType === 'cargo') return text.includes('cargo') || text.includes('6-pocket') || text.includes('utility');
-                return true;
-            });
-        }
-
-        // 5. Sorting
+        // 7. Sorting
         if (sortBy === 'price-low') {
             list.sort((a, b) => Number(a.price) - Number(b.price));
         } else if (sortBy === 'price-high') {
@@ -130,12 +174,12 @@ function Products() {
         }
 
         return list;
-    }, [products, selectedSize, priceRange, sleeveType, pantType, sortBy]);
+    }, [products, activeCategory, productType, selectedColor, selectedSize, priceRange, searchQuery, sortBy]);
 
     // Reset pagination on filter change
     useEffect(() => {
         setCurrentPage(1);
-    }, [selectedSize, priceRange, sleeveType, pantType, sortBy]);
+    }, [activeCategory, productType, selectedColor, selectedSize, priceRange, sortBy]);
 
     // Pagination calculations
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -144,247 +188,339 @@ function Products() {
         return filteredProducts.slice(start, start + itemsPerPage);
     }, [filteredProducts, currentPage]);
 
-    const getCategoryBadgeName = () => {
-        if (activeCategory === '2') return '👔 Shirts Collection';
-        if (activeCategory === '1') return '👕 T-Shirts Collection';
-        if (activeCategory === '3') {
-            return pagePantsTitles[currentPage] || '👖 Pants Collection';
-        }
-        return '🛍️ All Products Catalog';
+    const getActiveCategoryTitle = () => {
+        if (!activeCategory) return '🛍️ All Products Catalog';
+        const cat = categoriesList.find(c => c.id === activeCategory);
+        return cat ? `${cat.icon} ${cat.name} Collection` : '🛍️ Products Collection';
     };
+
+    const hasActiveFilters = productType !== 'All' || selectedColor !== 'All' || selectedSize !== 'All' || priceRange !== 'All' || activeCategory !== '' || searchQuery !== '';
 
     return (
         <div className="products-page" style={{ padding: '32px 16px', background: '#f8fafc', minHeight: '85vh' }}>
             <div className="container" style={{ maxWidth: '1240px', margin: '0 auto' }}>
                 
                 {/* Catalog Header */}
-                <div className="products-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+                <div className="products-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                         <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            {searchQuery ? `Search Results: "${searchQuery}"` : getCategoryBadgeName()}
-                            <span style={{ fontSize: '13px', background: '#e2e8f0', color: '#334155', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>
-                                {filteredProducts.length} Items Total
+                            {searchQuery ? `Search Results: "${searchQuery}"` : getActiveCategoryTitle()}
+                            <span style={{ fontSize: '13px', background: '#e2e8f0', color: '#334155', padding: '4px 12px', borderRadius: '20px', fontWeight: '700' }}>
+                                {filteredProducts.length} Items Found
                             </span>
                         </h1>
                         <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '14px' }}>
-                            Kiskintha Mens Wear — Distinct Style Showcase Per Page
+                            Kiskintha Mens Wear — Filter by Category, Product Type (Full Hand / Half Hand), and Color
                         </p>
                     </div>
 
-
+                    {/* Quick Search Box */}
+                    <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <input
+                            type="text"
+                            placeholder="Search shirts, color, style..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            style={{
+                                padding: '8px 14px',
+                                borderRadius: '8px',
+                                border: '1px solid #cbd5e1',
+                                fontSize: '14px',
+                                minWidth: '220px'
+                            }}
+                        />
+                        <button type="submit" className="btn btn-primary" style={{ padding: '8px 16px', borderRadius: '8px' }}>
+                            🔍 Search
+                        </button>
+                    </form>
                 </div>
 
-                {/* Page Type Distinction Banner for Pants */}
-                {activeCategory === '3' && (
-                    <div style={{
-                        background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-                        color: '#ffffff',
-                        padding: '14px 20px',
-                        borderRadius: '12px',
-                        marginBottom: '20px',
-                        display: 'flex',
-                        justify: 'space-between',
-                        alignItems: 'center',
-                        boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)'
-                    }}>
-                        <div>
-                            <span style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: '#94a3b8', fontWeight: '700' }}>
-                                CURRENT PAGE STYLE SHOWCASE
-                            </span>
-                            <h3 style={{ margin: '2px 0 0', fontSize: '18px', fontWeight: '800', color: '#fef08a' }}>
-                                {pagePantsTitles[currentPage] || '👖 Pants Collection'}
-                            </h3>
-                        </div>
-                        <span style={{ background: '#2563eb', padding: '6px 14px', borderRadius: '20px', fontSize: '13px', fontWeight: '800', color: '#ffffff' }}>
-                            Page {currentPage} of {totalPages}
-                        </span>
-                    </div>
-                )}
+                {/* 1. Category Bar Filter */}
+                <div style={{
+                    display: 'flex',
+                    gap: '8px',
+                    overflowX: 'auto',
+                    paddingBottom: '8px',
+                    marginBottom: '20px',
+                    scrollbarWidth: 'thin'
+                }}>
+                    {categoriesList.map(cat => {
+                        const isActive = (cat.id === '' && activeCategory === '') || (cat.id !== '' && activeCategory === cat.id);
+                        return (
+                            <button
+                                key={cat.id}
+                                onClick={() => handleCategoryClick(cat.id)}
+                                style={{
+                                    padding: '10px 18px',
+                                    borderRadius: '12px',
+                                    fontSize: '14px',
+                                    fontWeight: '800',
+                                    border: isActive ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                                    background: isActive ? '#2563eb' : '#ffffff',
+                                    color: isActive ? '#ffffff' : '#334155',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    whiteSpace: 'nowrap',
+                                    boxShadow: isActive ? '0 4px 12px rgba(37, 99, 235, 0.2)' : '0 2px 4px rgba(0,0,0,0.03)',
+                                    transition: 'all 0.2s ease'
+                                }}
+                            >
+                                <span>{cat.icon}</span>
+                                {cat.name}
+                            </button>
+                        );
+                    })}
+                </div>
 
                 {/* High-Visibility Filter & Sort Toolbar */}
                 <div className="filter-bar" style={{
                     background: '#ffffff',
-                    padding: '20px 24px',
+                    padding: '22px 24px',
                     borderRadius: '16px',
                     boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
-                    border: '2px solid #cbd5e1',
+                    border: '1px solid #e2e8f0',
                     marginBottom: '28px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '16px'
+                    gap: '18px'
                 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
                         <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span>🎛️</span> FILTER & SORT PRODUCTS ({filteredProducts.length} Items Available)
+                            <span>🎛️</span> FILTER & REFINE PRODUCTS
                         </h3>
-                        <button
-                            onClick={() => { setSelectedSize('All'); setPriceRange('All'); setSleeveType('All'); setSortBy('featured'); }}
-                            style={{
-                                background: '#f1f5f9',
-                                border: '1px solid #cbd5e1',
-                                padding: '5px 14px',
-                                borderRadius: '6px',
-                                fontSize: '12px',
-                                fontWeight: '700',
-                                color: '#475569',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            🔄 Reset Filters
-                        </button>
-                    </div>
-
-                    <div style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        alignItems: 'center',
-                        gap: '20px',
-                        justifyContent: 'space-between'
-                    }}>
-                        {/* 1. Size Filter */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: '800', color: '#1e293b' }}>📏 Size:</span>
-                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                {['All', 'S', 'M', 'L', 'XL', 'XXL'].map(sz => (
-                                    <button
-                                        key={sz}
-                                        onClick={() => setSelectedSize(sz)}
-                                        style={{
-                                            padding: '6px 12px',
-                                            borderRadius: '8px',
-                                            fontSize: '13px',
-                                            fontWeight: '800',
-                                            border: selectedSize === sz ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                                            background: selectedSize === sz ? '#2563eb' : '#ffffff',
-                                            color: selectedSize === sz ? '#ffffff' : '#334155',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s ease'
-                                        }}
-                                    >
-                                        {sz}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* 2. Rate / Price Filter */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: '800', color: '#1e293b' }}>💵 Rate / Price:</span>
-                            <select
-                                value={priceRange}
-                                onChange={(e) => setPriceRange(e.target.value)}
+                        {hasActiveFilters && (
+                            <button
+                                onClick={handleResetAllFilters}
                                 style={{
-                                    padding: '8px 14px',
+                                    background: '#fee2e2',
+                                    border: '1px solid #fca5a5',
+                                    padding: '6px 14px',
                                     borderRadius: '8px',
-                                    border: '2px solid #cbd5e1',
-                                    fontSize: '13px',
-                                    color: '#0f172a',
+                                    fontSize: '12px',
                                     fontWeight: '800',
-                                    background: '#ffffff',
-                                    cursor: 'pointer'
+                                    color: '#b91c1c',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px'
                                 }}
                             >
-                                <option value="All">All Rates</option>
-                                <option value="under500">Under ₹500</option>
-                                <option value="500-999">₹500 - ₹999</option>
-                                <option value="1000-1499">₹1000 - ₹1499</option>
-                                <option value="above1500">Above ₹1500</option>
-                            </select>
-                        </div>
+                                ✕ Clear All Filters
+                            </button>
+                        )}
+                    </div>
 
-                        {/* 3. Sleeve Type Filter (Full Hand vs Off / Half Hand) */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: '800', color: '#1e293b' }}>👔 Sleeve Type:</span>
-                            <div style={{ display: 'flex', gap: '6px' }}>
+                    {/* Filter Controls Row */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+                        {/* ROW 1: Product Type (Full Hand vs Half Hand) */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', minWidth: '110px' }}>
+                                👔 {activeCategory === '2' ? 'Shirt Style:' : activeCategory === '1' ? 'T-Shirt Style:' : 'Product Type:'}
+                            </span>
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                 {[
-                                    { label: 'All', value: 'All' },
-                                    { label: 'Full Hand', value: 'full' },
-                                    { label: 'Off / Half Hand', value: 'half' }
-                                ].map(sl => (
-                                    <button
-                                        key={sl.value}
-                                        onClick={() => setSleeveType(sl.value)}
-                                        style={{
-                                            padding: '6px 12px',
-                                            borderRadius: '8px',
-                                            fontSize: '13px',
-                                            fontWeight: '800',
-                                            border: sleeveType === sl.value ? '2px solid #0f172a' : '1px solid #cbd5e1',
-                                            background: sleeveType === sl.value ? '#0f172a' : '#ffffff',
-                                            color: sleeveType === sl.value ? '#ffffff' : '#475569',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s ease'
-                                        }}
-                                    >
-                                        {sl.label}
-                                    </button>
-                                ))}
+                                    { 
+                                        label: activeCategory === '2' ? 'All Shirts' : activeCategory === '1' ? 'All T-Shirts' : 'All Types', 
+                                        value: 'All' 
+                                    },
+                                    { 
+                                        label: activeCategory === '2' ? '👔 Full Hand Shirts' : activeCategory === '1' ? '👔 Full Hand T-Shirts' : '👔 Full Hand', 
+                                        value: 'Full Hand' 
+                                    },
+                                    { 
+                                        label: activeCategory === '2' ? '👕 Half Hand Shirts' : activeCategory === '1' ? '👕 Half Hand T-Shirts' : '👕 Half Hand', 
+                                        value: 'Half Hand' 
+                                    }
+                                ].map(t => {
+                                    const isSelected = productType === t.value;
+                                    return (
+                                        <button
+                                            key={t.value}
+                                            onClick={() => setProductType(t.value)}
+                                            style={{
+                                                padding: '7px 16px',
+                                                borderRadius: '8px',
+                                                fontSize: '13px',
+                                                fontWeight: '800',
+                                                border: isSelected ? '2px solid #0f172a' : '1px solid #cbd5e1',
+                                                background: isSelected ? '#0f172a' : '#ffffff',
+                                                color: isSelected ? '#ffffff' : '#334155',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.15s ease',
+                                                boxShadow: isSelected ? '0 2px 8px rgba(15,23,42,0.15)' : 'none'
+                                            }}
+                                        >
+                                            {t.label}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
 
-                        {/* 4. Sort By Rate */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: '800', color: '#1e293b' }}>⚡ Sort By:</span>
-                            <select
-                                value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value)}
-                                style={{
-                                    padding: '8px 14px',
-                                    borderRadius: '8px',
-                                    border: '2px solid #cbd5e1',
-                                    fontSize: '13px',
-                                    color: '#0f172a',
-                                    fontWeight: '800',
-                                    background: '#ffffff',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <option value="featured">Featured Catalog</option>
-                                <option value="price-low">Rate: Low to High</option>
-                                <option value="price-high">Rate: High to Low</option>
-                                <option value="newest">Newest Arrivals</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* 5. Pant Fabric & Style Type Filter (Specific for Pants Collection) */}
-                    {(activeCategory === '3' || activeCategory === '') && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', pt: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '12px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '13px', fontWeight: '800', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                👖 Pant Type:
+                        {/* ROW 2: Color Filter (Black, White, Blue, Red, Green, Yellow, Pink, Brown, Grey, Other) */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', minWidth: '110px' }}>
+                                🎨 Color:
                             </span>
                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                {[
-                                    { label: 'All Pant Types', value: 'All' },
-                                    { label: '👖 Jeans (Denim)', value: 'jeans' },
-                                    { label: '🧵 Cotton Pants', value: 'cotton' },
-                                    { label: '🌿 Linen Slacks', value: 'linen' },
-                                    { label: '⚡ Lycra Stretch', value: 'lycra' },
-                                    { label: '💼 Chino & Formal', value: 'chino' },
-                                    { label: '📦 6-Pocket Cargo', value: 'cargo' }
-                                ].map(pt => (
-                                    <button
-                                        key={pt.value}
-                                        onClick={() => setPantType(pt.value)}
-                                        style={{
-                                            padding: '6px 14px',
-                                            borderRadius: '8px',
-                                            fontSize: '12px',
-                                            fontWeight: '800',
-                                            border: pantType === pt.value ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                                            background: pantType === pt.value ? '#eff6ff' : '#ffffff',
-                                            color: pantType === pt.value ? '#1e40af' : '#475569',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s ease'
-                                        }}
-                                    >
-                                        {pt.label}
-                                    </button>
-                                ))}
+                                {colorOptions.map(c => {
+                                    const isSelected = selectedColor === c.value;
+                                    return (
+                                        <button
+                                            key={c.value}
+                                            onClick={() => setSelectedColor(c.value)}
+                                            style={{
+                                                padding: '6px 12px',
+                                                borderRadius: '8px',
+                                                fontSize: '12px',
+                                                fontWeight: '800',
+                                                border: isSelected ? '2px solid #2563eb' : `1px solid ${c.border || '#cbd5e1'}`,
+                                                background: isSelected ? '#2563eb' : '#ffffff',
+                                                color: isSelected ? '#ffffff' : '#334155',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                transition: 'all 0.15s ease',
+                                                boxShadow: isSelected ? '0 2px 8px rgba(37, 99, 235, 0.2)' : 'none'
+                                            }}
+                                        >
+                                            {c.value !== 'All' && (
+                                                <span style={{
+                                                    display: 'inline-block',
+                                                    width: '12px',
+                                                    height: '12px',
+                                                    borderRadius: '50%',
+                                                    background: c.colorCode,
+                                                    border: '1px solid #cbd5e1'
+                                                }}></span>
+                                            )}
+                                            {c.label}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
-                    )}
+
+                        {/* ROW 3: Size, Price Range & Sort Options */}
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '20px',
+                            flexWrap: 'wrap',
+                            borderTop: '1px solid #f1f5f9',
+                            paddingTop: '14px'
+                        }}>
+                            {/* Size Filter */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: '800', color: '#1e293b' }}>📏 Size:</span>
+                                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                    {['All', 'S', 'M', 'L', 'XL', 'XXL'].map(sz => (
+                                        <button
+                                            key={sz}
+                                            onClick={() => setSelectedSize(sz)}
+                                            style={{
+                                                padding: '5px 10px',
+                                                borderRadius: '6px',
+                                                fontSize: '12px',
+                                                fontWeight: '800',
+                                                border: selectedSize === sz ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                                                background: selectedSize === sz ? '#2563eb' : '#ffffff',
+                                                color: selectedSize === sz ? '#ffffff' : '#334155',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            {sz}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Price / Rate Filter */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: '800', color: '#1e293b' }}>💵 Rate:</span>
+                                <select
+                                    value={priceRange}
+                                    onChange={(e) => setPriceRange(e.target.value)}
+                                    style={{
+                                        padding: '6px 12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #cbd5e1',
+                                        fontSize: '13px',
+                                        color: '#0f172a',
+                                        fontWeight: '700',
+                                        background: '#ffffff',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <option value="All">All Rates</option>
+                                    <option value="under500">Under ₹500</option>
+                                    <option value="500-999">₹500 - ₹999</option>
+                                    <option value="1000-1499">₹1000 - ₹1499</option>
+                                    <option value="above1500">Above ₹1500</option>
+                                </select>
+                            </div>
+
+                            {/* Sort Filter */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '13px', fontWeight: '800', color: '#1e293b' }}>⚡ Sort By:</span>
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value)}
+                                    style={{
+                                        padding: '6px 12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #cbd5e1',
+                                        fontSize: '13px',
+                                        color: '#0f172a',
+                                        fontWeight: '700',
+                                        background: '#ffffff',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <option value="featured">Featured Catalog</option>
+                                    <option value="price-low">Rate: Low to High</option>
+                                    <option value="price-high">Rate: High to Low</option>
+                                    <option value="newest">Newest Arrivals</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                {/* Active Filter Pills Bar */}
+                {hasActiveFilters && (
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '20px' }}>
+                        <span style={{ fontSize: '12px', fontWeight: '700', color: '#64748b' }}>Active Filters:</span>
+                        {productType !== 'All' && (
+                            <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '16px', fontSize: '12px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                Type: {productType}
+                                <button onClick={() => setProductType('All')} style={{ background: 'none', border: 'none', color: '#0369a1', cursor: 'pointer', fontWeight: 'bold' }}>×</button>
+                            </span>
+                        )}
+                        {selectedColor !== 'All' && (
+                            <span style={{ background: '#fef3c7', color: '#92400e', padding: '4px 10px', borderRadius: '16px', fontSize: '12px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                Color: {selectedColor}
+                                <button onClick={() => setSelectedColor('All')} style={{ background: 'none', border: 'none', color: '#92400e', cursor: 'pointer', fontWeight: 'bold' }}>×</button>
+                            </span>
+                        )}
+                        {selectedSize !== 'All' && (
+                            <span style={{ background: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '16px', fontSize: '12px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                Size: {selectedSize}
+                                <button onClick={() => setSelectedSize('All')} style={{ background: 'none', border: 'none', color: '#334155', cursor: 'pointer', fontWeight: 'bold' }}>×</button>
+                            </span>
+                        )}
+                        {priceRange !== 'All' && (
+                            <span style={{ background: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '16px', fontSize: '12px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                Price: {priceRange}
+                                <button onClick={() => setPriceRange('All')} style={{ background: 'none', border: 'none', color: '#334155', cursor: 'pointer', fontWeight: 'bold' }}>×</button>
+                            </span>
+                        )}
+                    </div>
+                )}
 
                 {/* Products Grid */}
                 {loading ? (
@@ -466,13 +602,17 @@ function Products() {
                     </>
                 ) : (
                     <div className="no-products" style={{ textAlign: 'center', padding: '60px 20px', background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-                        <div style={{ fontSize: '48px', marginBottom: '12px' }}>👖</div>
-                        <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a', margin: '0 0 8px' }}>No Matching Pants Found</h3>
+                        <div style={{ fontSize: '48px', marginBottom: '12px' }}>{selectedColor !== 'All' ? '🎨' : '🔍'}</div>
+                        <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a', margin: '0 0 8px' }}>
+                            {selectedColor !== 'All' ? 'No products available in this color.' : 'No Matching Products Found'}
+                        </h3>
                         <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>
-                            Try adjusting your search keywords, size, or price filter.
+                            {selectedColor !== 'All' 
+                                ? `There are currently no products available in ${selectedColor}${productType !== 'All' ? ` (${productType})` : ''}.` 
+                                : `No products match your selected criteria.`}
                         </p>
                         <button
-                            onClick={() => { setSelectedSize('All'); setSelectedColor('All'); setMaxPrice(3000); setSearch(''); setSearchParams({}); }}
+                            onClick={handleResetAllFilters}
                             className="btn btn-primary"
                             style={{ marginTop: '16px' }}
                         >
