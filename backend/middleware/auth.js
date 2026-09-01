@@ -23,9 +23,9 @@ const auth = (req, res, next) => {
     }
 };
 
-// Check if user is Admin
+// Check if user is Admin or Owner (Owner has administrative access)
 const isAdmin = (req, res, next) => {
-    if (req.user && req.user.role === 'admin') {
+    if (req.user && (req.user.role === 'admin' || req.user.role === 'owner')) {
         next();
     } else {
         return res.status(403).json({ message: 'Access denied. Admin authorization required.' });
