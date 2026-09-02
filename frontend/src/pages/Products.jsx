@@ -151,9 +151,9 @@ function Products() {
             list = list.filter(p => Number(p.price) >= 1500);
         }
 
-        // 6. Search Query
-        if (searchQuery.trim()) {
-            const q = searchQuery.toLowerCase();
+        // 6. Search Query (supports both submitted search param and active search input)
+        const q = (search || searchQuery || '').trim().toLowerCase();
+        if (q) {
             list = list.filter(p =>
                 (p.name && p.name.toLowerCase().includes(q)) ||
                 (p.description && p.description.toLowerCase().includes(q)) ||
@@ -174,12 +174,12 @@ function Products() {
         }
 
         return list;
-    }, [products, activeCategory, productType, selectedColor, selectedSize, priceRange, searchQuery, sortBy]);
+    }, [products, activeCategory, productType, selectedColor, selectedSize, priceRange, search, searchQuery, sortBy]);
 
     // Reset pagination on filter change
     useEffect(() => {
         setCurrentPage(1);
-    }, [activeCategory, productType, selectedColor, selectedSize, priceRange, sortBy]);
+    }, [activeCategory, productType, selectedColor, selectedSize, priceRange, search, searchQuery, sortBy]);
 
     // Pagination calculations
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -194,7 +194,7 @@ function Products() {
         return cat ? `${cat.icon} ${cat.name} Collection` : '🛍️ Products Collection';
     };
 
-    const hasActiveFilters = productType !== 'All' || selectedColor !== 'All' || selectedSize !== 'All' || priceRange !== 'All' || activeCategory !== '' || searchQuery !== '';
+    const hasActiveFilters = productType !== 'All' || selectedColor !== 'All' || selectedSize !== 'All' || priceRange !== 'All' || activeCategory !== '' || searchQuery !== '' || search !== '';
 
     return (
         <div className="products-page" style={{ padding: '32px 16px', background: '#f8fafc', minHeight: '85vh' }}>
@@ -204,18 +204,18 @@ function Products() {
                 <div className="products-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                         <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            {searchQuery ? `Search Results: "${searchQuery}"` : getActiveCategoryTitle()}
+                            {searchQuery || search ? `Search Results: "${searchQuery || search}"` : getActiveCategoryTitle()}
                             <span style={{ fontSize: '13px', background: '#e2e8f0', color: '#334155', padding: '4px 12px', borderRadius: '20px', fontWeight: '700' }}>
                                 {filteredProducts.length} Items Found
                             </span>
                         </h1>
                         <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '14px' }}>
-                            Kiskintha Mens Wear — Filter by Category, Product Type (Full Hand / Half Hand), and Color
+                            Kiskintha Mens Wear — Search products and filter by exact Color and Style
                         </p>
                     </div>
 
-                    {/* Quick Search Box */}
-                    <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {/* Quick Search & Color Filter Section */}
+                    <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                         <input
                             type="text"
                             placeholder="Search shirts, color, style..."
@@ -226,10 +226,47 @@ function Products() {
                                 borderRadius: '8px',
                                 border: '1px solid #cbd5e1',
                                 fontSize: '14px',
-                                minWidth: '220px'
+                                minWidth: '220px',
+                                background: '#ffffff',
+                                outline: 'none'
                             }}
                         />
-                        <button type="submit" className="btn btn-primary" style={{ padding: '8px 16px', borderRadius: '8px' }}>
+
+                        {/* Dedicated Color Filter Dropdown near Search Bar */}
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <select
+                                value={selectedColor}
+                                onChange={(e) => setSelectedColor(e.target.value)}
+                                style={{
+                                    padding: '8px 12px 8px 30px',
+                                    borderRadius: '8px',
+                                    border: selectedColor !== 'All' ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                                    fontSize: '14px',
+                                    fontWeight: '700',
+                                    color: selectedColor !== 'All' ? '#1e40af' : '#334155',
+                                    background: selectedColor !== 'All' ? '#eff6ff' : '#ffffff',
+                                    cursor: 'pointer',
+                                    outline: 'none',
+                                    height: '37px'
+                                }}
+                                title="Filter by Color"
+                            >
+                                <option value="All">🎨 All Colors</option>
+                                <option value="Black">⚫ Black</option>
+                                <option value="White">⚪ White</option>
+                                <option value="Blue">🔵 Blue</option>
+                                <option value="Red">🔴 Red</option>
+                                <option value="Green">🟢 Green</option>
+                                <option value="Yellow">🟡 Yellow</option>
+                                <option value="Pink">🌸 Pink</option>
+                                <option value="Brown">🟤 Brown</option>
+                                <option value="Grey">🔘 Grey</option>
+                                <option value="Other">✨ Other Colors</option>
+                            </select>
+                            <span style={{ position: 'absolute', left: '10px', pointerEvents: 'none', fontSize: '13px' }}>🎨</span>
+                        </div>
+
+                        <button type="submit" className="btn btn-primary" style={{ padding: '8px 16px', borderRadius: '8px', fontWeight: '700' }}>
                             🔍 Search
                         </button>
                     </form>
