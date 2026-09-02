@@ -78,8 +78,8 @@ function ProductDetail() {
 
     const sizes = product.size ? product.size.split(',').map(s => s.trim()) : ['28', '30', '32', '34', '36', '38', '40'];
     return (
-        <div className="product-detail" style={{ background: '#f8fafc', minHeight: '85vh' }}>
-            <div className="container product-detail-container" style={{ maxWidth: '1100px', margin: '0 auto', background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
+        <div className="product-detail" style={{ padding: '30px 12px', background: '#f8fafc', minHeight: '85vh' }}>
+            <div className="container product-detail-card" style={{ maxWidth: '1100px', margin: '0 auto', background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
                 <div className="product-detail-grid">
                     
                     {/* Left: Product Image */}
@@ -189,7 +189,7 @@ function ProductDetail() {
                         </div>
 
                         {/* Action Buttons: Add to Cart & Buy Now */}
-                        <div className="product-actions-grid">
+                        <div className="product-detail-actions">
                             <button
                                 className={`btn btn-primary ${added ? 'btn-success' : ''}`}
                                 onClick={handleAddToCart}

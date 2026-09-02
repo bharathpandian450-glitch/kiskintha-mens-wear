@@ -199,7 +199,7 @@ function OwnerDashboard() {
     if (error) return <div className="alert alert-error" style={{ margin: '20px' }}>{error}</div>;
 
     return (
-        <div className="owner-dashboard" style={{ background: '#f8fafc', minHeight: '85vh' }}>
+        <div className="owner-dashboard" style={{ padding: '30px 20px', background: '#f8fafc', minHeight: '85vh' }}>
             <div className="container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
                 {/* Header Banner */}
                 <div className="owner-dashboard-header" style={{
@@ -259,7 +259,7 @@ function OwnerDashboard() {
                 )}
 
                 {/* Executive Stat KPI Cards */}
-                <div className="owner-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '28px' }}>
                     <div style={{ background: '#ffffff', padding: '22px', borderRadius: '14px', borderLeft: '5px solid #d4af37', boxShadow: '0 4px 14px rgba(0,0,0,0.05)' }}>
                         <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>TOTAL REVENUE</div>
                         <div style={{ fontSize: '28px', fontWeight: '800', color: '#111111', marginTop: '6px' }}>
@@ -294,7 +294,7 @@ function OwnerDashboard() {
                 </div>
 
                 {/* Dashboard Tabs */}
-                <div className="owner-tabs-bar" style={{ display: 'flex', gap: '10px', marginBottom: '24px', flexWrap: 'wrap', borderBottom: '2px solid #e2e8f0', paddingBottom: '12px' }}>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '24px', flexWrap: 'wrap', borderBottom: '2px solid #e2e8f0', paddingBottom: '12px' }}>
                     <button
                         onClick={() => setActiveTab('orders')}
                         style={{

@@ -190,8 +190,8 @@ function Checkout() {
                     </div>
                 )}
 
-                <div className="checkout-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '28px' }}>
-                    <form className="checkout-form" onSubmit={handleSubmit} style={{ background: '#ffffff', padding: '28px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)', border: '1px solid #e2e8f0' }}>
+                <div className="checkout-layout">
+                    <form className="checkout-form" onSubmit={handleSubmit} style={{ background: '#ffffff', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)', border: '1px solid #e2e8f0' }}>
                         <h3 style={{ fontSize: '20px', color: '#0f172a', marginBottom: '20px', borderBottom: '2px solid #f1f5f9', paddingBottom: '10px' }}>📍 Delivery Details</h3>
 
                         {error && <div className="alert alert-error" style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>{error}</div>}

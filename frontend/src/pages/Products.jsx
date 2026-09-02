@@ -215,7 +215,7 @@ function Products() {
                     </div>
 
                     {/* Quick Search & Color Filter Section */}
-                    <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <form onSubmit={handleSearchSubmit} className="search-filter-form" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                         <input
                             type="text"
                             placeholder="Search shirts, color, style..."
@@ -226,18 +226,20 @@ function Products() {
                                 borderRadius: '8px',
                                 border: '1px solid #cbd5e1',
                                 fontSize: '14px',
-                                minWidth: '220px',
+                                flex: '1 1 180px',
+                                minWidth: '0',
                                 background: '#ffffff',
                                 outline: 'none'
                             }}
                         />
 
                         {/* Dedicated Color Filter Dropdown near Search Bar */}
-                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: '1 1 140px', minWidth: '0' }}>
                             <select
                                 value={selectedColor}
                                 onChange={(e) => setSelectedColor(e.target.value)}
                                 style={{
+                                    width: '100%',
                                     padding: '8px 12px 8px 30px',
                                     borderRadius: '8px',
                                     border: selectedColor !== 'All' ? '2px solid #2563eb' : '1px solid #cbd5e1',
