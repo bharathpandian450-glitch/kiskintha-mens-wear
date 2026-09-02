@@ -78,9 +78,9 @@ function ProductDetail() {
 
     const sizes = product.size ? product.size.split(',').map(s => s.trim()) : ['28', '30', '32', '34', '36', '38', '40'];
     return (
-        <div className="product-detail" style={{ padding: '40px 16px', background: '#f8fafc', minHeight: '85vh' }}>
-            <div className="container" style={{ maxWidth: '1100px', margin: '0 auto', background: '#ffffff', padding: '32px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
-                <div className="product-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
+        <div className="product-detail" style={{ background: '#f8fafc', minHeight: '85vh' }}>
+            <div className="container product-detail-container" style={{ maxWidth: '1100px', margin: '0 auto', background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
+                <div className="product-detail-grid">
                     
                     {/* Left: Product Image */}
                     <div className="product-detail-image" style={{ textAlign: 'center', background: '#f1f5f9', borderRadius: '12px', padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '420px', overflow: 'hidden' }}>
@@ -189,7 +189,7 @@ function ProductDetail() {
                         </div>
 
                         {/* Action Buttons: Add to Cart & Buy Now */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                        <div className="product-actions-grid">
                             <button
                                 className={`btn btn-primary ${added ? 'btn-success' : ''}`}
                                 onClick={handleAddToCart}

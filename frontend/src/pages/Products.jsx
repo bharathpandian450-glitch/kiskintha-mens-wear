@@ -397,52 +397,7 @@ function Products() {
                             </div>
                         </div>
 
-                        {/* ROW 2: Color Filter (Black, White, Blue, Red, Green, Yellow, Pink, Brown, Grey, Other) */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', minWidth: '110px' }}>
-                                🎨 Color:
-                            </span>
-                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                {colorOptions.map(c => {
-                                    const isSelected = selectedColor === c.value;
-                                    return (
-                                        <button
-                                            key={c.value}
-                                            onClick={() => setSelectedColor(c.value)}
-                                            style={{
-                                                padding: '6px 12px',
-                                                borderRadius: '8px',
-                                                fontSize: '12px',
-                                                fontWeight: '800',
-                                                border: isSelected ? '2px solid #2563eb' : `1px solid ${c.border || '#cbd5e1'}`,
-                                                background: isSelected ? '#2563eb' : '#ffffff',
-                                                color: isSelected ? '#ffffff' : '#334155',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '6px',
-                                                transition: 'all 0.15s ease',
-                                                boxShadow: isSelected ? '0 2px 8px rgba(37, 99, 235, 0.2)' : 'none'
-                                            }}
-                                        >
-                                            {c.value !== 'All' && (
-                                                <span style={{
-                                                    display: 'inline-block',
-                                                    width: '12px',
-                                                    height: '12px',
-                                                    borderRadius: '50%',
-                                                    background: c.colorCode,
-                                                    border: '1px solid #cbd5e1'
-                                                }}></span>
-                                            )}
-                                            {c.label}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {/* ROW 3: Size, Price Range & Sort Options */}
+                        {/* ROW 2: Size, Price Range & Sort Options */}
                         <div style={{
                             display: 'flex',
                             alignItems: 'center',
