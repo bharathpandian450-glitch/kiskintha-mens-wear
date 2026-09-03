@@ -40,6 +40,12 @@ function OwnerDashboard() {
     const [prodMsg, setProdMsg] = useState('');
     const [prodSearch, setProdSearch] = useState('');
 
+    // Owner Product Management Category & Inline Price Editing State
+    const [ownerProdCategory, setOwnerProdCategory] = useState('All'); // 'All', '2' (Shirts), '1' (T-Shirts), '4' (Trousers), '3' (Pants), '8' (Group Shirts), '7' (Hoodies)
+    const [editingPriceId, setEditingPriceId] = useState(null);
+    const [editingPriceVal, setEditingPriceVal] = useState('');
+    const [updatingPrice, setUpdatingPrice] = useState(false);
+
     const fetchData = async (isInitial = false) => {
         if (isInitial) setLoading(true);
         try {
@@ -177,6 +183,28 @@ function OwnerDashboard() {
             setProdMsg(err.response?.data?.message || 'Error saving product');
         } finally {
             setProdLoading(false);
+        }
+    };
+
+    const handleSavePrice = async (prodId, newPrice) => {
+        const num = parseFloat(newPrice);
+        if (isNaN(num) || num <= 0) {
+            alert('Please enter a valid price greater than ₹0');
+            return;
+        }
+        setUpdatingPrice(true);
+        try {
+            await API.patch(`/products/${prodId}/price`, { price: num });
+            const updatedProd = products.find(p => p.id === prodId);
+            setProducts(prev => prev.map(p => p.id === prodId ? { ...p, price: num } : p));
+            setStatusUpdateMsg(`✓ Price updated successfully for "${updatedProd?.name || 'Product'}" to ₹${num.toLocaleString('en-IN')}`);
+            setEditingPriceId(null);
+            setEditingPriceVal('');
+            setTimeout(() => setStatusUpdateMsg(''), 4000);
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to update price. Please try again.');
+        } finally {
+            setUpdatingPrice(false);
         }
     };
 
@@ -581,18 +609,18 @@ function OwnerDashboard() {
                     <div style={{ background: '#ffffff', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
                             <div>
-                                <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a' }}>👔 Product Catalog & Stock Inventory ({products.length} Items)</h3>
+                                <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a' }}>👔 Product Catalog & Price Management</h3>
                                 <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '13px' }}>
-                                    Manage store prices, descriptions, inventory stock levels, and product pictures
+                                    Select a category below to filter products and edit individual product prices in real time.
                                 </p>
                             </div>
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                                 <input
                                     type="text"
-                                    placeholder="🔍 Search catalog products..."
+                                    placeholder="🔍 Search name or color..."
                                     value={prodSearch}
                                     onChange={(e) => setProdSearch(e.target.value)}
-                                    style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', width: '220px' }}
+                                    style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', width: '200px' }}
                                 />
                                 <button
                                     onClick={openAddProductModal}
@@ -611,6 +639,46 @@ function OwnerDashboard() {
                             </div>
                         </div>
 
+                        {/* Category Filter Pills for Owner */}
+                        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', marginBottom: '16px', scrollbarWidth: 'thin' }}>
+                            {[
+                                { id: 'All', name: 'All Products', icon: '🛍️', count: products.length },
+                                { id: '2', name: 'Shirts', icon: '👔', count: products.filter(p => String(p.category_id) === '2').length },
+                                { id: '1', name: 'T-Shirts', icon: '👕', count: products.filter(p => String(p.category_id) === '1').length },
+                                { id: '4', name: 'Trousers', icon: '👖', count: products.filter(p => String(p.category_id) === '4').length },
+                                { id: '3', name: 'Pants', icon: '👖', count: products.filter(p => String(p.category_id) === '3').length },
+                                { id: '8', name: 'Group Shirts', icon: '👔', count: products.filter(p => String(p.category_id) === '8').length },
+                                { id: '7', name: 'Hoodies', icon: '🧥', count: products.filter(p => String(p.category_id) === '7').length }
+                            ].map(cat => {
+                                const isSelected = ownerProdCategory === cat.id;
+                                return (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() => {
+                                            setOwnerProdCategory(cat.id);
+                                            setEditingPriceId(null);
+                                        }}
+                                        style={{
+                                            padding: '8px 16px',
+                                            borderRadius: '10px',
+                                            fontSize: '13px',
+                                            fontWeight: '700',
+                                            cursor: 'pointer',
+                                            whiteSpace: 'nowrap',
+                                            border: isSelected ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                                            background: isSelected ? '#2563eb' : '#ffffff',
+                                            color: isSelected ? '#ffffff' : '#334155',
+                                            boxShadow: isSelected ? '0 2px 8px rgba(37,99,235,0.2)' : 'none',
+                                            transition: 'all 0.15s ease'
+                                        }}
+                                    >
+                                        <span>{cat.icon}</span> {cat.name} ({cat.count})
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Products Table */}
                         <div style={{ overflowX: 'auto' }}>
                             <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                                 <thead>
@@ -618,6 +686,7 @@ function OwnerDashboard() {
                                         <th style={{ padding: '12px', textAlign: 'left' }}>Product Image</th>
                                         <th style={{ padding: '12px', textAlign: 'left' }}>Title</th>
                                         <th style={{ padding: '12px', textAlign: 'left' }}>Category</th>
+                                        <th style={{ padding: '12px', textAlign: 'left' }}>Color</th>
                                         <th style={{ padding: '12px', textAlign: 'left' }}>Price (₹)</th>
                                         <th style={{ padding: '12px', textAlign: 'left' }}>Stock</th>
                                         <th style={{ padding: '12px', textAlign: 'center' }}>Actions</th>
@@ -625,50 +694,187 @@ function OwnerDashboard() {
                                 </thead>
                                 <tbody>
                                     {products
-                                        .filter(p => !prodSearch.trim() || p.name.toLowerCase().includes(prodSearch.toLowerCase()) || (p.category_name && p.category_name.toLowerCase().includes(prodSearch.toLowerCase())))
-                                        .map(prod => (
-                                        <tr key={prod.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                            <td style={{ padding: '10px 12px' }}>
-                                                <img
-                                                    src={getImageSrc(prod.image)}
-                                                    alt={prod.name}
-                                                    style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0' }}
-                                                />
-                                            </td>
-                                            <td style={{ padding: '10px 12px', fontWeight: '700', color: '#0f172a' }}>
-                                                {prod.name}
-                                            </td>
-                                            <td style={{ padding: '10px 12px' }}>
-                                                <span style={{ background: '#f1f5f9', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '600' }}>
-                                                    {prod.category_name || 'Men Wear'}
-                                                </span>
-                                            </td>
-                                            <td style={{ padding: '10px 12px', fontWeight: '800', color: '#059669' }}>
-                                                ₹{Number(prod.price).toLocaleString('en-IN')}
-                                            </td>
-                                            <td style={{ padding: '10px 12px', fontWeight: '700' }}>
-                                                {prod.stock > 10 ? (
-                                                    <span style={{ color: '#059669' }}>{prod.stock} in stock</span>
-                                                ) : (
-                                                    <span style={{ color: '#dc2626' }}>Low: {prod.stock} left</span>
-                                                )}
-                                            </td>
-                                            <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                                                <button
-                                                    onClick={() => openEditProductModal(prod)}
-                                                    style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', marginRight: '6px', fontWeight: '700', fontSize: '12px' }}
-                                                >
-                                                    ✏️ Edit
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteProduct(prod.id)}
-                                                    style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}
-                                                >
-                                                    🗑️ Delete
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                        .filter(p => {
+                                            // Category Filter
+                                            if (ownerProdCategory !== 'All' && String(p.category_id) !== String(ownerProdCategory)) {
+                                                return false;
+                                            }
+                                            // Search Filter
+                                            if (prodSearch.trim()) {
+                                                const s = prodSearch.toLowerCase();
+                                                const matchName = p.name && p.name.toLowerCase().includes(s);
+                                                const matchCat = p.category_name && p.category_name.toLowerCase().includes(s);
+                                                const matchColor = p.color && p.color.toLowerCase().includes(s);
+                                                return matchName || matchCat || matchColor;
+                                            }
+                                            return true;
+                                        })
+                                        .map(prod => {
+                                            const isEditingThis = editingPriceId === prod.id;
+                                            return (
+                                                <tr key={prod.id} style={{ borderBottom: '1px solid #f1f5f9', background: isEditingThis ? '#f0fdf4' : 'transparent' }}>
+                                                    <td style={{ padding: '10px 12px' }}>
+                                                        <img
+                                                            src={getImageSrc(prod.image)}
+                                                            alt={prod.name}
+                                                            style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                                                            onError={(e) => {
+                                                                e.target.onerror = null;
+                                                                const filename = (prod.image || '').split('/').pop();
+                                                                e.target.src = getImageUrl(filename);
+                                                            }}
+                                                        />
+                                                    </td>
+                                                    <td style={{ padding: '10px 12px', fontWeight: '700', color: '#0f172a' }}>
+                                                        {prod.name}
+                                                        {prod.sleeve_type && (
+                                                            <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', marginTop: '2px' }}>
+                                                                {prod.sleeve_type}
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td style={{ padding: '10px 12px' }}>
+                                                        <span style={{ background: '#eff6ff', color: '#1e40af', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700' }}>
+                                                            {prod.category_name || 'Men Wear'}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ padding: '10px 12px' }}>
+                                                        <span style={{ background: '#f8fafc', color: '#334155', border: '1px solid #cbd5e1', padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700' }}>
+                                                            🎨 {prod.color || 'Assorted'}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ padding: '10px 12px' }}>
+                                                        {isEditingThis ? (
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                <span style={{ fontWeight: '800', color: '#059669', fontSize: '15px' }}>₹</span>
+                                                                <input
+                                                                    type="number"
+                                                                    min="1"
+                                                                    step="1"
+                                                                    value={editingPriceVal}
+                                                                    onChange={(e) => setEditingPriceVal(e.target.value)}
+                                                                    autoFocus
+                                                                    style={{
+                                                                        width: '95px',
+                                                                        padding: '6px 8px',
+                                                                        borderRadius: '6px',
+                                                                        border: '2px solid #059669',
+                                                                        fontWeight: '800',
+                                                                        fontSize: '14px',
+                                                                        background: '#ffffff',
+                                                                        outline: 'none'
+                                                                    }}
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === 'Enter') handleSavePrice(prod.id, editingPriceVal);
+                                                                        if (e.key === 'Escape') setEditingPriceId(null);
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <span style={{ fontSize: '15px', fontWeight: '800', color: '#059669' }}>
+                                                                ₹{Number(prod.price).toLocaleString('en-IN')}
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td style={{ padding: '10px 12px', fontWeight: '700' }}>
+                                                        {prod.stock > 10 ? (
+                                                            <span style={{ color: '#059669' }}>{prod.stock} in stock</span>
+                                                        ) : (
+                                                            <span style={{ color: '#dc2626' }}>Low: {prod.stock} left</span>
+                                                        )}
+                                                    </td>
+                                                    <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                                                        {isEditingThis ? (
+                                                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                                                                <button
+                                                                    onClick={() => handleSavePrice(prod.id, editingPriceVal)}
+                                                                    disabled={updatingPrice}
+                                                                    style={{
+                                                                        background: '#059669',
+                                                                        color: '#ffffff',
+                                                                        border: 'none',
+                                                                        padding: '6px 12px',
+                                                                        borderRadius: '6px',
+                                                                        cursor: 'pointer',
+                                                                        fontWeight: '800',
+                                                                        fontSize: '12px',
+                                                                        boxShadow: '0 2px 6px rgba(5,150,105,0.3)'
+                                                                    }}
+                                                                >
+                                                                    {updatingPrice ? 'Saving...' : '💾 Save Price'}
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setEditingPriceId(null)}
+                                                                    style={{
+                                                                        background: '#f1f5f9',
+                                                                        color: '#475569',
+                                                                        border: '1px solid #cbd5e1',
+                                                                        padding: '6px 10px',
+                                                                        borderRadius: '6px',
+                                                                        cursor: 'pointer',
+                                                                        fontWeight: '700',
+                                                                        fontSize: '12px'
+                                                                    }}
+                                                                >
+                                                                    ✕ Cancel
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setEditingPriceId(prod.id);
+                                                                        setEditingPriceVal(prod.price);
+                                                                    }}
+                                                                    style={{
+                                                                        background: '#ecfdf5',
+                                                                        color: '#047857',
+                                                                        border: '1px solid #a7f3d0',
+                                                                        padding: '5px 10px',
+                                                                        borderRadius: '6px',
+                                                                        cursor: 'pointer',
+                                                                        fontWeight: '700',
+                                                                        fontSize: '12px'
+                                                                    }}
+                                                                >
+                                                                    ✏️ Edit Price
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => openEditProductModal(prod)}
+                                                                    style={{
+                                                                        background: '#fef3c7',
+                                                                        color: '#92400e',
+                                                                        border: '1px solid #fde68a',
+                                                                        padding: '5px 8px',
+                                                                        borderRadius: '6px',
+                                                                        cursor: 'pointer',
+                                                                        fontWeight: '700',
+                                                                        fontSize: '12px'
+                                                                    }}
+                                                                >
+                                                                    ⚙️ Edit All
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteProduct(prod.id)}
+                                                                    style={{
+                                                                        background: '#fef2f2',
+                                                                        color: '#dc2626',
+                                                                        border: '1px solid #fecaca',
+                                                                        padding: '5px 8px',
+                                                                        borderRadius: '6px',
+                                                                        cursor: 'pointer',
+                                                                        fontWeight: '700',
+                                                                        fontSize: '12px'
+                                                                    }}
+                                                                >
+                                                                    🗑️ Delete
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                 </tbody>
                             </table>
                         </div>

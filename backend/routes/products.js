@@ -119,6 +119,42 @@ router.put('/:id', auth, isOwner, upload.single('image'), async (req, res) => {
     }
 });
 
+// PATCH update product price (Store Owner only)
+router.patch('/:id/price', auth, isOwner, async (req, res) => {
+    try {
+        const { price } = req.body;
+        const numPrice = parseFloat(price);
+        if (isNaN(numPrice) || numPrice < 0) {
+            return res.status(400).json({ message: 'Invalid price value' });
+        }
+
+        const [existing] = await pool.query('SELECT * FROM products WHERE id = ?', [req.params.id]);
+        if (!existing || existing.length === 0) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        await pool.query('UPDATE products SET price = ? WHERE id = ?', [numPrice, req.params.id]);
+
+        // Sync with MongoDB Product collection if connected
+        const { Product, getIsConnected } = require('../config/mongodb');
+        if (getIsConnected()) {
+            try {
+                await Product.findOneAndUpdate(
+                    { id: Number(req.params.id) },
+                    { $set: { price: numPrice } }
+                );
+            } catch (mErr) {
+                console.log('MongoDB price sync note:', mErr.message);
+            }
+        }
+
+        res.json({ message: 'Price updated successfully', productId: req.params.id, price: numPrice });
+    } catch (error) {
+        console.error('Error updating product price:', error);
+        res.status(500).json({ message: 'Server error updating price' });
+    }
+});
+
 // DELETE product (Store Owner only)
 router.delete('/:id', auth, isOwner, async (req, res) => {
     try {

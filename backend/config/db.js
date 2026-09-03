@@ -379,16 +379,29 @@ const smartPool = {
             return [{ insertId: newProd.id, affectedRows: 1 }, []];
         }
 
+        if (cleanSql.includes('UPDATE PRODUCTS SET PRICE =') || cleanSql.includes('UPDATE PRODUCTS SET PRICE=?')) {
+            const prod = memoryStore.products.find(p => p.id == params[1]);
+            if (prod) {
+                prod.price = parseFloat(params[0]);
+                return [{ affectedRows: 1 }, []];
+            }
+            return [{ affectedRows: 0 }, []];
+        }
+
         if (cleanSql.includes('UPDATE PRODUCTS SET')) {
             const prod = memoryStore.products.find(p => p.id == params[params.length - 1]);
             if (prod) {
-                prod.name = params[0];
-                prod.description = params[1];
-                prod.price = parseFloat(params[2]);
-                prod.image = params[3] || prod.image;
-                prod.category_id = parseInt(params[4]);
-                prod.size = params[5];
-                prod.stock = parseInt(params[6]);
+                if (params.length >= 7) {
+                    prod.name = params[0];
+                    prod.description = params[1];
+                    prod.price = parseFloat(params[2]);
+                    prod.image = params[3] || prod.image;
+                    prod.category_id = parseInt(params[4]);
+                    prod.size = params[5];
+                    prod.stock = parseInt(params[6]);
+                } else if (params.length === 2) {
+                    prod.price = parseFloat(params[0]);
+                }
             }
             return [{ affectedRows: 1 }, []];
         }
