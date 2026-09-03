@@ -193,37 +193,8 @@ function ProductDetail() {
                             </div>
                         )}
 
-                        {/* Action Buttons: Add to Cart & Buy Now for Customers vs Store Owner Management */}
-                        {isOwnerOrAdmin ? (
-                            <div style={{
-                                background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
-                                border: '1px solid #fde68a',
-                                padding: '18px 20px',
-                                borderRadius: '12px',
-                                textAlign: 'center'
-                            }}>
-                                <div style={{ fontSize: '15px', fontWeight: '800', color: '#92400e', marginBottom: '6px' }}>
-                                    👑 Store Owner Inventory View
-                                </div>
-                                <p style={{ margin: '0 0 14px', fontSize: '13px', color: '#b45309', lineHeight: '1.5' }}>
-                                    You are logged in as Store Owner. Ordering is disabled for Owner accounts. You can manage products, stock, and customer orders in the portal.
-                                </p>
-                                <Link
-                                    to="/owner"
-                                    className="btn"
-                                    style={{
-                                        background: '#111827',
-                                        color: '#ffffff',
-                                        fontWeight: '700',
-                                        padding: '10px 24px',
-                                        borderRadius: '8px',
-                                        display: 'inline-block'
-                                    }}
-                                >
-                                    👑 Open Store Owner Portal
-                                </Link>
-                            </div>
-                        ) : (
+                        {/* Action Buttons: Add to Cart & Buy Now (Only for Customers) */}
+                        {!isOwnerOrAdmin && (
                             <div className="product-detail-actions">
                                 <button
                                     className={`btn btn-primary ${added ? 'btn-success' : ''}`}
