@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -7,6 +8,12 @@ function Cart() {
     const { cart, removeFromCart, updateQuantity, getCartTotal, getCartCount } = useCart();
     const { user } = useAuth();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (user && (user.role === 'owner' || user.role === 'admin')) {
+            navigate('/owner');
+        }
+    }, [user, navigate]);
 
     const handleCheckout = () => {
         if (!user) {

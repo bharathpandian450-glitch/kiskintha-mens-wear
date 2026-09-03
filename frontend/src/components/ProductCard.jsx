@@ -1,11 +1,14 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { getImageUrl } from '../api';
 
 const getImageSrc = (img) => getImageUrl(img);
 
 function ProductCard({ product }) {
+    const { user } = useAuth();
     const { addToCart } = useCart();
+    const isOwnerOrAdmin = user && (user.role === 'owner' || user.role === 'admin');
 
     const handleAddToCart = (e) => {
         e.preventDefault();
@@ -122,26 +125,48 @@ function ProductCard({ product }) {
                     </span>
                 </div>
 
-                <button
-                    className="btn btn-primary"
-                    onClick={handleAddToCart}
-                    disabled={isOutOfStock}
-                    style={{
-                        width: '100%',
-                        fontWeight: '700',
-                        borderRadius: '8px',
-                        padding: '10px',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        gap: '6px',
-                        background: isOutOfStock ? '#94a3b8' : '#2563eb',
-                        borderColor: isOutOfStock ? '#94a3b8' : '#2563eb',
-                        cursor: isOutOfStock ? 'not-allowed' : 'pointer'
-                    }}
-                >
-                    {isOutOfStock ? '🚫 Out of Stock' : '🛒 Add to Cart'}
-                </button>
+                {isOwnerOrAdmin ? (
+                    <Link
+                        to={`/products/${product.id}`}
+                        className="btn"
+                        style={{
+                            width: '100%',
+                            fontWeight: '700',
+                            borderRadius: '8px',
+                            padding: '10px',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: '#f8fafc',
+                            color: '#1e293b',
+                            border: '1px solid #cbd5e1'
+                        }}
+                    >
+                        🔍 View Details
+                    </Link>
+                ) : (
+                    <button
+                        className="btn btn-primary"
+                        onClick={handleAddToCart}
+                        disabled={isOutOfStock}
+                        style={{
+                            width: '100%',
+                            fontWeight: '700',
+                            borderRadius: '8px',
+                            padding: '10px',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: isOutOfStock ? '#94a3b8' : '#2563eb',
+                            borderColor: isOutOfStock ? '#94a3b8' : '#2563eb',
+                            cursor: isOutOfStock ? 'not-allowed' : 'pointer'
+                        }}
+                    >
+                        {isOutOfStock ? '🚫 Out of Stock' : '🛒 Add to Cart'}
+                    </button>
+                )}
             </div>
         </div>
     );

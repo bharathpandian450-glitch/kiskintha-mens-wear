@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import API, { getImageUrl } from '../api';
+import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
 const getImageSrc = (img) => getImageUrl(img);
@@ -9,7 +10,9 @@ const getImageSrc = (img) => getImageUrl(img);
 function ProductDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const { addToCart } = useCart();
+    const isOwnerOrAdmin = user && (user.role === 'owner' || user.role === 'admin');
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedSize, setSelectedSize] = useState('');
@@ -167,47 +170,80 @@ function ProductDetail() {
                             </div>
                         </div>
 
-                        {/* Quantity Selector */}
-                        <div className="quantity-selector" style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            <label style={{ fontWeight: '700', color: '#0f172a', fontSize: '14px' }}>Quantity:</label>
-                            <div className="qty-controls" style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden' }}>
-                                <button
-                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    disabled={quantity <= 1}
-                                    style={{ padding: '8px 16px', background: '#f1f5f9', border: 'none', fontWeight: '800', cursor: 'pointer' }}
+                        {/* Quantity Selector (Only for Customers) */}
+                        {!isOwnerOrAdmin && (
+                            <div className="quantity-selector" style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <label style={{ fontWeight: '700', color: '#0f172a', fontSize: '14px' }}>Quantity:</label>
+                                <div className="qty-controls" style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden' }}>
+                                    <button
+                                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                        disabled={quantity <= 1}
+                                        style={{ padding: '8px 16px', background: '#f1f5f9', border: 'none', fontWeight: '800', cursor: 'pointer' }}
+                                    >
+                                        -
+                                    </button>
+                                    <span style={{ padding: '8px 16px', fontWeight: '800', minWidth: '40px', textAlign: 'center' }}>{quantity}</span>
+                                    <button
+                                        onClick={() => setQuantity(quantity + 1)}
+                                        style={{ padding: '8px 16px', background: '#f1f5f9', border: 'none', fontWeight: '800', cursor: 'pointer' }}
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Action Buttons: Add to Cart & Buy Now for Customers vs Store Owner Management */}
+                        {isOwnerOrAdmin ? (
+                            <div style={{
+                                background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+                                border: '1px solid #fde68a',
+                                padding: '18px 20px',
+                                borderRadius: '12px',
+                                textAlign: 'center'
+                            }}>
+                                <div style={{ fontSize: '15px', fontWeight: '800', color: '#92400e', marginBottom: '6px' }}>
+                                    👑 Store Owner Inventory View
+                                </div>
+                                <p style={{ margin: '0 0 14px', fontSize: '13px', color: '#b45309', lineHeight: '1.5' }}>
+                                    You are logged in as Store Owner. Ordering is disabled for Owner accounts. You can manage products, stock, and customer orders in the portal.
+                                </p>
+                                <Link
+                                    to="/owner"
+                                    className="btn"
+                                    style={{
+                                        background: '#111827',
+                                        color: '#ffffff',
+                                        fontWeight: '700',
+                                        padding: '10px 24px',
+                                        borderRadius: '8px',
+                                        display: 'inline-block'
+                                    }}
                                 >
-                                    -
+                                    👑 Open Store Owner Portal
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="product-detail-actions">
+                                <button
+                                    className={`btn btn-primary ${added ? 'btn-success' : ''}`}
+                                    onClick={handleAddToCart}
+                                    disabled={product.stock <= 0}
+                                    style={{ padding: '14px', fontSize: '15px', fontWeight: '700', borderRadius: '10px' }}
+                                >
+                                    {added ? '✓ Added to Cart!' : '🛒 Add to Cart'}
                                 </button>
-                                <span style={{ padding: '8px 16px', fontWeight: '800', minWidth: '40px', textAlign: 'center' }}>{quantity}</span>
+
                                 <button
-                                    onClick={() => setQuantity(quantity + 1)}
-                                    style={{ padding: '8px 16px', background: '#f1f5f9', border: 'none', fontWeight: '800', cursor: 'pointer' }}
+                                    className="btn"
+                                    onClick={handleBuyNow}
+                                    disabled={product.stock <= 0}
+                                    style={{ padding: '14px', fontSize: '15px', fontWeight: '800', borderRadius: '10px', background: '#059669', color: '#ffffff', border: 'none', cursor: 'pointer' }}
                                 >
-                                    +
+                                    ⚡ Buy Now (COD / UPI)
                                 </button>
                             </div>
-                        </div>
-
-                        {/* Action Buttons: Add to Cart & Buy Now */}
-                        <div className="product-detail-actions">
-                            <button
-                                className={`btn btn-primary ${added ? 'btn-success' : ''}`}
-                                onClick={handleAddToCart}
-                                disabled={product.stock <= 0}
-                                style={{ padding: '14px', fontSize: '15px', fontWeight: '700', borderRadius: '10px' }}
-                            >
-                                {added ? '✓ Added to Cart!' : '🛒 Add to Cart'}
-                            </button>
-
-                            <button
-                                className="btn"
-                                onClick={handleBuyNow}
-                                disabled={product.stock <= 0}
-                                style={{ padding: '14px', fontSize: '15px', fontWeight: '800', borderRadius: '10px', background: '#059669', color: '#ffffff', border: 'none', cursor: 'pointer' }}
-                            >
-                                ⚡ Buy Now (COD / UPI)
-                            </button>
-                        </div>
+                        )}
 
                         {/* Delivery Timeline & Guarantee Info Box */}
                         <div style={{

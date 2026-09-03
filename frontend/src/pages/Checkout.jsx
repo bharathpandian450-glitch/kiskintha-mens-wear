@@ -56,6 +56,12 @@ function Checkout() {
         return null;
     }
 
+    // Redirect Store Owner to Owner Dashboard (Owners cannot place orders)
+    if (user.role === 'owner' || user.role === 'admin') {
+        navigate('/owner');
+        return null;
+    }
+
     // Redirect if cart is empty
     if (cart.length === 0 && !orderPlaced) {
         navigate('/cart');

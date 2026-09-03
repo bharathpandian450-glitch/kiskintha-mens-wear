@@ -3,9 +3,13 @@ const router = express.Router();
 const pool = require('../config/db');
 const { auth, isAdmin } = require('../middleware/auth');
 
-// POST place order (Auth required) - Initial Status: 'Pending Approval'
+// POST place order (Auth required) - Only Customers can place orders
 router.post('/', auth, async (req, res) => {
     try {
+        if (req.user && (req.user.role === 'owner' || req.user.role === 'admin')) {
+            return res.status(403).json({ message: 'Store Owner accounts cannot place orders. Only customers can place orders.' });
+        }
+
         const { items, address, phone } = req.body;
 
         if (!items || items.length === 0) {
