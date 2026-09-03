@@ -104,7 +104,10 @@ function Checkout() {
                     product_id: item.id,
                     quantity: item.quantity,
                     price: item.price,
-                    size: item.size
+                    size: item.size || 'M',
+                    color: item.color || '',
+                    name: item.name || '',
+                    image: item.image || ''
                 })),
                 address: form.address,
                 phone: form.phone,
@@ -152,13 +155,18 @@ function Checkout() {
                             </div>
                         </div>
 
-                        <p style={{ color: '#475569', fontSize: '14px', marginBottom: '16px' }}>
+                        <p style={{ color: '#475569', fontSize: '14px', marginBottom: '20px' }}>
                             Your order has been placed successfully! Estimated delivery is <strong>🚚 5 to 7 Working Days</strong> across Tamil Nadu & India.
                         </p>
 
-                        <Link to="/" className="btn btn-primary" style={{ padding: '14px 28px', fontWeight: '700', borderRadius: '10px' }}>
-                            Continue Shopping →
-                        </Link>
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <Link to="/orders" className="btn btn-primary" style={{ padding: '14px 28px', fontWeight: '700', borderRadius: '10px' }}>
+                                🛍️ View in My Orders →
+                            </Link>
+                            <Link to="/products" className="btn btn-secondary" style={{ padding: '14px 28px', fontWeight: '700', borderRadius: '10px', background: '#ffffff', border: '1px solid #cbd5e1' }}>
+                                Continue Shopping →
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>

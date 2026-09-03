@@ -49,14 +49,19 @@ function Navbar() {
                         </Link>
                     )}
 
-                    {/* Hide Cart for Store Owner */}
+                    {/* Show Cart and My Orders for Customers */}
                     {(!user || (user.role !== 'owner' && user.role !== 'admin')) && (
-                        <Link to="/cart" className="cart-link" onClick={() => setMobileMenuOpen(false)}>
-                            🛒 Cart
-                            {getCartCount() > 0 && (
-                                <span className="cart-badge">{getCartCount()}</span>
-                            )}
-                        </Link>
+                        <>
+                            <Link to="/orders" onClick={() => setMobileMenuOpen(false)}>
+                                🛍️ My Orders
+                            </Link>
+                            <Link to="/cart" className="cart-link" onClick={() => setMobileMenuOpen(false)}>
+                                🛒 Cart
+                                {getCartCount() > 0 && (
+                                    <span className="cart-badge">{getCartCount()}</span>
+                                )}
+                            </Link>
+                        </>
                     )}
 
                     {user && (

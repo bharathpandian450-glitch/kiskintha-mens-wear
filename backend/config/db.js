@@ -188,13 +188,17 @@ const smartPool = {
         if (cleanSql.includes('SELECT') && cleanSql.includes('FROM ORDER_ITEMS')) {
             let list = memoryStore.order_items.map(oi => {
                 const p = memoryStore.products.find(prod => prod.id == oi.product_id);
+                const cat = p ? memoryStore.categories.find(c => c.id == p.category_id) : null;
                 return {
                     ...oi,
-                    product_name: p ? p.name : 'Kiskintha Apparel Item',
-                    image: p ? p.image : ''
+                    product_name: oi.product_name || (p ? p.name : 'Kiskintha Apparel Item'),
+                    image: oi.image || (p ? p.image : ''),
+                    color: oi.color || (p ? p.color : 'Assorted'),
+                    category_name: p ? (p.category_name || (cat ? cat.name : 'Men Wear')) : 'Men Wear',
+                    category_id: p ? p.category_id : 1
                 };
             });
-            if (cleanSql.includes('WHERE ORDER_ID =') || cleanSql.includes('ORDER_ID = ?')) {
+            if (cleanSql.includes('WHERE ORDER_ID =') || cleanSql.includes('ORDER_ID = ?') || cleanSql.includes('WHERE OI.ORDER_ID =')) {
                 list = list.filter(oi => oi.order_id == params[0]);
             }
             return [list, []];
@@ -423,8 +427,8 @@ const smartPool = {
                 total: parseFloat(params[1]),
                 address: params[2],
                 phone: params[3],
-                payment_method: params[4] || 'COD',
-                status: 'Pending Approval',
+                payment_method: params[4] || 'Cash on Delivery (COD)',
+                status: params[5] || 'Pending',
                 created_at: new Date()
             };
             memoryStore.orders.unshift(newOrder);
@@ -437,9 +441,12 @@ const smartPool = {
                 id: memoryStore.order_items.length + 1,
                 order_id: params[0],
                 product_id: params[1],
-                quantity: params[2],
+                quantity: parseInt(params[2]) || 1,
                 price: parseFloat(params[3]),
-                size: params[4] || 'M'
+                size: params[4] || 'M',
+                color: params[5] || '',
+                product_name: params[6] || '',
+                image: params[7] || ''
             };
             memoryStore.order_items.push(newItem);
             return [{ insertId: newItem.id, affectedRows: 1 }, []];

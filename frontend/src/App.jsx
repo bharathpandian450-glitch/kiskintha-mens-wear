@@ -12,6 +12,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import OwnerDashboard from './pages/OwnerDashboard';
 import Settings from './pages/Settings';
+import Orders from './pages/Orders';
 import { useAuth } from './context/AuthContext';
 
 // Global Scroll-to-Top Handler for route transitions
@@ -96,6 +97,7 @@ function App() {
                     <Route path="/products/:id" element={<ProtectedRoute><ProductDetail /></ProtectedRoute>} />
                     <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
                     <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+                    <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
                     <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                     <Route path="/admin" element={<Navigate to="/owner" replace />} />
                     <Route path="/owner" element={<ProtectedOwnerRoute><OwnerDashboard /></ProtectedOwnerRoute>} />

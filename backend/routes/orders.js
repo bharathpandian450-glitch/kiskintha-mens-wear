@@ -23,25 +23,48 @@ router.post('/', auth, async (req, res) => {
         // Calculate total
         const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-        const paymentMethod = req.body.payment_method || 'UPI QR Payment (bharathpandian450-1@okhdfcbank)';
+        const paymentMethod = req.body.payment_method || 'Cash on Delivery (COD)';
 
-        // Insert order with initial status: 'Pending Approval'
+        // Insert order with initial status: 'Pending'
         const [orderResult] = await pool.query(
             'INSERT INTO orders (user_id, total, address, phone, payment_method, status) VALUES (?, ?, ?, ?, ?, ?)',
-            [req.user.id, total, address, phone, paymentMethod, 'Pending Approval']
+            [req.user.id, total, address, phone, paymentMethod, 'Pending']
         );
 
         const orderId = orderResult.insertId;
 
-        // Import Product model
-        const { Product, getIsConnected } = require('../config/mongodb');
+        // Import Product and Order models
+        const { Product, Order, getIsConnected } = require('../config/mongodb');
+
+        const savedItems = [];
 
         // Insert order items and decrease stock
         for (const item of items) {
+            // Find product details
+            const [pRows] = await pool.query('SELECT * FROM products WHERE id = ?', [item.product_id]);
+            const prod = pRows && pRows[0] ? pRows[0] : null;
+
+            const itemSize = item.size || 'M';
+            const itemColor = item.color || (prod ? prod.color : 'Assorted');
+            const itemName = item.name || (prod ? prod.name : 'Kiskintha Item');
+            const itemImage = item.image || (prod ? prod.image : '');
+            const itemCat = prod ? (prod.category_name || 'Men Wear') : 'Men Wear';
+
             await pool.query(
-                'INSERT INTO order_items (order_id, product_id, quantity, price, size) VALUES (?, ?, ?, ?, ?)',
-                [orderId, item.product_id, item.quantity, item.price, item.size || 'M']
+                'INSERT INTO order_items (order_id, product_id, quantity, price, size, color, product_name, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                [orderId, item.product_id, item.quantity, item.price, itemSize, itemColor, itemName, itemImage]
             );
+
+            savedItems.push({
+                product_id: item.product_id,
+                name: itemName,
+                image: itemImage,
+                category_name: itemCat,
+                color: itemColor,
+                size: itemSize,
+                quantity: item.quantity,
+                price: item.price
+            });
 
             // Decrease stock in pool / memoryStore
             await pool.query(
@@ -62,10 +85,31 @@ router.post('/', auth, async (req, res) => {
             }
         }
 
+        // Save order in MongoDB if connected
+        if (getIsConnected()) {
+            try {
+                await Order.create({
+                    id: orderId,
+                    user_id: req.user.id,
+                    customer_name: req.user.name || 'Customer',
+                    customer_email: req.user.email || '',
+                    total,
+                    status: 'Pending',
+                    address,
+                    phone,
+                    payment_method: paymentMethod,
+                    items: savedItems,
+                    created_at: new Date()
+                });
+            } catch (mongoErr) {
+                console.log('MongoDB Order save note:', mongoErr.message);
+            }
+        }
+
         res.status(201).json({
-            message: 'Order placed successfully! Pending Store Owner approval.',
+            message: 'Order placed successfully! Visible in Owner Portal.',
             orderId,
-            status: 'Pending Approval'
+            status: 'Pending'
         });
     } catch (error) {
         console.error('Error placing order:', error);
@@ -73,27 +117,45 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
-// GET user's orders (Auth required)
+// GET user's orders (Auth required - Customer only sees their own orders)
 router.get('/my', auth, async (req, res) => {
     try {
-        const [rows] = await pool.query(
+        const [orders] = await pool.query(
             'SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC',
             [req.user.id]
         );
-        res.json(rows);
+
+        for (const order of orders) {
+            const [items] = await pool.query(
+                'SELECT oi.*, p.name as product_name, p.image, p.color, p.category_name, p.category_id FROM order_items oi LEFT JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?',
+                [order.id]
+            );
+            order.items = items || [];
+        }
+
+        res.json(orders);
     } catch (error) {
         console.error('Error fetching orders:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
 
-// GET all orders (Admin & Owner)
+// GET all orders (Admin & Owner Only)
 router.get('/', auth, isAdmin, async (req, res) => {
     try {
-        const [rows] = await pool.query(
+        const [orders] = await pool.query(
             'SELECT o.*, u.name as customer_name, u.email as customer_email, u.phone as u_phone FROM orders o LEFT JOIN users u ON o.user_id = u.id ORDER BY o.created_at DESC'
         );
-        res.json(rows);
+
+        for (const order of orders) {
+            const [items] = await pool.query(
+                'SELECT oi.*, p.name as product_name, p.image, p.color, p.category_name, p.category_id FROM order_items oi LEFT JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?',
+                [order.id]
+            );
+            order.items = items || [];
+        }
+
+        res.json(orders);
     } catch (error) {
         console.error('Error fetching all orders:', error);
         res.status(500).json({ message: 'Server error' });
@@ -104,7 +166,7 @@ router.get('/', auth, isAdmin, async (req, res) => {
 router.get('/:id/items', auth, async (req, res) => {
     try {
         const [rows] = await pool.query(
-            'SELECT oi.*, p.name as product_name, p.image FROM order_items oi LEFT JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?',
+            'SELECT oi.*, p.name as product_name, p.image, p.color, p.category_name, p.category_id FROM order_items oi LEFT JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?',
             [req.params.id]
         );
         res.json(rows);
@@ -114,8 +176,8 @@ router.get('/:id/items', auth, async (req, res) => {
     }
 });
 
-// PUT update / approve / reject order status (Admin & Owner)
-router.put('/:id', auth, isAdmin, async (req, res) => {
+// PUT & PATCH update order status (Admin & Owner)
+const handleStatusUpdate = async (req, res) => {
     try {
         const { status } = req.body;
         const orderId = req.params.id;
@@ -137,7 +199,20 @@ router.put('/:id', auth, isAdmin, async (req, res) => {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        // If order was cancelled / rejected, restore product stock
+        // Update in live MongoDB Order collection if connected
+        const { Order, getIsConnected } = require('../config/mongodb');
+        if (getIsConnected()) {
+            try {
+                await Order.findOneAndUpdate(
+                    { id: Number(orderId) },
+                    { $set: { status } }
+                );
+            } catch (mongoErr) {
+                console.log('MongoDB Order status update note:', mongoErr.message);
+            }
+        }
+
+        // If order was cancelled, restore product stock
         if (status.toLowerCase().includes('cancel') || status.toLowerCase().includes('reject')) {
             if (previousStatus && !previousStatus.toLowerCase().includes('cancel') && !previousStatus.toLowerCase().includes('reject')) {
                 const [items] = await pool.query('SELECT product_id, quantity FROM order_items WHERE order_id = ?', [orderId]);
@@ -149,11 +224,14 @@ router.put('/:id', auth, isAdmin, async (req, res) => {
             }
         }
 
-        res.json({ message: `Order #${orderId} updated to ${status}`, status });
+        res.json({ message: `Order #${orderId} status updated to ${status}`, status });
     } catch (error) {
         console.error('Error updating order status:', error);
         res.status(500).json({ message: 'Server error' });
     }
-});
+};
+
+router.put('/:id', auth, isAdmin, handleStatusUpdate);
+router.patch('/:id/status', auth, isAdmin, handleStatusUpdate);
 
 module.exports = router;

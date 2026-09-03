@@ -23,6 +23,8 @@ function OwnerDashboard() {
     const [orderItems, setOrderItems] = useState([]);
     const [loadingItems, setLoadingItems] = useState(false);
     const [statusUpdateMsg, setStatusUpdateMsg] = useState('');
+    const [orderStatusFilter, setOrderStatusFilter] = useState('All');
+    const [orderSearch, setOrderSearch] = useState('');
 
     // Product Upload/Edit Form State
     const [showProductModal, setShowProductModal] = useState(false);
@@ -336,7 +338,7 @@ function OwnerDashboard() {
                             border: activeTab === 'orders' ? '1px solid #d4af37' : '1px solid #cbd5e1'
                         }}
                     >
-                        🛍️ All Customer Purchases ({orders.length})
+                        🛍️ Customer Orders ({orders.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('customers')}
@@ -351,7 +353,7 @@ function OwnerDashboard() {
                             boxShadow: activeTab === 'customers' ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
                         }}
                     >
-                        👥 Registered Customers Directory ({customers.length})
+                        👥 Registered Customers ({customers.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('products')}
@@ -380,23 +382,68 @@ function OwnerDashboard() {
                             color: activeTab === 'staff' ? '#fef08a' : '#475569'
                         }}
                     >
-                        🛡️ Staff & Authority Roles ({staff.length})
+                        🛡️ Staff Roles ({staff.length})
                     </button>
                 </div>
 
-                {/* TAB 1: ALL CUSTOMER ORDERS & COMPLETE PURCHASE DETAILS */}
+                {/* TAB 1: CUSTOMER ORDERS & LIVE STATUS MANAGEMENT */}
                 {activeTab === 'orders' && (
                     <div style={{ background: '#ffffff', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
                             <div>
-                                <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a' }}>🛍️ Customer Purchases & Orders Log</h3>
+                                <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a' }}>🛍️ Customer Orders Management</h3>
                                 <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '13px' }}>
-                                    Full purchase details including customer name, contact, delivery address, order total, and purchased item breakdown
+                                    View all customer orders, product details, address, payment method, and update order status in real time.
                                 </p>
                             </div>
-                            <span style={{ fontSize: '13px', background: '#ecfdf5', color: '#047857', padding: '6px 12px', borderRadius: '20px', fontWeight: '700', border: '1px solid #a7f3d0' }}>
-                                Live Order Tracking Active
-                            </span>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <input
+                                    type="text"
+                                    placeholder="🔍 Search order ID, customer, phone..."
+                                    value={orderSearch}
+                                    onChange={(e) => setOrderSearch(e.target.value)}
+                                    style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', width: '230px' }}
+                                />
+                                <span style={{ fontSize: '13px', background: '#ecfdf5', color: '#047857', padding: '6px 12px', borderRadius: '20px', fontWeight: '700', border: '1px solid #a7f3d0' }}>
+                                    ⚡ Live Sync Active
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Order Status Filter Bar */}
+                        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', marginBottom: '16px', scrollbarWidth: 'thin' }}>
+                            {[
+                                { id: 'All', label: 'All Orders', count: orders.length },
+                                { id: 'Pending', label: '⏳ Pending', count: orders.filter(o => (o.status || 'Pending') === 'Pending' || o.status === 'Pending Approval').length },
+                                { id: 'Confirmed', label: '✅ Confirmed', count: orders.filter(o => o.status === 'Confirmed' || o.status === 'Approved & Confirmed').length },
+                                { id: 'Packed', label: '📦 Packed', count: orders.filter(o => o.status === 'Packed').length },
+                                { id: 'Shipped', label: '🚚 Shipped', count: orders.filter(o => o.status === 'Shipped').length },
+                                { id: 'Delivered', label: '🎉 Delivered', count: orders.filter(o => o.status === 'Delivered').length },
+                                { id: 'Cancelled', label: '❌ Cancelled', count: orders.filter(o => (o.status || '').toLowerCase().includes('cancel') || (o.status || '').toLowerCase().includes('reject')).length }
+                            ].map(st => {
+                                const isSelected = orderStatusFilter === st.id;
+                                return (
+                                    <button
+                                        key={st.id}
+                                        onClick={() => setOrderStatusFilter(st.id)}
+                                        style={{
+                                            padding: '8px 16px',
+                                            borderRadius: '10px',
+                                            fontSize: '13px',
+                                            fontWeight: '700',
+                                            cursor: 'pointer',
+                                            whiteSpace: 'nowrap',
+                                            border: isSelected ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                                            background: isSelected ? '#2563eb' : '#ffffff',
+                                            color: isSelected ? '#ffffff' : '#334155',
+                                            boxShadow: isSelected ? '0 2px 8px rgba(37,99,235,0.2)' : 'none',
+                                            transition: 'all 0.15s ease'
+                                        }}
+                                    >
+                                        {st.label} ({st.count})
+                                    </button>
+                                );
+                            })}
                         </div>
 
                         {orders.length === 0 ? (
@@ -409,129 +456,197 @@ function OwnerDashboard() {
                                 <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                                     <thead>
                                         <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textTransform: 'uppercase', fontSize: '11px', color: '#475569' }}>
-                                            <th style={{ padding: '12px', textAlign: 'left' }}>Order ID</th>
-                                            <th style={{ padding: '12px', textAlign: 'left' }}>Customer Name</th>
-                                            <th style={{ padding: '12px', textAlign: 'left' }}>Email / Phone</th>
+                                            <th style={{ padding: '12px', textAlign: 'left' }}>Order ID & Date</th>
+                                            <th style={{ padding: '12px', textAlign: 'left' }}>Customer & Contact</th>
                                             <th style={{ padding: '12px', textAlign: 'left' }}>Delivery Address</th>
-                                            <th style={{ padding: '12px', textAlign: 'left' }}>Total (₹)</th>
-                                            <th style={{ padding: '12px', textAlign: 'left' }}>Status</th>
-                                            <th style={{ padding: '12px', textAlign: 'center' }}>Action</th>
+                                            <th style={{ padding: '12px', textAlign: 'left', minWidth: '220px' }}>Ordered Items</th>
+                                            <th style={{ padding: '12px', textAlign: 'left' }}>Total & Payment</th>
+                                            <th style={{ padding: '12px', textAlign: 'left' }}>Order Status</th>
+                                            <th style={{ padding: '12px', textAlign: 'center' }}>Breakdown</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {orders.map(order => (
-                                            <tr key={order.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                                <td style={{ padding: '14px 12px', fontWeight: '800', color: '#1a56db' }}>
-                                                    #{order.id}
-                                                </td>
-                                                <td style={{ padding: '14px 12px', fontWeight: '700', color: '#0f172a' }}>
-                                                    👤 {order.customer_name || 'Customer'}
-                                                </td>
-                                                <td style={{ padding: '14px 12px' }}>
-                                                    <div style={{ fontWeight: '600', color: '#1e293b' }}>{order.customer_email || 'N/A'}</div>
-                                                    <div style={{ fontSize: '11px', color: '#64748b' }}>📞 {order.phone || order.customer_phone || 'N/A'}</div>
-                                                </td>
-                                                <td style={{ padding: '14px 12px', maxWidth: '240px', color: '#334155' }}>
-                                                    📍 {order.address || 'Standard Delivery Address'}
-                                                </td>
-                                                <td style={{ padding: '14px 12px', fontWeight: '800', color: '#059669', fontSize: '15px' }}>
-                                                    ₹{Number(order.total || 0).toLocaleString('en-IN')}
-                                                    <div style={{ fontSize: '10px', color: '#b45309', fontWeight: '700', marginTop: '2px' }}>
-                                                        📱 {order.payment_method || 'UPI QR (bharathpandian450-1@okhdfcbank)'}
-                                                    </div>
-                                                </td>
-                                                <td style={{ padding: '14px 12px' }}>
-                                                    {order.status === 'Pending Approval' || order.status === 'Pending' ? (
-                                                        <span style={{
-                                                            padding: '4px 10px',
-                                                            borderRadius: '20px',
-                                                            fontSize: '11px',
-                                                            fontWeight: '800',
-                                                            background: '#fef3c7',
-                                                            color: '#b45309',
-                                                            border: '1px solid #fde68a',
-                                                            display: 'inline-block',
-                                                            marginBottom: '6px'
-                                                        }}>
-                                                            ⏳ Pending Owner Approval
-                                                        </span>
-                                                    ) : (
-                                                        <select
-                                                            value={order.status}
-                                                            onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                                                            style={{
-                                                                padding: '6px 10px',
-                                                                borderRadius: '6px',
-                                                                fontWeight: '700',
-                                                                fontSize: '12px',
-                                                                border: '1px solid #cbd5e1',
-                                                                background: order.status.includes('Approved') || order.status === 'Confirmed' || order.status === 'Delivered' ? '#dcfce7' : order.status === 'Shipped' ? '#dbeafe' : '#f1f5f9',
-                                                                color: order.status.includes('Approved') || order.status === 'Confirmed' || order.status === 'Delivered' ? '#15803d' : order.status === 'Shipped' ? '#1d4ed8' : '#334155',
-                                                                cursor: 'pointer'
-                                                            }}
-                                                        >
-                                                            <option value="Pending Approval">Pending Approval</option>
-                                                            <option value="Approved & Confirmed">Approved & Confirmed</option>
-                                                            <option value="Shipped">Shipped</option>
-                                                            <option value="Delivered">Delivered</option>
-                                                            <option value="Rejected & Cancelled">Rejected & Cancelled</option>
-                                                        </select>
-                                                    )}
+                                        {orders
+                                            .filter(order => {
+                                                // Status Filter
+                                                if (orderStatusFilter !== 'All') {
+                                                    const cur = order.status || 'Pending';
+                                                    if (orderStatusFilter === 'Pending') {
+                                                        if (cur !== 'Pending' && cur !== 'Pending Approval') return false;
+                                                    } else if (orderStatusFilter === 'Confirmed') {
+                                                        if (cur !== 'Confirmed' && cur !== 'Approved & Confirmed') return false;
+                                                    } else if (orderStatusFilter === 'Cancelled') {
+                                                        if (!cur.toLowerCase().includes('cancel') && !cur.toLowerCase().includes('reject')) return false;
+                                                    } else {
+                                                        if (cur !== orderStatusFilter) return false;
+                                                    }
+                                                }
+                                                // Search Filter
+                                                if (orderSearch.trim()) {
+                                                    const s = orderSearch.toLowerCase();
+                                                    const matchId = String(order.id).includes(s);
+                                                    const matchCust = order.customer_name && order.customer_name.toLowerCase().includes(s);
+                                                    const matchPhone = (order.phone || order.customer_phone || '').includes(s);
+                                                    const matchAddr = order.address && order.address.toLowerCase().includes(s);
+                                                    const matchItems = (order.items || []).some(item => (item.product_name || item.name || '').toLowerCase().includes(s));
+                                                    return matchId || matchCust || matchPhone || matchAddr || matchItems;
+                                                }
+                                                return true;
+                                            })
+                                            .map(order => {
+                                                const formattedDate = order.created_at
+                                                    ? new Date(order.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+                                                    : 'Recently';
 
-                                                    {(order.status === 'Pending Approval' || order.status === 'Pending') && (
-                                                        <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
-                                                            <button
-                                                                onClick={() => handleStatusChange(order.id, 'Approved & Confirmed')}
+                                                // Normalize status value
+                                                let currentStatus = order.status || 'Pending';
+                                                if (currentStatus === 'Pending Approval') currentStatus = 'Pending';
+                                                if (currentStatus === 'Approved & Confirmed') currentStatus = 'Confirmed';
+                                                if (currentStatus.toLowerCase().includes('cancel') || currentStatus.toLowerCase().includes('reject')) currentStatus = 'Cancelled';
+
+                                                return (
+                                                    <tr key={order.id} style={{ borderBottom: '1px solid #f1f5f9', verticalAlign: 'top' }}>
+                                                        {/* Order ID & Date */}
+                                                        <td style={{ padding: '14px 12px' }}>
+                                                            <div style={{ fontWeight: '800', color: '#1a56db', fontSize: '14px' }}>
+                                                                #{order.id}
+                                                            </div>
+                                                            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+                                                                📅 {formattedDate}
+                                                            </div>
+                                                        </td>
+
+                                                        {/* Customer Name & Phone */}
+                                                        <td style={{ padding: '14px 12px' }}>
+                                                            <div style={{ fontWeight: '700', color: '#0f172a' }}>
+                                                                👤 {order.customer_name || 'Customer'}
+                                                            </div>
+                                                            <div style={{ fontSize: '11px', color: '#1e293b', marginTop: '2px' }}>
+                                                                📞 {order.phone || order.customer_phone || 'N/A'}
+                                                            </div>
+                                                            {order.customer_email && (
+                                                                <div style={{ fontSize: '10px', color: '#64748b' }}>
+                                                                    ✉️ {order.customer_email}
+                                                                </div>
+                                                            )}
+                                                        </td>
+
+                                                        {/* Delivery Address */}
+                                                        <td style={{ padding: '14px 12px', maxWidth: '200px', color: '#334155', fontSize: '12px', lineHeight: '1.4' }}>
+                                                            📍 {order.address || 'Standard Delivery Address'}
+                                                        </td>
+
+                                                        {/* Ordered Products breakdown */}
+                                                        <td style={{ padding: '14px 12px' }}>
+                                                            {(order.items && order.items.length > 0) ? (
+                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                                    {order.items.map((item, idx) => (
+                                                                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '6px 8px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                                                            <img
+                                                                                src={getImageSrc(item.image)}
+                                                                                alt={item.product_name || item.name}
+                                                                                style={{ width: '36px', height: '36px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                                                                onError={(e) => {
+                                                                                    e.target.onerror = null;
+                                                                                    const filename = (item.image || '').split('/').pop();
+                                                                                    e.target.src = getImageUrl(filename);
+                                                                                }}
+                                                                            />
+                                                                            <div style={{ fontSize: '12px' }}>
+                                                                                <div style={{ fontWeight: '700', color: '#0f172a' }}>
+                                                                                    {item.product_name || item.name || 'Kiskintha Item'}
+                                                                                </div>
+                                                                                <div style={{ fontSize: '11px', color: '#64748b', display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '1px' }}>
+                                                                                    {item.category_name && <span style={{ color: '#1e40af', fontWeight: '700' }}>{item.category_name}</span>}
+                                                                                    {item.color && <span>🎨 {item.color}</span>}
+                                                                                    <span>📏 {item.size || 'M'}</span>
+                                                                                    <span style={{ fontWeight: '700', color: '#059669' }}>
+                                                                                        {item.quantity} × ₹{Number(item.price).toLocaleString('en-IN')}
+                                                                                    </span>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => handleViewOrderDetails(order)}
+                                                                    style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: '600' }}
+                                                                >
+                                                                    🔍 View Items
+                                                                </button>
+                                                            )}
+                                                        </td>
+
+                                                        {/* Total Amount & Payment Method */}
+                                                        <td style={{ padding: '14px 12px' }}>
+                                                            <div style={{ fontWeight: '800', color: '#059669', fontSize: '16px' }}>
+                                                                ₹{Number(order.total || 0).toLocaleString('en-IN')}
+                                                            </div>
+                                                            <div style={{ fontSize: '11px', color: '#475569', fontWeight: '600', marginTop: '2px' }}>
+                                                                💳 {order.payment_method || 'Cash on Delivery (COD)'}
+                                                            </div>
+                                                        </td>
+
+                                                        {/* Order Status Selector */}
+                                                        <td style={{ padding: '14px 12px' }}>
+                                                            <select
+                                                                value={currentStatus}
+                                                                onChange={(e) => handleStatusChange(order.id, e.target.value)}
                                                                 style={{
-                                                                    background: '#059669',
-                                                                    color: '#fff',
-                                                                    border: 'none',
-                                                                    padding: '4px 8px',
-                                                                    borderRadius: '4px',
-                                                                    fontWeight: '700',
-                                                                    fontSize: '11px',
-                                                                    cursor: 'pointer'
+                                                                    padding: '7px 12px',
+                                                                    borderRadius: '8px',
+                                                                    fontWeight: '800',
+                                                                    fontSize: '12px',
+                                                                    border: '1.5px solid #cbd5e1',
+                                                                    background: currentStatus === 'Pending' ? '#fef3c7'
+                                                                        : currentStatus === 'Confirmed' ? '#e0f2fe'
+                                                                        : currentStatus === 'Packed' ? '#f3e8ff'
+                                                                        : currentStatus === 'Shipped' ? '#dbeafe'
+                                                                        : currentStatus === 'Delivered' ? '#dcfce7'
+                                                                        : '#fee2e2',
+                                                                    color: currentStatus === 'Pending' ? '#b45309'
+                                                                        : currentStatus === 'Confirmed' ? '#0369a1'
+                                                                        : currentStatus === 'Packed' ? '#7e22ce'
+                                                                        : currentStatus === 'Shipped' ? '#1d4ed8'
+                                                                        : currentStatus === 'Delivered' ? '#15803d'
+                                                                        : '#b91c1c',
+                                                                    cursor: 'pointer',
+                                                                    outline: 'none',
+                                                                    width: '130px'
                                                                 }}
                                                             >
-                                                                ✅ Approve
-                                                            </button>
+                                                                <option value="Pending">⏳ Pending</option>
+                                                                <option value="Confirmed">✅ Confirmed</option>
+                                                                <option value="Packed">📦 Packed</option>
+                                                                <option value="Shipped">🚚 Shipped</option>
+                                                                <option value="Delivered">🎉 Delivered</option>
+                                                                <option value="Cancelled">❌ Cancelled</option>
+                                                            </select>
+                                                        </td>
+
+                                                        {/* Action / Breakdown Modal Trigger */}
+                                                        <td style={{ padding: '14px 12px', textAlign: 'center' }}>
                                                             <button
-                                                                onClick={() => handleStatusChange(order.id, 'Rejected & Cancelled')}
+                                                                onClick={() => handleViewOrderDetails(order)}
                                                                 style={{
-                                                                    background: '#dc2626',
-                                                                    color: '#fff',
-                                                                    border: 'none',
-                                                                    padding: '4px 8px',
-                                                                    borderRadius: '4px',
+                                                                    background: 'linear-gradient(135deg, #111111 0%, #1e1e1e 100%)',
+                                                                    color: '#fef08a',
+                                                                    border: '1px solid #d4af37',
+                                                                    padding: '6px 12px',
+                                                                    borderRadius: '6px',
                                                                     fontWeight: '700',
                                                                     fontSize: '11px',
-                                                                    cursor: 'pointer'
+                                                                    cursor: 'pointer',
+                                                                    whiteSpace: 'nowrap'
                                                                 }}
                                                             >
-                                                                ❌ Reject
+                                                                👁️ Breakdown
                                                             </button>
-                                                        </div>
-                                                    )}
-                                                </td>
-                                                <td style={{ padding: '14px 12px', textAlign: 'center' }}>
-                                                    <button
-                                                        onClick={() => handleViewOrderDetails(order)}
-                                                        style={{
-                                                            background: 'linear-gradient(135deg, #111111 0%, #1e1e1e 100%)',
-                                                            color: '#fef08a',
-                                                            border: '1px solid #d4af37',
-                                                            padding: '6px 14px',
-                                                            borderRadius: '6px',
-                                                            fontWeight: '700',
-                                                            fontSize: '12px',
-                                                            cursor: 'pointer'
-                                                        }}
-                                                    >
-                                                        👁️ View Purchase Breakdown
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
                                     </tbody>
                                 </table>
                             </div>
