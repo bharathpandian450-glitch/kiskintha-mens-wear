@@ -172,27 +172,25 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
-// GET user's orders (Auth required - Customer only sees their own orders)
+// GET user's orders (Auth required - Customer ONLY sees their own orders)
 router.get('/my', auth, async (req, res) => {
     try {
         const { Order, getIsConnected } = require('../config/mongodb');
+        let mongoOrders = [];
         if (getIsConnected()) {
             try {
-                const mongoOrders = await Order.find({ user_id: req.user.id }).sort({ created_at: -1 }).lean();
-                if (mongoOrders && mongoOrders.length > 0) {
-                    return res.json(mongoOrders);
-                }
+                mongoOrders = await Order.find({ user_id: req.user.id }).sort({ created_at: -1 }).lean();
             } catch (mErr) {
                 console.log('MongoDB user orders fetch note:', mErr.message);
             }
         }
 
-        const [orders] = await pool.query(
+        const [memOrders] = await pool.query(
             'SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC',
             [req.user.id]
         );
 
-        for (const order of orders) {
+        for (const order of memOrders) {
             const [items] = await pool.query(
                 'SELECT oi.*, p.name as product_name, p.image, p.color, p.category_name, p.category_id FROM order_items oi LEFT JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?',
                 [order.id]
@@ -200,35 +198,46 @@ router.get('/my', auth, async (req, res) => {
             order.items = items || [];
         }
 
-        res.json(orders);
+        const orderMap = new Map();
+        if (mongoOrders && mongoOrders.length > 0) {
+            mongoOrders.forEach(o => orderMap.set(Number(o.id), o));
+        }
+        if (memOrders && memOrders.length > 0) {
+            memOrders.forEach(o => {
+                if (!orderMap.has(Number(o.id))) orderMap.set(Number(o.id), o);
+            });
+        }
+
+        const myOrders = Array.from(orderMap.values());
+        myOrders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        res.json(myOrders);
     } catch (error) {
-        console.error('Error fetching orders:', error);
+        console.error('Error fetching customer orders:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
 
-// GET all customer orders (Admin & Owner Only - Returns ALL customer orders)
+// GET all customer orders (Admin & Owner Only - Unified MongoDB + MemoryStore Order Fetch)
 router.get('/', auth, isAdmin, async (req, res) => {
     try {
         const { Order, getIsConnected } = require('../config/mongodb');
-        const { memoryStore } = require('../config/db');
 
+        let mongoOrders = [];
         if (getIsConnected()) {
             try {
-                const mongoOrders = await Order.find({}).sort({ created_at: -1 }).lean();
-                if (mongoOrders && mongoOrders.length > 0) {
-                    return res.json(mongoOrders);
-                }
+                mongoOrders = await Order.find({}).sort({ created_at: -1 }).lean();
             } catch (mErr) {
                 console.log('MongoDB all orders fetch note:', mErr.message);
             }
         }
 
-        const [orders] = await pool.query(
+        // Fetch memoryStore orders
+        const [memOrders] = await pool.query(
             'SELECT o.*, u.name as customer_name, u.email as customer_email, u.phone as u_phone FROM orders o LEFT JOIN users u ON o.user_id = u.id ORDER BY o.created_at DESC'
         );
 
-        for (const order of orders) {
+        for (const order of memOrders) {
             const [items] = await pool.query(
                 'SELECT oi.*, p.name as product_name, p.image, p.color, p.category_name, p.category_id FROM order_items oi LEFT JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?',
                 [order.id]
@@ -236,7 +245,88 @@ router.get('/', auth, isAdmin, async (req, res) => {
             order.items = items || [];
         }
 
-        res.json(orders);
+        // Combine MongoDB & MemoryStore orders uniquely by order.id
+        const orderMap = new Map();
+
+        // 1. Add MongoDB orders
+        if (mongoOrders && mongoOrders.length > 0) {
+            for (const o of mongoOrders) {
+                orderMap.set(Number(o.id), {
+                    ...o,
+                    id: Number(o.id),
+                    customer_name: o.customer_name || 'Customer',
+                    customer_email: o.customer_email || '',
+                    customer_phone: o.customer_phone || o.phone || '',
+                    phone: o.phone || o.customer_phone || '',
+                    address: o.address || '',
+                    city: o.city || 'Chennai',
+                    state: o.state || 'Tamil Nadu',
+                    pincode: o.pincode || '600040',
+                    total: Number(o.total || 0),
+                    payment_status: o.payment_status || 'Paid',
+                    payment_method: o.payment_method || 'Online Payment',
+                    status: o.status || 'Pending',
+                    created_at: o.created_at || new Date(),
+                    items: o.items || []
+                });
+            }
+        }
+
+        // 2. Add MemoryStore orders (fill in any order not in MongoDB or update items)
+        if (memOrders && memOrders.length > 0) {
+            for (const o of memOrders) {
+                const oid = Number(o.id);
+                if (!orderMap.has(oid)) {
+                    orderMap.set(oid, {
+                        ...o,
+                        id: oid,
+                        customer_name: o.customer_name || 'Customer',
+                        customer_email: o.customer_email || '',
+                        customer_phone: o.phone || o.u_phone || '',
+                        phone: o.phone || o.u_phone || '',
+                        address: o.address || '',
+                        city: o.city || 'Chennai',
+                        state: o.state || 'Tamil Nadu',
+                        pincode: o.pincode || '600040',
+                        total: Number(o.total || 0),
+                        payment_status: o.payment_status || 'Paid',
+                        payment_method: o.payment_method || 'Online Payment',
+                        status: o.status || 'Pending',
+                        created_at: o.created_at || new Date(),
+                        items: o.items || []
+                    });
+
+                    // Sync this missing order into MongoDB if DB is connected
+                    if (getIsConnected()) {
+                        try {
+                            await Order.create({
+                                id: oid,
+                                user_id: o.user_id,
+                                customer_name: o.customer_name || 'Customer',
+                                customer_email: o.customer_email || '',
+                                customer_phone: o.phone || '',
+                                total: Number(o.total || 0),
+                                status: o.status || 'Pending',
+                                address: o.address || '',
+                                city: o.city || 'Chennai',
+                                state: o.state || 'Tamil Nadu',
+                                pincode: o.pincode || '600040',
+                                phone: o.phone || '',
+                                payment_method: o.payment_method || 'Online Payment',
+                                items: o.items || [],
+                                created_at: o.created_at || new Date()
+                            });
+                        } catch (sErr) {}
+                    }
+                }
+            }
+        }
+
+        // Convert map to array and sort newest first
+        const allOrders = Array.from(orderMap.values());
+        allOrders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        res.json(allOrders);
     } catch (error) {
         console.error('Error fetching all orders:', error);
         res.status(500).json({ message: 'Server error' });
