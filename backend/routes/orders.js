@@ -10,7 +10,7 @@ router.post('/', auth, async (req, res) => {
             return res.status(403).json({ message: 'Store Owner accounts cannot place orders. Only customers can place orders.' });
         }
 
-        const { items, address, phone } = req.body;
+        const { items, address, phone, name, email, city, state, pincode } = req.body;
 
         if (!items || items.length === 0) {
             return res.status(400).json({ message: 'Order must have at least one item' });
@@ -27,6 +27,14 @@ router.post('/', auth, async (req, res) => {
         // Import Product and Order models
         const { Product, Order, getIsConnected } = require('../config/mongodb');
         const { memoryStore } = require('../config/db');
+
+        // Customer details resolution
+        const custName = name || (req.user ? req.user.name : 'Customer');
+        const custEmail = email || (req.user ? req.user.email : '');
+        const custPhone = phone || (req.user ? req.user.phone : '');
+        const custCity = city || 'Chennai';
+        const custState = state || 'Tamil Nadu';
+        const custPincode = pincode || '600040';
 
         // Determine unique next order ID to prevent MongoDB duplicate key errors
         let maxMongoId = 0;
@@ -46,15 +54,19 @@ router.post('/', auth, async (req, res) => {
 
         const orderId = Math.max(maxMongoId, maxMemId, 0) + 1;
 
-        // Insert order into memoryStore / pool with guaranteed unique ID
+        // Insert order into memoryStore / pool with guaranteed unique ID and full customer details
         const newOrderObj = {
             id: orderId,
             user_id: req.user.id,
-            customer_name: req.user.name || 'Customer',
-            customer_email: req.user.email || '',
+            customer_name: custName,
+            customer_email: custEmail,
+            customer_phone: custPhone,
             total,
             address,
-            phone,
+            city: custCity,
+            state: custState,
+            pincode: custPincode,
+            phone: custPhone,
             payment_method: paymentMethod,
             status: 'Pending',
             created_at: new Date()
@@ -123,23 +135,27 @@ router.post('/', auth, async (req, res) => {
             }
         }
 
-        // Save order in MongoDB if connected
+        // Save order permanently in MongoDB with complete customer details
         if (getIsConnected()) {
             try {
                 await Order.create({
                     id: orderId,
                     user_id: req.user.id,
-                    customer_name: req.user.name || 'Customer',
-                    customer_email: req.user.email || '',
+                    customer_name: custName,
+                    customer_email: custEmail,
+                    customer_phone: custPhone,
                     total,
                     status: 'Pending',
                     address,
-                    phone,
+                    city: custCity,
+                    state: custState,
+                    pincode: custPincode,
+                    phone: custPhone,
                     payment_method: paymentMethod,
                     items: savedItems,
                     created_at: new Date()
                 });
-                console.log(`✅ Order #${orderId} saved permanently in MongoDB!`);
+                console.log(`✅ Order #${orderId} saved permanently in MongoDB with customer details (${custName})!`);
             } catch (mongoErr) {
                 console.log('MongoDB Order save note:', mongoErr.message);
             }
