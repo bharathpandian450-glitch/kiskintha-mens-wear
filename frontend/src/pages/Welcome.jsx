@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import CrownLogo from '../components/CrownLogo';
 
 function Welcome() {
     return (
@@ -6,9 +7,9 @@ function Welcome() {
             <div className="welcome-hero-overlay"></div>
             <div className="welcome-container">
                 <div className="welcome-card">
-                    <div className="welcome-header">
-                        <div className="brand-crown-icon">👑</div>
-                        <h1 className="welcome-title">Kiskintha Mens Wear</h1>
+                    <div className="welcome-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                        <CrownLogo layout="vertical" iconSize={46} showSubtext={false} />
+                        <h1 className="welcome-title" style={{ margin: '4px 0 0' }}>Kiskintha Mens Wear</h1>
                         <p className="welcome-subtitle">Premium Fashion &amp; Apparel</p>
                         <div className="gold-divider"></div>
                     </div>

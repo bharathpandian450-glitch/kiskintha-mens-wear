@@ -239,15 +239,63 @@ select.form-control {
   gap: 20px;
 }
 
-.navbar-logo {
-  font-size: 22px;
-  font-weight: 700;
-  color: #1a56db;
-  white-space: nowrap;
+/* --- Premium Luxury Logo & Header --- */
+.navbar-logo-link {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  outline: none;
 }
 
-.navbar-logo span {
-  color: #111827;
+.brand-header-logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  user-select: none;
+}
+
+.crown-icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.12));
+}
+
+.navbar-logo-link:hover .crown-icon-badge {
+  transform: scale(1.08) rotate(-3deg);
+  filter: drop-shadow(0 4px 14px rgba(212, 175, 55, 0.45));
+}
+
+.brand-title-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.15;
+}
+
+.brand-name-main {
+  font-family: 'Cinzel', 'Playfair Display', 'Montserrat', -apple-system, sans-serif;
+  font-size: 19px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  transition: color 0.3s ease;
+}
+
+.navbar-logo-link:hover .brand-name-main {
+  color: #1e293b;
+}
+
+.brand-name-sub {
+  font-family: 'Montserrat', -apple-system, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: #b45309;
+  letter-spacing: 2.8px;
+  text-transform: uppercase;
+  margin-top: 1px;
 }
 
 .navbar-links {
@@ -1297,6 +1345,20 @@ img, svg, video, canvas {
     padding-top: 10px !important;
     padding-bottom: 10px !important;
     gap: 10px !important;
+  }
+
+  .brand-header-logo-wrap {
+    gap: 8px !important;
+  }
+  
+  .brand-name-main {
+    font-size: 15px !important;
+    letter-spacing: 1.2px !important;
+  }
+
+  .brand-name-sub {
+    font-size: 8.5px !important;
+    letter-spacing: 1.8px !important;
   }
 
   .mobile-menu-btn {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import CrownLogo from './CrownLogo';
 
 function Navbar() {
     const { user, logout } = useAuth();
@@ -25,11 +26,8 @@ function Navbar() {
     return (
         <nav className="navbar">
             <div className="container navbar-container">
-                <Link to="/" className="navbar-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '24px' }}>👑</span>
-                    <span style={{ fontWeight: '800', fontSize: '20px', color: '#111111', letterSpacing: '-0.5px' }}>
-                        Kiskintha Mens Wear
-                    </span>
+                <Link to="/" className="navbar-logo-link">
+                    <CrownLogo iconSize={34} />
                 </Link>
 
                 <button
