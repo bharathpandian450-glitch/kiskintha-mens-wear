@@ -22,19 +22,47 @@ router.post('/', auth, async (req, res) => {
 
         // Calculate total
         const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
         const paymentMethod = req.body.payment_method || 'Cash on Delivery (COD)';
-
-        // Insert order with initial status: 'Pending'
-        const [orderResult] = await pool.query(
-            'INSERT INTO orders (user_id, total, address, phone, payment_method, status) VALUES (?, ?, ?, ?, ?, ?)',
-            [req.user.id, total, address, phone, paymentMethod, 'Pending']
-        );
-
-        const orderId = orderResult.insertId;
 
         // Import Product and Order models
         const { Product, Order, getIsConnected } = require('../config/mongodb');
+        const { memoryStore } = require('../config/db');
+
+        // Determine unique next order ID to prevent MongoDB duplicate key errors
+        let maxMongoId = 0;
+        if (getIsConnected()) {
+            try {
+                const lastOrder = await Order.findOne({}).sort({ id: -1 }).lean();
+                if (lastOrder && lastOrder.id) {
+                    maxMongoId = Number(lastOrder.id);
+                }
+            } catch (err) {}
+        }
+
+        let maxMemId = 0;
+        if (memoryStore && memoryStore.orders) {
+            maxMemId = memoryStore.orders.reduce((max, o) => Math.max(max, Number(o.id || 0)), 0);
+        }
+
+        const orderId = Math.max(maxMongoId, maxMemId, 0) + 1;
+
+        // Insert order into memoryStore / pool with guaranteed unique ID
+        const newOrderObj = {
+            id: orderId,
+            user_id: req.user.id,
+            customer_name: req.user.name || 'Customer',
+            customer_email: req.user.email || '',
+            total,
+            address,
+            phone,
+            payment_method: paymentMethod,
+            status: 'Pending',
+            created_at: new Date()
+        };
+
+        if (memoryStore && memoryStore.orders) {
+            memoryStore.orders.unshift(newOrderObj);
+        }
 
         const savedItems = [];
 
@@ -50,13 +78,23 @@ router.post('/', auth, async (req, res) => {
             const itemImage = item.image || (prod ? prod.image : '');
             const itemCat = prod ? (prod.category_name || 'Men Wear') : 'Men Wear';
 
-            await pool.query(
-                'INSERT INTO order_items (order_id, product_id, quantity, price, size, color, product_name, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                [orderId, item.product_id, item.quantity, item.price, itemSize, itemColor, itemName, itemImage]
-            );
+            if (memoryStore && memoryStore.order_items) {
+                memoryStore.order_items.push({
+                    id: memoryStore.order_items.length + 1,
+                    order_id: orderId,
+                    product_id: item.product_id,
+                    quantity: item.quantity,
+                    price: item.price,
+                    size: itemSize,
+                    color: itemColor,
+                    product_name: itemName,
+                    image: itemImage
+                });
+            }
 
             savedItems.push({
                 product_id: item.product_id,
+                product_name: itemName,
                 name: itemName,
                 image: itemImage,
                 category_name: itemCat,
@@ -66,7 +104,7 @@ router.post('/', auth, async (req, res) => {
                 price: item.price
             });
 
-            // Decrease stock in pool / memoryStore
+            // Decrease stock in memoryStore
             await pool.query(
                 'UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?',
                 [item.quantity, item.product_id, item.quantity]
@@ -101,6 +139,7 @@ router.post('/', auth, async (req, res) => {
                     items: savedItems,
                     created_at: new Date()
                 });
+                console.log(`✅ Order #${orderId} saved permanently in MongoDB!`);
             } catch (mongoErr) {
                 console.log('MongoDB Order save note:', mongoErr.message);
             }
@@ -120,6 +159,18 @@ router.post('/', auth, async (req, res) => {
 // GET user's orders (Auth required - Customer only sees their own orders)
 router.get('/my', auth, async (req, res) => {
     try {
+        const { Order, getIsConnected } = require('../config/mongodb');
+        if (getIsConnected()) {
+            try {
+                const mongoOrders = await Order.find({ user_id: req.user.id }).sort({ created_at: -1 }).lean();
+                if (mongoOrders && mongoOrders.length > 0) {
+                    return res.json(mongoOrders);
+                }
+            } catch (mErr) {
+                console.log('MongoDB user orders fetch note:', mErr.message);
+            }
+        }
+
         const [orders] = await pool.query(
             'SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC',
             [req.user.id]
@@ -140,9 +191,23 @@ router.get('/my', auth, async (req, res) => {
     }
 });
 
-// GET all orders (Admin & Owner Only)
+// GET all customer orders (Admin & Owner Only - Returns ALL customer orders)
 router.get('/', auth, isAdmin, async (req, res) => {
     try {
+        const { Order, getIsConnected } = require('../config/mongodb');
+        const { memoryStore } = require('../config/db');
+
+        if (getIsConnected()) {
+            try {
+                const mongoOrders = await Order.find({}).sort({ created_at: -1 }).lean();
+                if (mongoOrders && mongoOrders.length > 0) {
+                    return res.json(mongoOrders);
+                }
+            } catch (mErr) {
+                console.log('MongoDB all orders fetch note:', mErr.message);
+            }
+        }
+
         const [orders] = await pool.query(
             'SELECT o.*, u.name as customer_name, u.email as customer_email, u.phone as u_phone FROM orders o LEFT JOIN users u ON o.user_id = u.id ORDER BY o.created_at DESC'
         );

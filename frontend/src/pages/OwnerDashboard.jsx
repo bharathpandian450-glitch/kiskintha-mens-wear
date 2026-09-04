@@ -410,6 +410,32 @@ function OwnerDashboard() {
                             </div>
                         </div>
 
+                        {/* Order Statistics Summary Bar */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px', marginBottom: '18px' }}>
+                            <div style={{ background: '#eff6ff', padding: '12px 16px', borderRadius: '10px', border: '1px solid #bfdbfe' }}>
+                                <div style={{ fontSize: '11px', color: '#1e40af', fontWeight: '700', textTransform: 'uppercase' }}>📊 Total Orders</div>
+                                <div style={{ fontSize: '22px', fontWeight: '800', color: '#1d4ed8', marginTop: '2px' }}>{orders.length}</div>
+                            </div>
+                            <div style={{ background: '#fffbeb', padding: '12px 16px', borderRadius: '10px', border: '1px solid #fde68a' }}>
+                                <div style={{ fontSize: '11px', color: '#b45309', fontWeight: '700', textTransform: 'uppercase' }}>⏳ Pending Orders</div>
+                                <div style={{ fontSize: '22px', fontWeight: '800', color: '#d97706', marginTop: '2px' }}>
+                                    {orders.filter(o => (o.status || 'Pending') === 'Pending' || o.status === 'Pending Approval').length}
+                                </div>
+                            </div>
+                            <div style={{ background: '#f0fdf4', padding: '12px 16px', borderRadius: '10px', border: '1px solid #bbf7d0' }}>
+                                <div style={{ fontSize: '11px', color: '#15803d', fontWeight: '700', textTransform: 'uppercase' }}>🎉 Delivered Orders</div>
+                                <div style={{ fontSize: '22px', fontWeight: '800', color: '#059669', marginTop: '2px' }}>
+                                    {orders.filter(o => o.status === 'Delivered').length}
+                                </div>
+                            </div>
+                            <div style={{ background: '#fef2f2', padding: '12px 16px', borderRadius: '10px', border: '1px solid #fecaca' }}>
+                                <div style={{ fontSize: '11px', color: '#b91c1c', fontWeight: '700', textTransform: 'uppercase' }}>❌ Cancelled Orders</div>
+                                <div style={{ fontSize: '22px', fontWeight: '800', color: '#dc2626', marginTop: '2px' }}>
+                                    {orders.filter(o => (o.status || '').toLowerCase().includes('cancel') || (o.status || '').toLowerCase().includes('reject')).length}
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Order Status Filter Bar */}
                         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', marginBottom: '16px', scrollbarWidth: 'thin' }}>
                             {[

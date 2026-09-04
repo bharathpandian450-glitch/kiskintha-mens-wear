@@ -50,17 +50,21 @@ const orderSchema = new mongoose.Schema({
     customer_name: { type: String, default: '' },
     customer_email: { type: String, default: '' },
     total: { type: Number, required: true },
-    status: { type: String, default: 'Pending Approval' },
+    status: { type: String, default: 'Pending' },
     address: { type: String, default: '' },
     phone: { type: String, default: '' },
     payment_method: { type: String, default: 'COD' },
     items: [
         {
             product_id: { type: Number },
+            product_name: { type: String },
             name: { type: String },
+            image: { type: String },
+            category_name: { type: String },
+            color: { type: String },
+            size: { type: String },
             quantity: { type: Number },
-            price: { type: Number },
-            size: { type: String }
+            price: { type: Number }
         }
     ],
     created_at: { type: Date, default: Date.now }
@@ -116,14 +120,68 @@ const seedMongoDB = async (data) => {
             }
         }
 
-        // Seed Products
-        if (data.products && data.products.length > 0) {
+        // Sync MongoDB Products to memoryStore or seed MongoDB if empty
+        const mongoProds = await Product.find({}).lean();
+        if (mongoProds && mongoProds.length > 0 && data.products) {
+            data.products = mongoProds.map(p => ({
+                id: p.id,
+                name: p.name,
+                description: p.description,
+                price: p.price,
+                original_price: p.original_price,
+                image: p.image,
+                category_id: p.category_id,
+                category_name: p.category_name,
+                subcategory: p.subcategory,
+                sleeve_type: p.sleeve_type,
+                size: p.size,
+                color: p.color,
+                rating: p.rating,
+                stock: p.stock,
+                created_at: p.created_at || new Date()
+            }));
+        } else if (data.products && data.products.length > 0) {
             for (const prod of data.products) {
                 await Product.updateOne({ id: prod.id }, { $set: prod }, { upsert: true });
             }
         }
 
-        console.log('✅ MongoDB Collections Auto-Seeded (Users, Categories, Products)!');
+        // Sync existing MongoDB Orders to memoryStore
+        const mongoOrders = await Order.find({}).sort({ created_at: -1 }).lean();
+        if (mongoOrders && mongoOrders.length > 0 && data.orders && data.order_items) {
+            data.orders.length = 0;
+            data.order_items.length = 0;
+            for (const o of mongoOrders) {
+                data.orders.push({
+                    id: o.id,
+                    user_id: o.user_id,
+                    total: o.total,
+                    address: o.address,
+                    phone: o.phone,
+                    payment_method: o.payment_method || 'COD',
+                    status: o.status || 'Pending',
+                    created_at: o.created_at || new Date()
+                });
+                if (o.items && o.items.length > 0) {
+                    for (const item of o.items) {
+                        data.order_items.push({
+                            id: data.order_items.length + 1,
+                            order_id: o.id,
+                            product_id: item.product_id,
+                            quantity: item.quantity,
+                            price: item.price,
+                            size: item.size || 'M',
+                            color: item.color || '',
+                            product_name: item.product_name || item.name || '',
+                            image: item.image || ''
+                        });
+                    }
+                }
+            }
+            console.log(`✅ Loaded ${mongoOrders.length} customer orders from MongoDB into MemoryStore!`);
+        }
+
+        console.log('✅ MongoDB Collections Auto-Seeded & Synced!');
     } catch (err) {
         console.error('Error seeding MongoDB collections:', err.message);
     }
