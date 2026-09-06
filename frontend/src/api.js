@@ -22,7 +22,8 @@ const API = axios.create({
 export const getImageUrl = (img) => {
     if (!img) return '';
     if (img.startsWith('http://') || img.startsWith('https://')) return img;
-    const cleanImg = img.replace(/^\//, '');
+    let cleanImg = img.replace(/^\//, '');
+    cleanImg = cleanImg.replace(/^uploads\//i, '').replace(/^picture\//i, '');
     const encodedImg = cleanImg.split('/').map(segment => encodeURIComponent(segment)).join('/');
     
     // In production or relative API mode, serve from relative /uploads

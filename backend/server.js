@@ -25,8 +25,14 @@ app.use((req, res, next) => {
 app.use(cors());
 app.use(express.json());
 
-// Serve uploaded images as static files
+// Serve uploaded images as static files under /uploads and /picture
+const pictureDir = path.join(__dirname, '..', 'picture');
 app.use('/uploads', express.static(uploadsDir));
+if (fs.existsSync(pictureDir)) {
+    app.use('/uploads', express.static(pictureDir));
+    app.use('/picture', express.static(pictureDir));
+}
+app.use('/picture', express.static(uploadsDir));
 
 // Routes (/api/...)
 app.use('/api/products', require('./routes/products'));

@@ -5,7 +5,7 @@
   "outputDirectory": "frontend/dist",
   "functions": {
     "api/index.js": {
-      "includeFiles": "backend/uploads/**"
+      "includeFiles": "{backend/uploads/**,picture/**}"
     }
   },
   "rewrites": [
@@ -14,7 +14,7 @@
       "destination": "/api/index.js"
     },
     {
-      "source": "/((?!api|uploads).*)",
+      "source": "/((?!api|uploads|picture).*)",
       "destination": "/index.html"
     }
   ]
