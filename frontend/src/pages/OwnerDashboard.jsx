@@ -186,7 +186,9 @@ function OwnerDashboard() {
             name: '',
             description: '',
             price: '',
-            category_id: categories[0]?.id || '1',
+            category_id: categories[0]?.id || '2',
+            sleeve_type: 'Full Hand',
+            color: 'Blue',
             size: 'S,M,L,XL',
             stock: '50',
             image: null
@@ -202,6 +204,8 @@ function OwnerDashboard() {
             description: prod.description || '',
             price: prod.price,
             category_id: prod.category_id,
+            sleeve_type: prod.sleeve_type || 'Full Hand',
+            color: prod.color || 'Blue',
             size: prod.size || 'S,M,L,XL',
             stock: prod.stock || '50',
             image: null
@@ -221,6 +225,8 @@ function OwnerDashboard() {
             formData.append('description', prodForm.description);
             formData.append('price', prodForm.price);
             formData.append('category_id', prodForm.category_id);
+            formData.append('sleeve_type', prodForm.sleeve_type || 'Full Hand');
+            formData.append('color', prodForm.color || 'Blue');
             formData.append('size', prodForm.size);
             formData.append('stock', prodForm.stock);
             if (prodForm.image) {
@@ -231,12 +237,12 @@ function OwnerDashboard() {
                 await API.put(`/products/${editingProduct.id}`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
-                setProdMsg('✓ Product updated successfully!');
+                setProdMsg('✓ Product updated successfully in MongoDB!');
             } else {
                 await API.post('/products', formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
-                setProdMsg('✓ Product added to catalog successfully!');
+                setProdMsg('✓ Product added to catalog & saved to MongoDB!');
             }
 
             setTimeout(() => {
@@ -1269,6 +1275,45 @@ function OwnerDashboard() {
                                             {categories.map(c => (
                                                 <option key={c.id} value={c.id}>{c.name}</option>
                                             ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                                    <div className="form-group">
+                                        <label style={{ fontWeight: '600', fontSize: '13px' }}>Sleeve / Hand Type</label>
+                                        <select
+                                            className="form-control"
+                                            value={prodForm.sleeve_type || 'Full Hand'}
+                                            onChange={(e) => setProdForm({ ...prodForm, sleeve_type: e.target.value })}
+                                        >
+                                            <option value="Full Hand">Full Hand</option>
+                                            <option value="Half Hand">Half Hand</option>
+                                            <option value="N/A">N/A (Pants/Trousers)</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label style={{ fontWeight: '600', fontSize: '13px' }}>Color</label>
+                                        <select
+                                            className="form-control"
+                                            value={prodForm.color || 'Blue'}
+                                            onChange={(e) => setProdForm({ ...prodForm, color: e.target.value })}
+                                        >
+                                            <option value="Blue">Blue</option>
+                                            <option value="Black">Black</option>
+                                            <option value="White">White</option>
+                                            <option value="Red">Red</option>
+                                            <option value="Green">Green</option>
+                                            <option value="Yellow">Yellow</option>
+                                            <option value="Grey">Grey</option>
+                                            <option value="Brown">Brown</option>
+                                            <option value="Pink">Pink</option>
+                                            <option value="Purple">Purple</option>
+                                            <option value="Orange">Orange</option>
+                                            <option value="Navy Blue">Navy Blue</option>
+                                            <option value="Maroon">Maroon</option>
+                                            <option value="Beige">Beige</option>
+                                            <option value="Multicolor">Multicolor</option>
                                         </select>
                                     </div>
                                 </div>
