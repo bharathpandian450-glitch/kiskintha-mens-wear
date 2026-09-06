@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User, connectMongoDB, getIsConnected } = require('../config/mongodb');
+const { mongoose, User, connectMongoDB, getIsConnected } = require('../config/mongodb');
 const { auth, JWT_SECRET } = require('../middleware/auth');
 
 // Middleware to ensure MongoDB connection is active
@@ -180,26 +180,25 @@ router.post('/login', async (req, res) => {
                 role: 'owner'
             };
 
-            // Save/upsert Owner in MongoDB Atlas
-            try {
-                const hashedOwnerPass = await bcrypt.hash(OWNER_PASS, 10);
-                await User.findOneAndUpdate(
-                    { email: user.email.toLowerCase() },
-                    {
-                        $set: {
-                            id: 3,
-                            name: user.name,
-                            email: user.email.toLowerCase(),
-                            phone: user.phone,
-                            password: hashedOwnerPass,
-                            address: user.address,
-                            role: 'owner'
-                        }
-                    },
-                    { upsert: true, new: true }
-                );
-            } catch (ownerDbErr) {
-                console.error('Owner MongoDB sync note:', ownerDbErr.message);
+            // Save/upsert Owner in MongoDB Atlas asynchronously
+            if (getIsConnected()) {
+                bcrypt.hash(OWNER_PASS, 10).then(hashedOwnerPass => {
+                    User.findOneAndUpdate(
+                        { email: user.email.toLowerCase() },
+                        {
+                            $set: {
+                                id: 3,
+                                name: user.name,
+                                email: user.email.toLowerCase(),
+                                phone: user.phone,
+                                password: hashedOwnerPass,
+                                address: user.address,
+                                role: 'owner'
+                            }
+                        },
+                        { upsert: true, new: true }
+                    ).catch(ownerDbErr => console.error('Owner MongoDB sync note:', ownerDbErr.message));
+                }).catch(() => {});
             }
         }
         // Rule 2: Store Owner Tab Selected but Invalid Owner Credentials
@@ -208,9 +207,15 @@ router.post('/login', async (req, res) => {
         }
         // Rule 3: Customer Login (Allows any non-empty credentials)
         else {
-            const dbUser = await User.findOne({
-                $or: [{ email: cleanInput }, { phone: cleanInput }]
-            }).lean();
+            let dbUser = null;
+            if (mongoose.connection && mongoose.connection.readyState === 1) {
+                try {
+                    dbUser = await Promise.race([
+                        User.findOne({ $or: [{ email: cleanInput }, { phone: cleanInput }] }).lean(),
+                        new Promise((resolve) => setTimeout(() => resolve(null), 1500))
+                    ]).catch(() => null);
+                } catch (e) {}
+            }
 
             if (dbUser && dbUser.role !== 'owner') {
                 user = {
@@ -240,26 +245,25 @@ router.post('/login', async (req, res) => {
                 };
             }
 
-            // Save / Upsert customer in MongoDB Atlas User Collection
-            try {
-                const hashedPassword = await bcrypt.hash(userPassword, 10);
-                await User.findOneAndUpdate(
-                    { email: user.email.toLowerCase() },
-                    {
-                        $set: {
-                            id: user.id || Date.now(),
-                            name: user.name,
-                            email: user.email.toLowerCase(),
-                            phone: user.phone || '',
-                            password: hashedPassword,
-                            address: user.address || '',
-                            role: 'customer'
-                        }
-                    },
-                    { upsert: true, new: true }
-                );
-            } catch (syncErr) {
-                console.error('Customer MongoDB sync note:', syncErr.message);
+            // Save / Upsert customer in MongoDB Atlas User Collection asynchronously
+            if (mongoose.connection && mongoose.connection.readyState === 1) {
+                bcrypt.hash(userPassword, 10).then(hashedPassword => {
+                    User.findOneAndUpdate(
+                        { email: user.email.toLowerCase() },
+                        {
+                            $set: {
+                                id: user.id || Date.now(),
+                                name: user.name,
+                                email: user.email.toLowerCase(),
+                                phone: user.phone || '',
+                                password: hashedPassword,
+                                address: user.address || '',
+                                role: 'customer'
+                            }
+                        },
+                        { upsert: true, new: true }
+                    ).catch(syncErr => console.error('Customer MongoDB sync note:', syncErr.message));
+                }).catch(() => {});
             }
         }
 
