@@ -202,7 +202,19 @@ function Orders() {
                                                         <div style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#64748b', marginTop: '4px', flexWrap: 'wrap' }}>
                                                             {item.category_name && (
                                                                 <span style={{ background: '#eff6ff', color: '#1e40af', padding: '2px 6px', borderRadius: '4px', fontWeight: '700' }}>
-                                                                    {item.category_name}
+                                                                    🏷️ {item.category_name}
+                                                                </span>
+                                                            )}
+                                                            {item.sleeve_type && item.sleeve_type !== 'N/A' && (
+                                                                <span style={{
+                                                                    background: item.sleeve_type === 'Half Hand' ? '#fef3c7' : '#f0fdf4',
+                                                                    color: item.sleeve_type === 'Half Hand' ? '#b45309' : '#166534',
+                                                                    border: item.sleeve_type === 'Half Hand' ? '1px solid #fde68a' : '1px solid #bbf7d0',
+                                                                    padding: '2px 6px',
+                                                                    borderRadius: '4px',
+                                                                    fontWeight: '800'
+                                                                }}>
+                                                                    {item.sleeve_type === 'Half Hand' ? '👕 Half Hand' : '👔 Full Hand'}
                                                                 </span>
                                                             )}
                                                             {item.color && (
@@ -236,20 +248,24 @@ function Orders() {
                                         fontSize: '13px',
                                         color: '#475569',
                                         display: 'grid',
-                                        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                                        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
                                         gap: '12px'
                                     }}>
                                         <div>
                                             <span style={{ fontWeight: '700', color: '#0f172a' }}>📍 Delivery Address: </span>
-                                            {order.address}
+                                            {order.address} {order.city ? `, ${order.city}` : ''} {order.state ? `, ${order.state}` : ''} {order.pincode ? `- ${order.pincode}` : ''}
                                         </div>
                                         <div>
                                             <span style={{ fontWeight: '700', color: '#0f172a' }}>📞 Contact Phone: </span>
-                                            {order.phone}
+                                            {order.phone || order.customer_phone}
                                         </div>
                                         <div>
                                             <span style={{ fontWeight: '700', color: '#0f172a' }}>💳 Payment Method: </span>
-                                            {order.payment_method || 'Cash on Delivery (COD)'}
+                                            {order.payment_method || 'UPI QR Payment'}
+                                        </div>
+                                        <div>
+                                            <span style={{ fontWeight: '700', color: '#0f172a' }}>🔒 Payment Status: </span>
+                                            <span style={{ color: '#059669', fontWeight: '800' }}>✓ {order.payment_status || 'Paid'}</span>
                                         </div>
                                     </div>
                                 </div>

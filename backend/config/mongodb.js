@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-mongoose.set('bufferCommands', false);
 
 const ATLAS_SRV_URI = "mongodb+srv://kiskinthowner:Gowtham%40123@cluster0.o5j3a.mongodb.net/garments?retryWrites=true&w=majority";
 const ATLAS_DIRECT_URI = "mongodb://kiskinthowner:Gowtham%40123@cluster0-shard-00-00.o5j3a.mongodb.net:27017,cluster0-shard-00-01.o5j3a.mongodb.net:27017,cluster0-shard-00-02.o5j3a.mongodb.net:27017/garments?ssl=true&replicaSet=atlas-13cypq-shard-0&authSource=admin&retryWrites=true&w=majority";
@@ -71,6 +70,7 @@ const orderSchema = new mongoose.Schema({
             name: { type: String },
             image: { type: String },
             category_name: { type: String },
+            sleeve_type: { type: String },
             color: { type: String },
             size: { type: String },
             quantity: { type: Number },
@@ -87,39 +87,58 @@ const Order = mongoose.models.Order || mongoose.model('Order', orderSchema);
 
 // Connection Caching for Vercel Serverless
 let cachedConnection = null;
+let connectionPromise = null;
+let lastAttemptTime = 0;
 
 const connectMongoDB = async () => {
     if (cachedConnection && mongoose.connection.readyState === 1) {
         return cachedConnection;
     }
 
+    // If an attempt is currently in progress, return its promise
+    if (connectionPromise) {
+        return connectionPromise;
+    }
+
+    // Throttle connection attempts to once every 5 seconds if disconnected
+    const now = Date.now();
+    if (now - lastAttemptTime < 5000 && mongoose.connection.readyState !== 1) {
+        return null;
+    }
+
+    lastAttemptTime = now;
     const uri = getMongoURI();
     const opts = {
-        serverSelectionTimeoutMS: 8000,
+        serverSelectionTimeoutMS: 2000,
         maxPoolSize: 10
     };
 
-    try {
-        cachedConnection = await mongoose.connect(uri, opts);
-        console.log("✅ MongoDB Connected Successfully to Atlas Cluster");
-        return cachedConnection;
-    } catch (err) {
-        if (uri.startsWith('mongodb+srv://')) {
-            console.log("ℹ️ SRV connection failed. Retrying with Direct Seedlist URI...");
-            try {
-                cachedConnection = await mongoose.connect(ATLAS_DIRECT_URI, opts);
-                console.log("✅ MongoDB Connected via Direct Seedlist to Atlas Cluster");
-                return cachedConnection;
-            } catch (directErr) {
+    connectionPromise = (async () => {
+        try {
+            cachedConnection = await mongoose.connect(uri, opts);
+            console.log("✅ MongoDB Connected Successfully to Atlas Cluster");
+            return cachedConnection;
+        } catch (err) {
+            if (uri.startsWith('mongodb+srv://')) {
+                try {
+                    cachedConnection = await mongoose.connect(ATLAS_DIRECT_URI, opts);
+                    console.log("✅ MongoDB Connected via Direct Seedlist to Atlas Cluster");
+                    return cachedConnection;
+                } catch (directErr) {
+                    cachedConnection = null;
+                    console.error("❌ MongoDB Direct Connection Note:", directErr.message);
+                }
+            } else {
                 cachedConnection = null;
-                console.error("❌ MongoDB Direct Connection Error:", directErr.message);
-                throw directErr;
+                console.error("❌ MongoDB Connection Note:", err.message);
             }
+            return null;
+        } finally {
+            connectionPromise = null;
         }
-        cachedConnection = null;
-        console.error("❌ MongoDB Connection Error:", err.message);
-        throw err;
-    }
+    })();
+
+    return connectionPromise;
 };
 
 module.exports = {

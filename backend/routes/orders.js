@@ -42,8 +42,13 @@ router.post('/', auth, async (req, res) => {
         const custPincode = pincode || '600040';
 
         // Determine unique next order ID in MongoDB
-        const maxOrder = await Order.findOne({}).sort({ id: -1 }).lean();
-        const maxMongoId = maxOrder && maxOrder.id ? Number(maxOrder.id) : 0;
+        let maxMongoId = 0;
+        if (getIsConnected()) {
+            try {
+                const maxOrder = await Order.findOne({}).sort({ id: -1 }).lean();
+                if (maxOrder && maxOrder.id) maxMongoId = Number(maxOrder.id);
+            } catch (e) {}
+        }
         
         const diskOrders = loadPersistentOrders();
         const maxDiskId = diskOrders.reduce((max, o) => Math.max(max, Number(o.id || 0)), 0);
@@ -54,13 +59,17 @@ router.post('/', auth, async (req, res) => {
 
         // Decrease stock in MongoDB Product collection and structure order items
         for (const item of items) {
-            const prod = await Product.findOne({ id: item.product_id }).lean();
+            let prod = null;
+            if (getIsConnected()) {
+                try { prod = await Product.findOne({ id: item.product_id }).lean(); } catch (e) {}
+            }
 
             const itemSize = item.size || 'M';
             const itemColor = item.color || (prod ? prod.color : 'Assorted');
             const itemName = item.name || (prod ? prod.name : 'Kiskintha Item');
             const itemImage = item.image || (prod ? prod.image : '');
-            const itemCat = prod ? (prod.category_name || 'Men Wear') : 'Men Wear';
+            const itemCat = item.category_name || (prod ? prod.category_name : 'Men Wear');
+            const itemSleeve = item.sleeve_type || (prod ? prod.sleeve_type : '');
 
             savedItems.push({
                 product_id: item.product_id,
@@ -68,20 +77,23 @@ router.post('/', auth, async (req, res) => {
                 name: itemName,
                 image: itemImage,
                 category_name: itemCat,
+                sleeve_type: itemSleeve,
                 color: itemColor,
                 size: itemSize,
                 quantity: item.quantity,
                 price: item.price
             });
 
-            // Decrease stock in MongoDB
-            try {
-                await Product.findOneAndUpdate(
-                    { id: item.product_id, stock: { $gte: item.quantity } },
-                    { $inc: { stock: -item.quantity } }
-                );
-            } catch (mErr) {
-                console.log('MongoDB Stock Decrement Note:', mErr.message);
+            // Decrease stock in MongoDB if connected
+            if (getIsConnected()) {
+                try {
+                    await Product.findOneAndUpdate(
+                        { id: item.product_id, stock: { $gte: item.quantity } },
+                        { $inc: { stock: -item.quantity } }
+                    );
+                } catch (mErr) {
+                    console.log('MongoDB Stock Decrement Note:', mErr.message);
+                }
             }
         }
 
@@ -107,9 +119,15 @@ router.post('/', auth, async (req, res) => {
         // 1. Save to persistent disk storage (orders.json backup)
         savePersistentOrder(fullOrderObj);
 
-        // 2. Save permanently in MongoDB Order Collection
-        await Order.updateOne({ id: orderId }, { $set: fullOrderObj }, { upsert: true });
-        console.log(`✅ Order #${orderId} saved permanently in MongoDB for ${custName}!`);
+        // 2. Save permanently in MongoDB Order Collection if connected
+        if (getIsConnected()) {
+            try {
+                await Order.updateOne({ id: orderId }, { $set: fullOrderObj }, { upsert: true });
+                console.log(`✅ Order #${orderId} saved permanently in MongoDB for ${custName}!`);
+            } catch (mSaveErr) {
+                console.error('MongoDB Order Save Note:', mSaveErr.message);
+            }
+        }
 
         res.status(201).json({
             message: 'Order placed successfully! Visible in Owner Portal.',
@@ -128,17 +146,30 @@ router.get('/my', auth, async (req, res) => {
         const userEmail = req.user.email ? req.user.email.toLowerCase() : '';
         const userPhone = req.user.phone ? req.user.phone.trim() : '';
 
-        const mongoOrders = await Order.find({
-            $or: [
-                { user_id: req.user.id },
-                { customer_email: userEmail },
-                { customer_phone: userPhone }
-            ]
-        }).sort({ created_at: -1 }).lean();
+        let mongoOrders = [];
+        if (getIsConnected()) {
+            try {
+                const filterOr = [
+                    { user_id: req.user.id },
+                    { user_id: String(req.user.id) }
+                ];
+                if (userEmail) {
+                    filterOr.push({ customer_email: userEmail });
+                    filterOr.push({ customer_email: { $regex: new RegExp(`^${userEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } });
+                }
+                if (userPhone) {
+                    filterOr.push({ customer_phone: userPhone });
+                    filterOr.push({ phone: userPhone });
+                }
+                mongoOrders = await Order.find({ $or: filterOr }).sort({ created_at: -1 }).lean();
+            } catch (e) {}
+        }
 
         // Also check disk storage backup
         const diskOrders = loadPersistentOrders().filter(o => 
-            o.user_id === req.user.id || (userEmail && o.customer_email === userEmail)
+            String(o.user_id) === String(req.user.id) ||
+            (userEmail && o.customer_email && o.customer_email.toLowerCase() === userEmail) ||
+            (userPhone && (o.customer_phone === userPhone || o.phone === userPhone))
         );
 
         const orderMap = new Map();
@@ -158,7 +189,12 @@ router.get('/my', auth, async (req, res) => {
 // GET all customer orders (Admin & Owner Only - Native MongoDB)
 router.get('/', auth, isAdmin, async (req, res) => {
     try {
-        const mongoOrders = await Order.find({}).sort({ created_at: -1 }).lean();
+        let mongoOrders = [];
+        if (getIsConnected()) {
+            try {
+                mongoOrders = await Order.find({}).sort({ created_at: -1 }).lean();
+            } catch (e) {}
+        }
         const diskOrders = loadPersistentOrders();
 
         const orderMap = new Map();
@@ -212,37 +248,48 @@ const handleStatusUpdate = async (req, res) => {
             return res.status(400).json({ message: 'Status is required' });
         }
 
-        const existing = await Order.findOne({ id: orderId }).lean();
-        const previousStatus = existing ? existing.status : null;
+        let existing = null;
+        let previousStatus = null;
+        let updatedOrder = null;
 
-        const updatedOrder = await Order.findOneAndUpdate(
-            { id: orderId },
-            { $set: { status } },
-            { new: true }
-        ).lean();
+        if (getIsConnected()) {
+            try {
+                existing = await Order.findOne({ id: orderId }).lean();
+                previousStatus = existing ? existing.status : null;
 
-        if (!updatedOrder && !existing) {
-            return res.status(404).json({ message: 'Order not found' });
+                updatedOrder = await Order.findOneAndUpdate(
+                    { id: orderId },
+                    { $set: { status } },
+                    { new: true }
+                ).lean();
+            } catch (e) {}
         }
 
         // Update persistent disk storage copy
         const diskOrders = loadPersistentOrders();
         const match = diskOrders.find(o => Number(o.id) === orderId);
         if (match) {
+            if (!previousStatus) previousStatus = match.status;
             match.status = status;
             savePersistentOrder(match);
         }
 
-        // Restore stock if order was cancelled
+        if (!updatedOrder && !existing && !match) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        // Restore stock if order was cancelled and MongoDB is connected
         if (status.toLowerCase().includes('cancel') || status.toLowerCase().includes('reject')) {
             if (previousStatus && !previousStatus.toLowerCase().includes('cancel') && !previousStatus.toLowerCase().includes('reject')) {
-                const itemsToRestore = updatedOrder ? updatedOrder.items : (existing ? existing.items : []);
-                if (itemsToRestore && itemsToRestore.length > 0) {
+                const itemsToRestore = updatedOrder ? updatedOrder.items : (existing ? existing.items : (match ? match.items : []));
+                if (itemsToRestore && itemsToRestore.length > 0 && getIsConnected()) {
                     for (const item of itemsToRestore) {
-                        await Product.findOneAndUpdate(
-                            { id: item.product_id },
-                            { $inc: { stock: item.quantity } }
-                        );
+                        try {
+                            await Product.findOneAndUpdate(
+                                { id: item.product_id },
+                                { $inc: { stock: item.quantity } }
+                            );
+                        } catch (e) {}
                     }
                 }
             }

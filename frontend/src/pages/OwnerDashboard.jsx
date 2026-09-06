@@ -653,8 +653,9 @@ function OwnerDashboard() {
                                                                                 <div style={{ fontWeight: '700', color: '#0f172a' }}>
                                                                                     {item.product_name || item.name || 'Kiskintha Item'}
                                                                                 </div>
-                                                                                <div style={{ fontSize: '11px', color: '#64748b', display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '1px' }}>
+                                                                                 <div style={{ fontSize: '11px', color: '#64748b', display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '1px' }}>
                                                                                     {item.category_name && <span style={{ color: '#1e40af', fontWeight: '700' }}>{item.category_name}</span>}
+                                                                                    {item.sleeve_type && item.sleeve_type !== 'N/A' && <span style={{ color: '#166534', fontWeight: '700' }}>{item.sleeve_type}</span>}
                                                                                     {item.color && <span>🎨 {item.color}</span>}
                                                                                     <span>📏 {item.size || 'M'}</span>
                                                                                     <span style={{ fontWeight: '700', color: '#059669' }}>
@@ -1200,6 +1201,7 @@ function OwnerDashboard() {
                                                     <div style={{ fontWeight: '700', color: '#0f172a', fontSize: '14px' }}>{item.product_name || item.name || 'Kiskintha Item'}</div>
                                                     <div style={{ fontSize: '12px', color: '#64748b', display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '3px' }}>
                                                         {item.category_name && <span style={{ color: '#1e40af', fontWeight: '700', background: '#eff6ff', padding: '2px 6px', borderRadius: '4px' }}>🏷️ {item.category_name}</span>}
+                                                        {item.sleeve_type && item.sleeve_type !== 'N/A' && <span style={{ color: '#166534', fontWeight: '700', background: '#f0fdf4', padding: '2px 6px', borderRadius: '4px' }}>👔 {item.sleeve_type}</span>}
                                                         {item.color && <span>🎨 Color: <strong>{item.color}</strong></span>}
                                                         <span>📏 Size: <strong>{item.size || 'M'}</strong></span>
                                                     </div>

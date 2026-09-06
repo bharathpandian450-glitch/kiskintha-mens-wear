@@ -33,6 +33,8 @@ export function CartProvider({ children }) {
                 image: itemImage,
                 size,
                 color: itemColor,
+                sleeve_type: product.sleeve_type || '',
+                category_name: product.category_name || '',
                 quantity
             }];
         });

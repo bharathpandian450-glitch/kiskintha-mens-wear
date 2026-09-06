@@ -106,6 +106,8 @@ function Checkout() {
                     price: item.price,
                     size: item.size || 'M',
                     color: item.color || '',
+                    sleeve_type: item.sleeve_type || '',
+                    category_name: item.category_name || '',
                     name: item.name || '',
                     image: item.image || ''
                 })),

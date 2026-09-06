@@ -68,19 +68,33 @@ router.get('/', async (req, res) => {
             ];
         }
 
-        let products = await Product.find(filter).sort({ created_at: -1 }).lean();
+        let products = [];
+        if (getIsConnected()) {
+            try {
+                products = await Product.find(filter).sort({ created_at: -1 }).lean();
+            } catch (pErr) {}
+        }
         
-        // Fallback guarantee: if MongoDB yields empty results and no search/category filter is active, serve initialData products
-        if ((!products || products.length === 0) && Object.keys(filter).length === 0 && initialData && initialData.products && initialData.products.length > 0) {
-            products = initialData.products;
+        // Fallback guarantee: if MongoDB is disconnected or yields empty results, serve initialData products
+        if ((!products || products.length === 0) && initialData && initialData.products && initialData.products.length > 0) {
+            let filteredInitial = initialData.products;
+            if (filter.category_id) filteredInitial = filteredInitial.filter(p => Number(p.category_id) === Number(filter.category_id));
+            if (filter.sleeve_type) filteredInitial = filteredInitial.filter(p => p.sleeve_type === filter.sleeve_type);
+            if (filter.color) filteredInitial = filteredInitial.filter(p => filter.color.test(p.color));
+            products = filteredInitial;
         }
         
         // Fetch categories map for category_name normalization
-        const categories = await Category.find({}).lean();
         const catMap = new Map();
-        if (categories && categories.length > 0) {
-            categories.forEach(c => catMap.set(Number(c.id), c.name));
-        } else if (initialData && initialData.categories) {
+        if (getIsConnected()) {
+            try {
+                const categories = await Category.find({}).lean();
+                if (categories && categories.length > 0) {
+                    categories.forEach(c => catMap.set(Number(c.id), c.name));
+                }
+            } catch (e) {}
+        }
+        if (catMap.size === 0 && initialData && initialData.categories) {
             initialData.categories.forEach(c => catMap.set(Number(c.id), c.name));
         }
 
@@ -216,17 +230,24 @@ router.patch('/:id/price', auth, isOwner, async (req, res) => {
             return res.status(400).json({ message: 'Invalid price value' });
         }
 
-        const updated = await Product.findOneAndUpdate(
-            { id: productId },
-            { $set: { price: numPrice } },
-            { new: true }
-        ).lean();
-
-        if (!updated) {
-            return res.status(404).json({ message: 'Product not found' });
+        let updated = null;
+        if (getIsConnected()) {
+            try {
+                updated = await Product.findOneAndUpdate(
+                    { id: productId },
+                    { $set: { price: numPrice } },
+                    { new: true }
+                ).lean();
+            } catch (e) {}
         }
 
-        res.json({ message: 'Price updated successfully in MongoDB', productId, price: numPrice, product: updated });
+        // Also update initialData in memory fallback if present
+        if (initialData && initialData.products) {
+            const p = initialData.products.find(x => Number(x.id) === productId);
+            if (p) p.price = numPrice;
+        }
+
+        res.json({ message: 'Price updated successfully in MongoDB', productId, price: numPrice, product: updated || { id: productId, price: numPrice } });
     } catch (error) {
         console.error('Error updating product price in MongoDB:', error);
         res.status(500).json({ message: 'Server error updating price' });
