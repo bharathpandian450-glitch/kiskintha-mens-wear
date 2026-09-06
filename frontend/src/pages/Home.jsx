@@ -31,7 +31,7 @@ const categoryCustomIcons = {
 function Home() {
     const [categories, setCategories] = useState(initialCategories);
     const [products, setProducts] = useState(initialProducts);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -49,21 +49,10 @@ function Home() {
                 console.error('Error fetching data:', error);
                 setCategories(initialCategories);
                 setProducts(initialProducts);
-            } finally {
-                setLoading(false);
             }
         };
         fetchData();
     }, []);
-
-    if (loading) {
-        return (
-            <div className="loading">
-                <div className="spinner"></div>
-                <p>Loading...</p>
-            </div>
-        );
-    }
 
     return (
         <div>

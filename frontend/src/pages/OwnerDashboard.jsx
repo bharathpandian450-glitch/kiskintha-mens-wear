@@ -141,10 +141,10 @@ function OwnerDashboard() {
             setLoading(false);
         }, 3000);
 
-        // Auto-refresh every 3 seconds so numbers increase in real time as orders/customers are added!
+        // Auto-refresh every 15 seconds so stats stay updated without network congestion
         const interval = setInterval(() => {
             fetchData(false);
-        }, 3000);
+        }, 15000);
 
         return () => {
             clearTimeout(safetyTimer);

@@ -29,8 +29,8 @@ const colorOptions = [
 ];
 
 function Products() {
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [products, setProducts] = useState(initialProducts);
+    const [loading, setLoading] = useState(false);
     const [searchParams, setSearchParams] = useSearchParams();
 
     const activeCategory = searchParams.get('category') || '';
@@ -54,7 +54,6 @@ function Products() {
 
     useEffect(() => {
         const fetchProducts = async () => {
-            setLoading(true);
             try {
                 const params = {};
                 if (activeCategory) params.category = activeCategory;
@@ -67,19 +66,11 @@ function Products() {
                 } else if (data && Array.isArray(data.products)) {
                     list = data.products;
                 }
-                if ((!list || list.length === 0) && !activeCategory && !searchQuery) {
-                    list = initialProducts;
+                if (list && list.length > 0) {
+                    setProducts(list);
                 }
-                setProducts(list);
             } catch (error) {
                 console.error('Error fetching products:', error);
-                if (!activeCategory && !searchQuery) {
-                    setProducts(initialProducts);
-                } else {
-                    setProducts([]);
-                }
-            } finally {
-                setLoading(false);
             }
         };
         fetchProducts();
