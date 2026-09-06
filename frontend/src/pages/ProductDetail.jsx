@@ -185,9 +185,30 @@ function ProductDetail() {
                                         {product.sleeve_type === 'Half Hand' ? '👕 Half Hand' : '👔 Full Hand'}
                                     </span>
                                 )}
-                                <span style={{ fontSize: '13px', color: '#eab308', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    ⭐ {avgRating} ({totalReviews} customer reviews)
-                                </span>
+                                <a
+                                    href="#reviews-section"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' });
+                                    }}
+                                    style={{
+                                        fontSize: '12px',
+                                        color: '#b45309',
+                                        fontWeight: '800',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        textDecoration: 'none',
+                                        cursor: 'pointer',
+                                        background: '#fef3c7',
+                                        padding: '3px 10px',
+                                        borderRadius: '12px',
+                                        border: '1px solid #fde68a'
+                                    }}
+                                    title="Click to view & write customer reviews"
+                                >
+                                    ⭐ {avgRating} ({totalReviews} Customer Reviews) ⬇️
+                                </a>
                             </div>
 
                             <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#0f172a', margin: '8px 0 12px', lineHeight: '1.3' }}>
