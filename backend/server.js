@@ -25,6 +25,18 @@ app.use((req, res, next) => {
 app.use(cors());
 app.use(express.json());
 
+const { connectMongoDB, initialData } = require('./config/db');
+
+// Ensure MongoDB is connected and seeded on incoming API requests in serverless environments
+app.use(async (req, res, next) => {
+    try {
+        await connectMongoDB(initialData);
+    } catch (err) {
+        console.error('Serverless connection error:', err.message);
+    }
+    next();
+});
+
 // Serve uploaded images as static files under /uploads and /picture
 const pictureDir = path.join(__dirname, '..', 'picture');
 app.use('/uploads', express.static(uploadsDir));

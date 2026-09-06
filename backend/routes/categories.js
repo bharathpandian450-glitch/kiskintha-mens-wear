@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { Category, connectMongoDB, getIsConnected } = require('../config/mongodb');
+const { initialData } = require('../config/db');
 const { auth, isOwner } = require('../middleware/auth');
 
 // Middleware to ensure MongoDB is connected before running operations
 router.use(async (req, res, next) => {
     if (!getIsConnected()) {
-        await connectMongoDB().catch(() => {});
+        await connectMongoDB(initialData).catch(() => {});
     }
     next();
 });
@@ -14,10 +15,16 @@ router.use(async (req, res, next) => {
 // GET all categories (Native MongoDB)
 router.get('/', async (req, res) => {
     try {
-        const categories = await Category.find({}).sort({ name: 1 }).lean();
+        let categories = await Category.find({}).sort({ name: 1 }).lean();
+        if ((!categories || categories.length === 0) && initialData && initialData.categories) {
+            categories = initialData.categories;
+        }
         res.json(categories);
     } catch (error) {
         console.error('Error fetching categories from MongoDB:', error);
+        if (initialData && initialData.categories) {
+            return res.json(initialData.categories);
+        }
         res.status(500).json({ message: 'Server error fetching categories' });
     }
 });

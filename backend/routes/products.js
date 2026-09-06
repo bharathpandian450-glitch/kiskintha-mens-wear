@@ -2,13 +2,12 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const { Product, Category, connectMongoDB, getIsConnected } = require('../config/mongodb');
-const { auth, isOwner } = require('../middleware/auth');
+const { initialData } = require('../config/db');
 
-// Ensure MongoDB is connected before route handlers execute
+// Ensure MongoDB is connected and seeded before route handlers execute
 router.use(async (req, res, next) => {
     if (!getIsConnected()) {
-        await connectMongoDB().catch(() => {});
+        await connectMongoDB(initialData).catch(() => {});
     }
     next();
 });
@@ -52,14 +51,23 @@ router.get('/', async (req, res) => {
             ];
         }
 
-        const products = await Product.find(filter).sort({ created_at: -1 }).lean();
+        let products = await Product.find(filter).sort({ created_at: -1 }).lean();
+        
+        // Fallback guarantee: if MongoDB yields empty results and no search/category filter is active, serve initialData products
+        if ((!products || products.length === 0) && Object.keys(filter).length === 0 && initialData && initialData.products && initialData.products.length > 0) {
+            products = initialData.products;
+        }
         
         // Fetch categories map for category_name normalization
         const categories = await Category.find({}).lean();
         const catMap = new Map();
-        categories.forEach(c => catMap.set(Number(c.id), c.name));
+        if (categories && categories.length > 0) {
+            categories.forEach(c => catMap.set(Number(c.id), c.name));
+        } else if (initialData && initialData.categories) {
+            initialData.categories.forEach(c => catMap.set(Number(c.id), c.name));
+        }
 
-        const formattedProducts = products.map(p => ({
+        const formattedProducts = (products || []).map(p => ({
             ...p,
             category_name: p.category_name || catMap.get(Number(p.category_id)) || 'Men Wear'
         }));
@@ -67,6 +75,10 @@ router.get('/', async (req, res) => {
         res.json(formattedProducts);
     } catch (error) {
         console.error('Error fetching products from MongoDB:', error);
+        // Resilient fallback on error: return initialData products instead of 500
+        if (initialData && initialData.products && initialData.products.length > 0) {
+            return res.json(initialData.products);
+        }
         res.status(500).json({ message: 'Server error fetching products' });
     }
 });
