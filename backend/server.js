@@ -46,16 +46,15 @@ app.use('/owner', require('./routes/owner'));
 
 // Root route
 app.get('/', (req, res) => {
-    res.json({ message: 'Kiskintha Mens Wear API is running' });
+    res.json({ message: 'Kiskintha Mens Wear MongoDB API is running' });
 });
 
-const { connectMongoDB } = require('./config/mongodb');
-const { memoryStore } = require('./config/db');
+const { connectMongoDB, initialData } = require('./config/db');
 
-// Start server on PORT 5000
+// Start server on PORT 5000 and connect to MongoDB
 const server = app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    connectMongoDB(memoryStore).catch(() => {});
+    console.log(`✅ Kiskintha Mens Wear Server running on port ${PORT}`);
+    connectMongoDB(initialData).catch(() => {});
 });
 
 server.on('error', (err) => {
@@ -68,4 +67,3 @@ server.on('error', (err) => {
 });
 
 module.exports = app;
-
