@@ -1,50 +1,55 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../config/db');
+const { Product, Order, User, connectMongoDB, getIsConnected } = require('../config/mongodb');
 const { auth, isOwner } = require('../middleware/auth');
 
-// GET Store Owner Financial & Executive Stats
+router.use(async (req, res, next) => {
+    if (!getIsConnected()) {
+        await connectMongoDB().catch(() => {});
+    }
+    next();
+});
+
+// GET Store Owner Financial & Executive Stats (Native MongoDB)
 router.get('/overview', auth, isOwner, async (req, res) => {
     try {
-        const [stats] = await pool.query('SELECT COUNT(*) as count FROM products');
-        if (stats && stats[0] && typeof stats[0].totalRevenue !== 'undefined') {
-            return res.json({
-                ...stats[0],
-                ownerName: req.user.name,
-                shopName: 'Kiskintha Mens Wear'
-            });
-        }
+        const totalProducts = await Product.countDocuments();
+        const totalOrders = await Order.countDocuments();
+        const totalCustomers = await User.countDocuments({ role: 'customer' });
+        const totalAdmins = await User.countDocuments({ role: 'admin' });
 
-        const [products] = await pool.query('SELECT COUNT(*) as count FROM products');
-        const [orders] = await pool.query('SELECT COUNT(*) as count FROM orders');
-        const [customers] = await pool.query("SELECT COUNT(*) as count FROM users WHERE role = 'customer'");
-        const [admins] = await pool.query("SELECT COUNT(*) as count FROM users WHERE role = 'admin'");
-        const [revenue] = await pool.query("SELECT COALESCE(SUM(total), 0) as total FROM orders WHERE status != 'Cancelled'");
+        const revResult = await Order.aggregate([
+            { $match: { status: { $ne: 'Cancelled' } } },
+            { $group: { _id: null, total: { $sum: '$total' } } }
+        ]);
+
+        const totalRevenue = revResult.length > 0 ? revResult[0].total : 0;
 
         res.json({
             ownerName: req.user.name,
             shopName: 'Kiskintha Mens Wear',
-            totalProducts: products[0]?.count || 0,
-            totalOrders: orders[0]?.count || 0,
-            totalCustomers: customers[0]?.count || 0,
-            totalAdmins: admins[0]?.count || 0,
-            totalRevenue: revenue[0]?.total || 0
+            totalProducts,
+            totalOrders,
+            totalCustomers,
+            totalAdmins,
+            totalRevenue
         });
     } catch (error) {
-        console.error('Error fetching owner overview:', error);
+        console.error('Error fetching owner overview from MongoDB:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
 
-// GET all admins and staff (Owner only)
+// GET all admins and staff (Owner only - Native MongoDB)
 router.get('/staff', auth, isOwner, async (req, res) => {
     try {
-        const [rows] = await pool.query(
-            "SELECT id, name, email, phone, role, created_at FROM users WHERE role IN ('admin', 'owner') ORDER BY id ASC"
-        );
-        res.json(rows || []);
+        const staff = await User.find({ role: { $in: ['admin', 'owner'] } })
+            .sort({ id: 1 })
+            .select('-password')
+            .lean();
+        res.json(staff || []);
     } catch (error) {
-        console.error('Error fetching staff:', error);
+        console.error('Error fetching staff from MongoDB:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

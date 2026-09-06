@@ -150,46 +150,79 @@ const seedMongoDB = async (data) => {
             }
         }
 
-        // Sync existing MongoDB Orders to memoryStore
+        // Sync existing MongoDB Orders to memoryStore & load disk persistent orders (Non-Destructive Merge)
+        const { loadPersistentOrders, savePersistentOrder } = require('./persistentOrders');
+        const diskOrders = loadPersistentOrders();
         const mongoOrders = await Order.find({}).sort({ created_at: -1 }).lean();
-        if (mongoOrders && mongoOrders.length > 0 && data.orders && data.order_items) {
-            data.orders.length = 0;
-            data.order_items.length = 0;
-            for (const o of mongoOrders) {
-                data.orders.push({
-                    id: o.id,
-                    user_id: o.user_id,
-                    customer_name: o.customer_name || 'Customer',
-                    customer_email: o.customer_email || '',
-                    customer_phone: o.customer_phone || o.phone || '',
-                    total: o.total,
-                    address: o.address,
-                    city: o.city || 'Chennai',
-                    state: o.state || 'Tamil Nadu',
-                    pincode: o.pincode || '600040',
-                    phone: o.phone || o.customer_phone || '',
-                    payment_method: o.payment_method || 'COD',
-                    status: o.status || 'Pending',
-                    created_at: o.created_at || new Date()
-                });
-                if (o.items && o.items.length > 0) {
-                    for (const item of o.items) {
-                        data.order_items.push({
-                            id: data.order_items.length + 1,
-                            order_id: o.id,
-                            product_id: item.product_id,
-                            quantity: item.quantity,
-                            price: item.price,
-                            size: item.size || 'M',
-                            color: item.color || '',
-                            product_name: item.product_name || item.name || '',
-                            image: item.image || ''
-                        });
-                    }
+
+        const allKnownOrders = new Map();
+
+        // 1. Add Disk Orders
+        if (diskOrders && diskOrders.length > 0) {
+            diskOrders.forEach(o => allKnownOrders.set(Number(o.id), o));
+        }
+
+        // 2. Add MongoDB Orders
+        if (mongoOrders && mongoOrders.length > 0) {
+            mongoOrders.forEach(o => allKnownOrders.set(Number(o.id), o));
+        }
+
+        // 3. Add MemoryStore Orders
+        if (data.orders && data.orders.length > 0) {
+            data.orders.forEach(o => {
+                if (!allKnownOrders.has(Number(o.id))) {
+                    allKnownOrders.set(Number(o.id), o);
+                }
+            });
+        }
+
+        // Merge back to data.orders without truncating
+        data.orders.length = 0;
+        data.order_items.length = 0;
+
+        for (const o of Array.from(allKnownOrders.values())) {
+            data.orders.push({
+                id: Number(o.id),
+                user_id: o.user_id,
+                customer_name: o.customer_name || 'Customer',
+                customer_email: o.customer_email || '',
+                customer_phone: o.customer_phone || o.phone || '',
+                total: Number(o.total || 0),
+                address: o.address || '',
+                city: o.city || 'Chennai',
+                state: o.state || 'Tamil Nadu',
+                pincode: o.pincode || '600040',
+                phone: o.phone || o.customer_phone || '',
+                payment_method: o.payment_method || 'Online Payment',
+                status: o.status || 'Pending',
+                created_at: o.created_at || new Date()
+            });
+
+            // Save to persistent disk storage
+            savePersistentOrder(o);
+
+            // Sync to MongoDB if not existing in MongoDB
+            try {
+                await Order.updateOne({ id: Number(o.id) }, { $set: o }, { upsert: true });
+            } catch (err) {}
+
+            if (o.items && o.items.length > 0) {
+                for (const item of o.items) {
+                    data.order_items.push({
+                        id: data.order_items.length + 1,
+                        order_id: Number(o.id),
+                        product_id: item.product_id,
+                        quantity: item.quantity,
+                        price: item.price,
+                        size: item.size || 'M',
+                        color: item.color || '',
+                        product_name: item.product_name || item.name || '',
+                        image: item.image || ''
+                    });
                 }
             }
-            console.log(`✅ Loaded ${mongoOrders.length} customer orders from MongoDB into MemoryStore!`);
         }
+        console.log(`✅ Fully Synced ${data.orders.length} Permanent Customer Orders across MongoDB, Disk Storage, and MemoryStore!`);
 
         console.log('✅ MongoDB Collections Auto-Seeded & Synced!');
     } catch (err) {

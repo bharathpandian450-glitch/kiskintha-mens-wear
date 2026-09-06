@@ -2,10 +2,18 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const pool = require('../config/db');
+const { Product, Category, connectMongoDB, getIsConnected } = require('../config/mongodb');
 const { auth, isOwner } = require('../middleware/auth');
 
-// Multer config for image uploads
+// Ensure MongoDB is connected before route handlers execute
+router.use(async (req, res, next) => {
+    if (!getIsConnected()) {
+        await connectMongoDB().catch(() => {});
+    }
+    next();
+});
+
+// Multer config for product image uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, path.join(__dirname, '../uploads'));
@@ -17,157 +25,199 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// GET all products (with optional category and search filters)
+// GET all products (Native MongoDB with filters for category, sleeve, color, search)
 router.get('/', async (req, res) => {
     try {
-        let sql = 'SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id';
-        const conditions = [];
-        const params = [];
+        const filter = {};
 
         if (req.query.category) {
-            conditions.push('p.category_id = ?');
-            params.push(req.query.category);
+            filter.category_id = Number(req.query.category);
         }
 
         if (req.query.sleeve_type) {
-            conditions.push('p.sleeve_type = ?');
-            params.push(req.query.sleeve_type);
+            filter.sleeve_type = req.query.sleeve_type;
         }
 
         if (req.query.color) {
-            conditions.push('p.color = ?');
-            params.push(req.query.color);
+            filter.color = new RegExp(`^${req.query.color}$`, 'i');
         }
 
         if (req.query.search) {
-            conditions.push('(p.name LIKE ? OR p.description LIKE ?)');
-            params.push(`%${req.query.search}%`, `%${req.query.search}%`);
+            const searchTerm = req.query.search.trim();
+            filter.$or = [
+                { name: { $regex: searchTerm, $options: 'i' } },
+                { description: { $regex: searchTerm, $options: 'i' } },
+                { color: { $regex: searchTerm, $options: 'i' } },
+                { subcategory: { $regex: searchTerm, $options: 'i' } }
+            ];
         }
 
-        if (conditions.length > 0) {
-            sql += ' WHERE ' + conditions.join(' AND ');
-        }
+        const products = await Product.find(filter).sort({ created_at: -1 }).lean();
+        
+        // Fetch categories map for category_name normalization
+        const categories = await Category.find({}).lean();
+        const catMap = new Map();
+        categories.forEach(c => catMap.set(Number(c.id), c.name));
 
-        sql += ' ORDER BY p.created_at DESC';
+        const formattedProducts = products.map(p => ({
+            ...p,
+            category_name: p.category_name || catMap.get(Number(p.category_id)) || 'Men Wear'
+        }));
 
-        const [rows] = await pool.query(sql, params);
-        res.json(rows);
+        res.json(formattedProducts);
     } catch (error) {
-        console.error('Error fetching products:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error fetching products from MongoDB:', error);
+        res.status(500).json({ message: 'Server error fetching products' });
     }
 });
 
-// GET single product by ID
+// GET single product by ID (Native MongoDB)
 router.get('/:id', async (req, res) => {
     try {
-        const [rows] = await pool.query(
-            'SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?',
-            [req.params.id]
-        );
+        const prod = await Product.findOne({ id: Number(req.params.id) }).lean();
 
-        if (rows.length === 0) {
+        if (!prod) {
             return res.status(404).json({ message: 'Product not found' });
         }
 
-        res.json(rows[0]);
+        if (!prod.category_name && prod.category_id) {
+            const cat = await Category.findOne({ id: Number(prod.category_id) }).lean();
+            if (cat) prod.category_name = cat.name;
+        }
+
+        res.json(prod);
     } catch (error) {
-        console.error('Error fetching product:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error fetching product from MongoDB:', error);
+        res.status(500).json({ message: 'Server error fetching product' });
     }
 });
 
-// POST create product (Store Owner only)
+// POST create product (Store Owner only - Native MongoDB)
 router.post('/', auth, isOwner, upload.single('image'), async (req, res) => {
     try {
-        const { name, description, price, category_id, size, stock } = req.body;
+        const { name, description, price, category_id, size, stock, color, sleeve_type, subcategory } = req.body;
         const image = req.file ? req.file.filename : '';
 
-        const [result] = await pool.query(
-            'INSERT INTO products (name, description, price, image, category_id, size, stock) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [name, description, price, image, category_id, size || 'S,M,L,XL', stock || 0]
-        );
+        const maxProd = await Product.findOne({}).sort({ id: -1 }).lean();
+        const newId = maxProd && maxProd.id ? Number(maxProd.id) + 1 : 1;
 
-        res.status(201).json({ message: 'Product created successfully by Owner', id: result.insertId });
+        // Resolve Category Name
+        let catName = 'Men Wear';
+        if (category_id) {
+            const cat = await Category.findOne({ id: Number(category_id) }).lean();
+            if (cat) catName = cat.name;
+        }
+
+        const newProduct = await Product.create({
+            id: newId,
+            name: name ? name.trim() : 'New Garment Product',
+            description: description || '',
+            price: parseFloat(price) || 0,
+            image,
+            category_id: parseInt(category_id) || 1,
+            category_name: catName,
+            subcategory: subcategory || '',
+            sleeve_type: sleeve_type || '',
+            size: size || 'S,M,L,XL',
+            color: color || 'Assorted',
+            stock: parseInt(stock) || 50,
+            created_at: new Date()
+        });
+
+        res.status(201).json({ message: 'Product created successfully by Owner', id: newProduct.id, product: newProduct });
     } catch (error) {
-        console.error('Error creating product:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error creating product in MongoDB:', error);
+        res.status(500).json({ message: 'Server error creating product' });
     }
 });
 
-// PUT update product (Store Owner only)
+// PUT update product (Store Owner only - Native MongoDB)
 router.put('/:id', auth, isOwner, upload.single('image'), async (req, res) => {
     try {
-        const { name, description, price, category_id, size, stock } = req.body;
+        const productId = Number(req.params.id);
+        const { name, description, price, category_id, size, stock, color, sleeve_type, subcategory } = req.body;
 
-        const [existing] = await pool.query('SELECT * FROM products WHERE id = ?', [req.params.id]);
-        if (existing.length === 0) {
+        const existing = await Product.findOne({ id: productId }).lean();
+        if (!existing) {
             return res.status(404).json({ message: 'Product not found' });
         }
 
-        const image = req.file ? req.file.filename : existing[0].image;
+        const image = req.file ? req.file.filename : existing.image;
 
-        await pool.query(
-            'UPDATE products SET name = ?, description = ?, price = ?, image = ?, category_id = ?, size = ?, stock = ? WHERE id = ?',
-            [name, description, price, image, category_id, size, stock, req.params.id]
-        );
+        let catName = existing.category_name || 'Men Wear';
+        if (category_id) {
+            const cat = await Category.findOne({ id: Number(category_id) }).lean();
+            if (cat) catName = cat.name;
+        }
 
-        res.json({ message: 'Product updated successfully by Owner' });
+        const updateData = {
+            name: name ? name.trim() : existing.name,
+            description: description !== undefined ? description : existing.description,
+            price: price !== undefined ? parseFloat(price) : existing.price,
+            image,
+            category_id: category_id !== undefined ? parseInt(category_id) : existing.category_id,
+            category_name: catName,
+            size: size || existing.size,
+            color: color || existing.color,
+            stock: stock !== undefined ? parseInt(stock) : existing.stock,
+            sleeve_type: sleeve_type !== undefined ? sleeve_type : existing.sleeve_type,
+            subcategory: subcategory !== undefined ? subcategory : existing.subcategory
+        };
+
+        const updatedProd = await Product.findOneAndUpdate(
+            { id: productId },
+            { $set: updateData },
+            { new: true }
+        ).lean();
+
+        res.json({ message: 'Product updated successfully by Owner', product: updatedProd });
     } catch (error) {
-        console.error('Error updating product:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error updating product in MongoDB:', error);
+        res.status(500).json({ message: 'Server error updating product' });
     }
 });
 
-// PATCH update product price (Store Owner only)
+// PATCH update product price (Store Owner only - Native MongoDB)
 router.patch('/:id/price', auth, isOwner, async (req, res) => {
     try {
+        const productId = Number(req.params.id);
         const { price } = req.body;
         const numPrice = parseFloat(price);
         if (isNaN(numPrice) || numPrice < 0) {
             return res.status(400).json({ message: 'Invalid price value' });
         }
 
-        const [existing] = await pool.query('SELECT * FROM products WHERE id = ?', [req.params.id]);
-        if (!existing || existing.length === 0) {
+        const updated = await Product.findOneAndUpdate(
+            { id: productId },
+            { $set: { price: numPrice } },
+            { new: true }
+        ).lean();
+
+        if (!updated) {
             return res.status(404).json({ message: 'Product not found' });
         }
 
-        await pool.query('UPDATE products SET price = ? WHERE id = ?', [numPrice, req.params.id]);
-
-        // Sync with MongoDB Product collection if connected
-        const { Product, getIsConnected } = require('../config/mongodb');
-        if (getIsConnected()) {
-            try {
-                await Product.findOneAndUpdate(
-                    { id: Number(req.params.id) },
-                    { $set: { price: numPrice } }
-                );
-            } catch (mErr) {
-                console.log('MongoDB price sync note:', mErr.message);
-            }
-        }
-
-        res.json({ message: 'Price updated successfully', productId: req.params.id, price: numPrice });
+        res.json({ message: 'Price updated successfully in MongoDB', productId, price: numPrice, product: updated });
     } catch (error) {
-        console.error('Error updating product price:', error);
+        console.error('Error updating product price in MongoDB:', error);
         res.status(500).json({ message: 'Server error updating price' });
     }
 });
 
-// DELETE product (Store Owner only)
+// DELETE product (Store Owner only - Native MongoDB)
 router.delete('/:id', auth, isOwner, async (req, res) => {
     try {
-        const [result] = await pool.query('DELETE FROM products WHERE id = ?', [req.params.id]);
+        const productId = Number(req.params.id);
+        const result = await Product.deleteOne({ id: productId });
 
-        if (result.affectedRows === 0) {
+        if (result.deletedCount === 0) {
             return res.status(404).json({ message: 'Product not found' });
         }
 
-        res.json({ message: 'Product deleted by Owner' });
+        res.json({ message: 'Product deleted by Owner from MongoDB' });
     } catch (error) {
-        console.error('Error deleting product:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error deleting product from MongoDB:', error);
+        res.status(500).json({ message: 'Server error deleting product' });
     }
 });
 

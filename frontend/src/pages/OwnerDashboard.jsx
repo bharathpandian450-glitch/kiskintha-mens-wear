@@ -60,15 +60,28 @@ function OwnerDashboard() {
                 API.get('/owner/staff')
             ]);
             setOverview(overviewRes.data);
-            setOrders(ordersRes.data || []);
-            setCustomers(customersRes.data || []);
+            if (Array.isArray(ordersRes.data)) {
+                setOrders(ordersRes.data);
+            }
+            if (Array.isArray(customersRes.data)) {
+                setCustomers(customersRes.data);
+            }
             const pData = productsRes.data;
-            setProducts(Array.isArray(pData) ? pData : (pData?.products || []));
-            setCategories(categoriesRes.data || []);
-            setStaff(staffRes.data || []);
+            if (pData) {
+                setProducts(Array.isArray(pData) ? pData : (pData?.products || []));
+            }
+            if (Array.isArray(categoriesRes.data)) {
+                setCategories(categoriesRes.data);
+            }
+            if (Array.isArray(staffRes.data)) {
+                setStaff(staffRes.data);
+            }
+            setError('');
         } catch (err) {
             console.error('Error loading Store Owner dashboard data:', err);
-            setError('Failed to load Store Owner data. Please verify authorization.');
+            if (isInitial) {
+                setError('Failed to load Store Owner data. Please verify authorization.');
+            }
         } finally {
             if (isInitial) setLoading(false);
         }

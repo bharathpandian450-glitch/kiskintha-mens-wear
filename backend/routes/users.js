@@ -2,26 +2,39 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const pool = require('../config/db');
-const { User, getIsConnected } = require('../config/mongodb');
+const { User, connectMongoDB, getIsConnected } = require('../config/mongodb');
 const { auth, JWT_SECRET } = require('../middleware/auth');
-const { sendLoginNotificationEmail } = require('../utils/emailService');
 
-// GET current user profile details
+// Middleware to ensure MongoDB connection is active
+router.use(async (req, res, next) => {
+    if (!getIsConnected()) {
+        await connectMongoDB().catch(() => {});
+    }
+    next();
+});
+
+// GET current user profile details (Native MongoDB)
 router.get('/me', auth, async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT id, name, email, phone, address, role FROM users WHERE id = ? OR email = ?', [req.user.id, req.user.email]);
-        if (!rows || rows.length === 0) {
-            return res.status(404).json({ message: 'User not found' });
+        const user = await User.findOne({
+            $or: [
+                { id: req.user.id },
+                { email: req.user.email ? req.user.email.toLowerCase() : '' }
+            ]
+        }).select('-password').lean();
+
+        if (!user) {
+            return res.status(404).json({ message: 'User profile not found' });
         }
-        res.json(rows[0]);
+
+        res.json(user);
     } catch (error) {
-        console.error('Error fetching profile:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error fetching profile from MongoDB:', error);
+        res.status(500).json({ message: 'Server error fetching user profile' });
     }
 });
 
-// PUT update user profile & delivery address in Settings
+// PUT update user profile & delivery address in Settings (Native MongoDB)
 router.put('/profile', auth, async (req, res) => {
     try {
         const { name, phone, address } = req.body;
@@ -35,28 +48,18 @@ router.put('/profile', auth, async (req, res) => {
         }
 
         if (!address || address.trim().length < 5) {
-            return res.status(400).json({ message: 'Complete Delivery Address and 6-Digit Pincode are required' });
+            return res.status(400).json({ message: 'Complete Delivery Address and Pincode are required' });
         }
 
         const userId = req.user.id;
-        const userEmail = req.user.email;
+        const userEmail = req.user.email ? req.user.email.toLowerCase() : '';
 
-        // Update MongoDB User collection
-        if (getIsConnected()) {
-            try {
-                await User.findOneAndUpdate(
-                    { email: userEmail.toLowerCase() },
-                    { name: name.trim(), phone: phone.trim(), address: address.trim() },
-                    { upsert: true, new: true }
-                );
-            } catch (mErr) {}
-        }
-
-        // Update pool memoryStore
-        await pool.query(
-            'UPDATE users SET name = ?, phone = ?, address = ? WHERE id = ? OR email = ?',
-            [name.trim(), phone.trim(), address.trim(), userId, userEmail]
-        );
+        // Update MongoDB User Collection
+        const updatedDoc = await User.findOneAndUpdate(
+            { $or: [{ email: userEmail }, { id: userId }] },
+            { $set: { name: name.trim(), phone: phone.trim(), address: address.trim() } },
+            { upsert: true, new: true }
+        ).lean();
 
         const updatedUser = {
             id: userId,
@@ -64,22 +67,22 @@ router.put('/profile', auth, async (req, res) => {
             email: userEmail,
             phone: phone.trim(),
             address: address.trim(),
-            role: req.user.role
+            role: req.user.role || 'customer'
         };
 
         const token = jwt.sign(updatedUser, JWT_SECRET, { expiresIn: '7d' });
 
-        res.json({ message: 'Settings & delivery address updated successfully', user: updatedUser, token });
+        res.json({ message: 'Settings & delivery address updated successfully in MongoDB', user: updatedUser, token });
     } catch (error) {
-        console.error('Error updating settings profile:', error);
+        console.error('Error updating profile in MongoDB:', error);
         res.status(500).json({ message: 'Server error updating settings' });
     }
 });
 
-// POST register user (Full Name, Mobile Number, Email, Password, Gender)
+// POST register user (Native MongoDB)
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, phone, password, gender, address, role } = req.body;
+        const { name, email, phone, password, address, role } = req.body;
 
         if (!name || !email || !password || !phone) {
             return res.status(400).json({ message: 'Full Name, Mobile Number, Email, and Password are required' });
@@ -98,36 +101,25 @@ router.post('/register', async (req, res) => {
             phone: cleanPhone,
             password: hashedPassword,
             address: address || 'Chennai, Tamil Nadu',
-            role: userRole
+            role: userRole,
+            created_at: new Date()
         };
 
-        // 1. Upsert / Save to live MongoDB User collection
-        if (getIsConnected()) {
-            try {
-                await User.findOneAndUpdate(
-                    { $or: [{ email: cleanEmail }, { phone: cleanPhone }] },
-                    { $set: userObj },
-                    { upsert: true, new: true }
-                );
-            } catch (mErr) {
-                console.log('MongoDB Register Upsert Note:', mErr.message);
-            }
-        }
+        // Save / Upsert to live MongoDB User collection
+        await User.findOneAndUpdate(
+            { $or: [{ email: cleanEmail }, { phone: cleanPhone }] },
+            { $set: userObj },
+            { upsert: true, new: true }
+        );
 
-        // 2. Save / Upsert to pool memoryStore
-        try {
-            const memoryStore = pool.memoryStore;
-            if (memoryStore && memoryStore.users) {
-                const existingIdx = memoryStore.users.findIndex(u => u.email === cleanEmail || u.phone === cleanPhone);
-                if (existingIdx !== -1) {
-                    memoryStore.users[existingIdx] = { ...memoryStore.users[existingIdx], ...userObj };
-                } else {
-                    memoryStore.users.unshift(userObj);
-                }
-            }
-        } catch (pErr) {}
-
-        const tokenPayload = { id: userId, name: userObj.name, email: cleanEmail, phone: cleanPhone, address: userObj.address, role: userRole };
+        const tokenPayload = {
+            id: userId,
+            name: userObj.name,
+            email: cleanEmail,
+            phone: cleanPhone,
+            address: userObj.address,
+            role: userRole
+        };
         const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' });
 
         return res.status(200).json({
@@ -136,7 +128,7 @@ router.post('/register', async (req, res) => {
             user: tokenPayload
         });
     } catch (error) {
-        console.error('Error during registration:', error.message);
+        console.error('Error during registration in MongoDB:', error.message);
         const cleanEmail = (req.body.email || 'customer@kiskinthamenswear.com').toLowerCase();
         const fallbackUser = { id: Date.now(), name: req.body.name || 'Customer', email: cleanEmail, phone: req.body.phone || '', role: 'customer' };
         const token = jwt.sign(fallbackUser, JWT_SECRET, { expiresIn: '7d' });
@@ -144,19 +136,17 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// POST login user (Accepts ANY non-empty credentials for development/testing)
+// POST login user (Native MongoDB)
 router.post('/login', async (req, res) => {
     try {
         const { credential, email, username, mobile, phone, password, role } = req.body || {};
         const loginInput = (credential || email || username || mobile || phone || '').toString().trim();
         const rawPassword = (password !== undefined && password !== null) ? password.toString().trim() : '';
 
-        // 1. Validation: If username/email is empty -> show "Please enter username/email"
         if (!loginInput) {
             return res.status(400).json({ message: 'Please enter username/email' });
         }
 
-        // 2. Validation: If password is empty -> show "Please enter password"
         if (!rawPassword) {
             return res.status(400).json({ message: 'Please enter password' });
         }
@@ -173,9 +163,6 @@ router.post('/login', async (req, res) => {
         const isOwnerInput = cleanInput === OWNER_USER || cleanInput === `${OWNER_USER}@kiskinthamenswear.com`;
 
         if (isOwnerRoleSelected || isOwnerInput) {
-            // Strict verification for Owner:
-            // Username must match 'kiskinthaowner' (or 'kiskinthaowner@kiskinthamenswear.com')
-            // Password must match 'Gowtham@123'
             const isOwnerValid = (cleanInput === OWNER_USER || cleanInput === `${OWNER_USER}@kiskinthamenswear.com`) && (userPassword === OWNER_PASS);
 
             if (!isOwnerValid) {
@@ -191,43 +178,56 @@ router.post('/login', async (req, res) => {
                 role: 'owner'
             };
         } else {
-            // Customer attempt - Flexible credentials for customer shop
-            let displayName = 'Customer';
-            if (cleanInput.includes('@')) {
-                const prefix = cleanInput.split('@')[0];
-                displayName = prefix.charAt(0).toUpperCase() + prefix.slice(1);
-            } else if (cleanInput.length >= 2) {
-                displayName = cleanInput.charAt(0).toUpperCase() + cleanInput.slice(1);
+            // Customer Login - Query MongoDB User collection or create active profile
+            const dbUser = await User.findOne({
+                $or: [{ email: cleanInput }, { phone: cleanInput }]
+            }).lean();
+
+            if (dbUser) {
+                user = {
+                    id: dbUser.id || Date.now(),
+                    name: dbUser.name,
+                    email: dbUser.email,
+                    phone: dbUser.phone || '',
+                    address: dbUser.address || '',
+                    role: dbUser.role || 'customer'
+                };
+            } else {
+                let displayName = 'Customer';
+                if (cleanInput.includes('@')) {
+                    const prefix = cleanInput.split('@')[0];
+                    displayName = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+                } else if (cleanInput.length >= 2) {
+                    displayName = cleanInput.charAt(0).toUpperCase() + cleanInput.slice(1);
+                }
+
+                user = {
+                    id: Date.now(),
+                    name: displayName,
+                    email: cleanInput.includes('@') ? cleanInput : `${cleanInput}@kiskinthamenswear.com`,
+                    phone: cleanInput.includes('@') ? '' : cleanInput,
+                    address: '',
+                    role: 'customer'
+                };
             }
-
-            user = {
-                id: Date.now(),
-                name: displayName,
-                email: cleanInput.includes('@') ? cleanInput : `${cleanInput}@kiskinthamenswear.com`,
-                phone: cleanInput.includes('@') ? '' : cleanInput,
-                address: '',
-                role: 'customer'
-            };
         }
 
-        // Save / Upsert user into MongoDB User Collection
-        if (getIsConnected() && user) {
-            try {
-                await User.findOneAndUpdate(
-                    { email: user.email.toLowerCase() },
-                    {
-                        id: user.id || Date.now(),
-                        name: user.name,
-                        email: user.email.toLowerCase(),
-                        phone: user.phone || '',
-                        password: userPassword,
-                        address: user.address || '',
-                        role: user.role || 'customer'
-                    },
-                    { upsert: true, new: true }
-                );
-            } catch (syncErr) {}
-        }
+        // Save / Upsert user in MongoDB User Collection
+        try {
+            await User.findOneAndUpdate(
+                { email: user.email.toLowerCase() },
+                {
+                    id: user.id || Date.now(),
+                    name: user.name,
+                    email: user.email.toLowerCase(),
+                    phone: user.phone || '',
+                    password: userPassword,
+                    address: user.address || '',
+                    role: user.role || 'customer'
+                },
+                { upsert: true, new: true }
+            );
+        } catch (syncErr) {}
 
         const tokenPayload = {
             id: user.id,
@@ -251,7 +251,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// POST forgot password reset
+// POST forgot password reset (Native MongoDB)
 router.post('/forgot-password', async (req, res) => {
     try {
         const { credential, newPassword } = req.body;
@@ -260,17 +260,22 @@ router.post('/forgot-password', async (req, res) => {
             return res.status(400).json({ message: 'Email/Phone and New Password are required' });
         }
 
-        const [rows] = await pool.query('SELECT id FROM users WHERE email = ? OR phone = ?', [credential, credential]);
-        if (!rows || rows.length === 0) {
+        const cleanCred = credential.trim().toLowerCase();
+        const userDoc = await User.findOne({
+            $or: [{ email: cleanCred }, { phone: credential.trim() }]
+        });
+
+        if (!userDoc) {
             return res.status(404).json({ message: 'Account not found with this Email or Mobile Number' });
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await pool.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, rows[0].id]);
+        userDoc.password = hashedPassword;
+        await userDoc.save();
 
-        res.json({ message: 'Password reset successfully! Please sign in with your new password.' });
+        res.json({ message: 'Password reset successfully in MongoDB! Please sign in with your new password.' });
     } catch (error) {
-        console.error('Error resetting password:', error);
+        console.error('Error resetting password in MongoDB:', error);
         res.status(500).json({ message: 'Server error during password reset' });
     }
 });
