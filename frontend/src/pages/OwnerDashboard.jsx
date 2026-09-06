@@ -234,14 +234,10 @@ function OwnerDashboard() {
             }
 
             if (editingProduct) {
-                await API.put(`/products/${editingProduct.id}`, formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
+                await API.put(`/products/${editingProduct.id}`, formData);
                 setProdMsg('✓ Product updated successfully in MongoDB!');
             } else {
-                await API.post('/products', formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
+                await API.post('/products', formData);
                 setProdMsg('✓ Product added to catalog & saved to MongoDB!');
             }
 
