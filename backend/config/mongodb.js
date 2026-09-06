@@ -181,6 +181,8 @@ const seedMongoDB = async (data) => {
         }
 
         // Merge back to data.orders without truncating
+        if (!data.orders) data.orders = [];
+        if (!data.order_items) data.order_items = [];
         data.orders.length = 0;
         data.order_items.length = 0;
 
