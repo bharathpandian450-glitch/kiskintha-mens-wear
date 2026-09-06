@@ -99,7 +99,7 @@ const connectMongoDB = async (initialData = null) => {
     connectPromise = (async () => {
         try {
             await mongoose.connect(uri, {
-                serverSelectionTimeoutMS: 2500,
+                serverSelectionTimeoutMS: 10000,
                 maxPoolSize: 10,
                 minPoolSize: 1
             });
