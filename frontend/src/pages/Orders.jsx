@@ -17,24 +17,38 @@ const statusColors = {
 };
 
 function Orders() {
-    const [orders, setOrders] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [orders, setOrders] = useState(() => {
+        try {
+            const saved = localStorage.getItem('cached_my_orders');
+            return saved ? JSON.parse(saved) : [];
+        } catch (e) {
+            return [];
+        }
+    });
+    const [loading, setLoading] = useState(() => {
+        try {
+            const saved = localStorage.getItem('cached_my_orders');
+            return saved && JSON.parse(saved).length > 0 ? false : true;
+        } catch (e) {
+            return true;
+        }
+    });
     const [error, setError] = useState('');
 
     const fetchOrders = async () => {
         try {
-            setLoading(true);
             setError('');
             const res = await API.get('/orders/my');
-            setOrders(res.data || []);
+            const data = res.data || [];
+            setOrders(data);
+            try {
+                localStorage.setItem('cached_my_orders', JSON.stringify(data));
+            } catch (e) {}
         } catch (err) {
-            const status = err.response?.status;
-            if (status === 401 || status === 403) {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                setError('Your session has expired or is invalid. Please sign in to view your orders.');
-            } else {
-                setError(err.response?.data?.message || 'Failed to load your orders.');
+            console.error('Fetch orders note:', err.message);
+            const saved = localStorage.getItem('cached_my_orders');
+            if (!saved || JSON.parse(saved).length === 0) {
+                setError(err.response?.data?.message || 'Unable to load orders right now.');
             }
         } finally {
             setLoading(false);
