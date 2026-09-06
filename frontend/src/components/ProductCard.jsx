@@ -31,6 +31,8 @@ function ProductCard({ product }) {
                         <img
                             src={getImageSrc(product.image)}
                             alt={product.name}
+                            loading="lazy"
+                            decoding="async"
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             onError={(e) => {
                                 e.target.onerror = null;

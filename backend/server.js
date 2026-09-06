@@ -37,14 +37,26 @@ app.use(async (req, res, next) => {
     next();
 });
 
+// Cache-Control headers for ultra-fast CDN responses on static images and public endpoints
+app.use((req, res, next) => {
+    if (req.method === 'GET') {
+        if (req.path.startsWith('/uploads') || req.path.startsWith('/picture')) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else if (req.path.includes('/products') || req.path.includes('/categories')) {
+            res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+        }
+    }
+    next();
+});
+
 // Serve uploaded images as static files under /uploads and /picture
 const pictureDir = path.join(__dirname, '..', 'picture');
-app.use('/uploads', express.static(uploadsDir));
+app.use('/uploads', express.static(uploadsDir, { maxAge: '1y', immutable: true }));
 if (fs.existsSync(pictureDir)) {
-    app.use('/uploads', express.static(pictureDir));
-    app.use('/picture', express.static(pictureDir));
+    app.use('/uploads', express.static(pictureDir, { maxAge: '1y', immutable: true }));
+    app.use('/picture', express.static(pictureDir, { maxAge: '1y', immutable: true }));
 }
-app.use('/picture', express.static(uploadsDir));
+app.use('/picture', express.static(uploadsDir, { maxAge: '1y', immutable: true }));
 
 // Routes (/api/...)
 app.use('/api/products', require('./routes/products'));

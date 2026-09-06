@@ -79,8 +79,9 @@ const Category = mongoose.models.Category || mongoose.model('Category', category
 const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
 const Order = mongoose.models.Order || mongoose.model('Order', orderSchema);
 
-// Connection Status Flag
+// Connection Status Flag & Promise Singleton
 let isConnected = false;
+let connectPromise = null;
 
 // ----------------------------------------------------
 // CONNECT TO MONGOOSE & AUTO-SEED DATA
@@ -90,21 +91,33 @@ const connectMongoDB = async (initialData = null) => {
         isConnected = true;
         return;
     }
-    const uri = getMongoURI();
-    try {
-        await mongoose.connect(uri, {
-            serverSelectionTimeoutMS: 3000
-        });
-        isConnected = true;
-        console.log(`✅ MongoDB Connected Successfully: ${uri}`);
-
-        if (initialData) {
-            await seedMongoDB(initialData);
-        }
-    } catch (err) {
-        console.log(`ℹ️ MongoDB connection note for ${uri}: ${err.message}. Operating on zero-downtime persistence.`);
-        isConnected = false;
+    if (connectPromise) {
+        return connectPromise;
     }
+
+    const uri = getMongoURI();
+    connectPromise = (async () => {
+        try {
+            await mongoose.connect(uri, {
+                serverSelectionTimeoutMS: 2500,
+                maxPoolSize: 10,
+                minPoolSize: 1
+            });
+            isConnected = true;
+            console.log(`✅ MongoDB Connected Successfully: ${uri}`);
+
+            if (initialData) {
+                await seedMongoDB(initialData);
+            }
+        } catch (err) {
+            console.log(`ℹ️ MongoDB connection note for ${uri}: ${err.message}. Operating on zero-downtime persistence.`);
+            isConnected = false;
+        } finally {
+            connectPromise = null;
+        }
+    })();
+
+    return connectPromise;
 };
 
 let isSeeded = false;

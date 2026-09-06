@@ -4,22 +4,35 @@ import API from '../api';
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(null);
-    const [token, setToken] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState(() => {
+        try {
+            const savedUser = localStorage.getItem('user');
+            return savedUser ? JSON.parse(savedUser) : null;
+        } catch (e) {
+            return null;
+        }
+    });
+    const [token, setToken] = useState(() => {
+        try {
+            return localStorage.getItem('token') || null;
+        } catch (e) {
+            return null;
+        }
+    });
+    const [loading, setLoading] = useState(false);
 
-    // Restore auth state from localStorage on mount
+    // Keep auth state in sync with localStorage
     useEffect(() => {
         const savedToken = localStorage.getItem('token');
         const savedUser = localStorage.getItem('user');
-        if (savedToken && savedUser) {
+        if (savedToken && savedUser && (!token || !user)) {
             try {
                 setToken(savedToken);
                 setUser(JSON.parse(savedUser));
             } catch (e) {}
         }
         setLoading(false);
-    }, []);
+    }, [token, user]);
 
     const login = async (credential, password, selectedRole = 'customer') => {
         const cleanInput = (credential || '').toString().trim();
