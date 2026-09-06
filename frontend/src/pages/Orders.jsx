@@ -23,10 +23,19 @@ function Orders() {
 
     const fetchOrders = async () => {
         try {
+            setLoading(true);
+            setError('');
             const res = await API.get('/orders/my');
             setOrders(res.data || []);
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to load your orders.');
+            const status = err.response?.status;
+            if (status === 401 || status === 403) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                setError('Your session has expired or is invalid. Please sign in to view your orders.');
+            } else {
+                setError(err.response?.data?.message || 'Failed to load your orders.');
+            }
         } finally {
             setLoading(false);
         }
@@ -50,9 +59,13 @@ function Orders() {
 
     if (error) {
         return (
-            <div className="orders-page" style={{ padding: '60px 20px' }}>
-                <div className="container" style={{ maxWidth: '900px', margin: '0 auto' }}>
-                    <div className="alert alert-error">{error}</div>
+            <div className="orders-page" style={{ padding: '60px 20px', minHeight: '60vh' }}>
+                <div className="container" style={{ maxWidth: '700px', margin: '0 auto', textAlign: 'center', background: '#ffffff', padding: '40px 24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔐</div>
+                    <div className="alert alert-error" style={{ marginBottom: '20px' }}>{error}</div>
+                    <Link to="/login" className="btn btn-primary" style={{ padding: '12px 28px', fontSize: '15px', fontWeight: '700', borderRadius: '10px' }}>
+                        Sign In Now →
+                    </Link>
                 </div>
             </div>
         );

@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = 'bharath_garments_jwt_secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'bharath_garments_jwt_secret';
 
 // Verify JWT token
 const auth = (req, res, next) => {
@@ -11,7 +11,7 @@ const auth = (req, res, next) => {
         }
 
         const token = authHeader.split(' ')[1];
-        if (!token) {
+        if (!token || token === 'null' || token === 'undefined' || token.trim() === '' || token.startsWith('kiskintha_')) {
             return res.status(401).json({ message: 'No token provided. Please login.' });
         }
 
@@ -19,6 +19,7 @@ const auth = (req, res, next) => {
         req.user = decoded;
         next();
     } catch (error) {
+        console.error('JWT Verification Error:', error.message);
         return res.status(403).json({ message: 'Invalid or expired token.' });
     }
 };

@@ -14,7 +14,13 @@ export function AuthProvider({ children }) {
     });
     const [token, setToken] = useState(() => {
         try {
-            return localStorage.getItem('token') || null;
+            const savedToken = localStorage.getItem('token');
+            if (savedToken && (savedToken.startsWith('kiskintha_') || savedToken === 'null' || savedToken === 'undefined')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                return null;
+            }
+            return savedToken || null;
         } catch (e) {
             return null;
         }
@@ -25,7 +31,12 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         const savedToken = localStorage.getItem('token');
         const savedUser = localStorage.getItem('user');
-        if (savedToken && savedUser && (!token || !user)) {
+        if (savedToken && (savedToken.startsWith('kiskintha_') || savedToken === 'null' || savedToken === 'undefined')) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setToken(null);
+            setUser(null);
+        } else if (savedToken && savedUser && (!token || !user)) {
             try {
                 setToken(savedToken);
                 setUser(JSON.parse(savedUser));
@@ -93,36 +104,13 @@ export function AuthProvider({ children }) {
                 setToken(newToken);
                 setUser(newUser);
                 return newUser;
+            } else {
+                throw new Error('Login failed. Unable to authenticate session.');
             }
         } catch (apiErr) {
-            if (apiErr.response && apiErr.response.status === 401) {
-                throw new Error(apiErr.response.data?.message || 'Invalid credentials');
-            }
+            const errMsg = apiErr.response?.data?.message || apiErr.message || 'Login failed. Please check credentials.';
+            throw new Error(errMsg);
         }
-
-        // Resilient Customer Login fallback (allows any non-empty customer credentials)
-        let displayName = 'Customer';
-        if (cleanLower.includes('@')) {
-            const prefix = cleanLower.split('@')[0];
-            displayName = prefix.charAt(0).toUpperCase() + prefix.slice(1);
-        } else if (cleanLower.length >= 2) {
-            displayName = cleanLower.charAt(0).toUpperCase() + cleanLower.slice(1);
-        }
-
-        const fallbackUser = {
-            id: Date.now(),
-            name: displayName,
-            email: cleanLower.includes('@') ? cleanLower : `${cleanLower}@kiskinthamenswear.com`,
-            phone: cleanLower.includes('@') ? '' : cleanLower,
-            address: '',
-            role: 'customer'
-        };
-        const fallbackToken = 'kiskintha_cust_token_' + Date.now();
-        localStorage.setItem('token', fallbackToken);
-        localStorage.setItem('user', JSON.stringify(fallbackUser));
-        setToken(fallbackToken);
-        setUser(fallbackUser);
-        return fallbackUser;
     };
 
     const register = async (data) => {
@@ -135,23 +123,13 @@ export function AuthProvider({ children }) {
                 setToken(newToken);
                 setUser(newUser);
                 return newUser;
+            } else {
+                throw new Error('Registration failed.');
             }
-        } catch (err) {}
-
-        const fallbackUser = {
-            id: Date.now(),
-            name: data.name || 'Customer',
-            email: data.email || `user_${Date.now()}@kiskinthamenswear.com`,
-            phone: data.phone || '',
-            address: data.address || '',
-            role: 'customer'
-        };
-        const fallbackToken = 'kiskintha_jwt_token_' + Date.now();
-        localStorage.setItem('token', fallbackToken);
-        localStorage.setItem('user', JSON.stringify(fallbackUser));
-        setToken(fallbackToken);
-        setUser(fallbackUser);
-        return fallbackUser;
+        } catch (err) {
+            const errMsg = err.response?.data?.message || err.message || 'Registration failed. Please try again.';
+            throw new Error(errMsg);
+        }
     };
 
     const updateProfile = async (data) => {
