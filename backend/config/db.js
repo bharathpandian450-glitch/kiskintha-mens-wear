@@ -20,19 +20,19 @@ const initialData = {
         {
                 "id": 1,
                 "name": "Kiskintha 473wx593h 700593828 Grey Model",
-                "description": "Kiskintha 473wx593h 700593828 Grey Model from Kiskintha Mens Wear Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
+                "description": "Kiskintha 473wx593h 700593828 Grey Model from Kiskintha Mens Wear Pants collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
                 "price": 399,
                 "original_price": 559,
                 "image": "-473Wx593H-700593828-grey-MODEL.avif",
-                "category_id": 2,
-                "category_name": "Shirts",
-                "subcategory": "Casual Shirts",
-                "sleeve_type": "Full Hand",
-                "size": "S,M,L,XL,XXL",
+                "category_id": 3,
+                "category_name": "Pants",
+                "subcategory": "Jeans",
+                "sleeve_type": "",
+                "size": "30,32,34,36,38",
                 "color": "Grey",
                 "rating": 4.2,
                 "stock": 25,
-                "created_at": "2026-09-06T15:17:00.076Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 2,
@@ -49,7 +49,7 @@ const initialData = {
                 "color": "Multi",
                 "rating": 4.9,
                 "stock": 28,
-                "created_at": "2026-09-06T15:17:00.077Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 3,
@@ -66,7 +66,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 31,
-                "created_at": "2026-09-06T15:17:00.077Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 4,
@@ -83,7 +83,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 34,
-                "created_at": "2026-09-06T15:17:00.077Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 5,
@@ -100,7 +100,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 37,
-                "created_at": "2026-09-06T15:17:00.077Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 6,
@@ -117,7 +117,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 40,
-                "created_at": "2026-09-06T15:17:00.077Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 7,
@@ -134,7 +134,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 43,
-                "created_at": "2026-09-06T15:17:00.077Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 8,
@@ -151,7 +151,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 46,
-                "created_at": "2026-09-06T15:17:00.077Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 9,
@@ -168,7 +168,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 49,
-                "created_at": "2026-09-06T15:17:00.077Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 10,
@@ -185,7 +185,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 52,
-                "created_at": "2026-09-06T15:17:00.077Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 11,
@@ -202,7 +202,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 55,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 12,
@@ -219,7 +219,7 @@ const initialData = {
                 "color": "Black",
                 "rating": 4.7,
                 "stock": 58,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 13,
@@ -236,7 +236,7 @@ const initialData = {
                 "color": "Black",
                 "rating": 4.6,
                 "stock": 61,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 14,
@@ -253,7 +253,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 64,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 15,
@@ -270,7 +270,7 @@ const initialData = {
                 "color": "White",
                 "rating": 4.4,
                 "stock": 27,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 16,
@@ -287,7 +287,7 @@ const initialData = {
                 "color": "Brown",
                 "rating": 4.3,
                 "stock": 30,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 17,
@@ -304,7 +304,7 @@ const initialData = {
                 "color": "Brown",
                 "rating": 4.2,
                 "stock": 33,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 18,
@@ -321,7 +321,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 36,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 19,
@@ -338,7 +338,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 39,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 20,
@@ -355,7 +355,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 42,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 21,
@@ -372,7 +372,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 45,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 22,
@@ -389,7 +389,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 48,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 23,
@@ -406,7 +406,7 @@ const initialData = {
                 "color": "Multi",
                 "rating": 4.4,
                 "stock": 51,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 24,
@@ -423,7 +423,7 @@ const initialData = {
                 "color": "Blue",
                 "rating": 4.3,
                 "stock": 54,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 25,
@@ -440,7 +440,7 @@ const initialData = {
                 "color": "Black",
                 "rating": 4.2,
                 "stock": 57,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 26,
@@ -457,7 +457,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 60,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 27,
@@ -474,7 +474,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 63,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 28,
@@ -491,7 +491,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 26,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 29,
@@ -508,7 +508,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 29,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 30,
@@ -525,7 +525,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 32,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 31,
@@ -542,7 +542,7 @@ const initialData = {
                 "color": "Sandal",
                 "rating": 4.4,
                 "stock": 35,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 32,
@@ -559,7 +559,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 38,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 33,
@@ -576,7 +576,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 41,
-                "created_at": "2026-09-06T15:17:00.078Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 34,
@@ -593,7 +593,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 44,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.158Z"
         },
         {
                 "id": 35,
@@ -610,7 +610,7 @@ const initialData = {
                 "color": "Red",
                 "rating": 4.8,
                 "stock": 47,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 36,
@@ -627,7 +627,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 50,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 37,
@@ -644,7 +644,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 53,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 38,
@@ -661,7 +661,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 56,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 39,
@@ -678,7 +678,7 @@ const initialData = {
                 "color": "Multi",
                 "rating": 4.4,
                 "stock": 59,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 40,
@@ -695,7 +695,7 @@ const initialData = {
                 "color": "Blue",
                 "rating": 4.3,
                 "stock": 62,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 41,
@@ -712,7 +712,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 25,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 42,
@@ -729,7 +729,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 28,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 43,
@@ -746,7 +746,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 31,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 44,
@@ -763,7 +763,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 34,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 45,
@@ -780,7 +780,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 37,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 46,
@@ -797,7 +797,7 @@ const initialData = {
                 "color": "Green",
                 "rating": 4.5,
                 "stock": 40,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 47,
@@ -814,7 +814,7 @@ const initialData = {
                 "color": "Green",
                 "rating": 4.4,
                 "stock": 43,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 48,
@@ -831,7 +831,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 46,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 49,
@@ -848,7 +848,7 @@ const initialData = {
                 "color": "Multi",
                 "rating": 4.2,
                 "stock": 49,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 50,
@@ -865,7 +865,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 52,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 51,
@@ -882,7 +882,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 55,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 52,
@@ -899,7 +899,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 58,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 53,
@@ -916,7 +916,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 61,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 54,
@@ -933,7 +933,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 64,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 55,
@@ -950,7 +950,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 27,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 56,
@@ -967,7 +967,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 30,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 57,
@@ -984,7 +984,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 33,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 58,
@@ -1001,7 +1001,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 36,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 59,
@@ -1018,7 +1018,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 39,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 60,
@@ -1035,7 +1035,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 42,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 61,
@@ -1052,7 +1052,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 45,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 62,
@@ -1069,7 +1069,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 48,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 63,
@@ -1086,7 +1086,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 51,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 64,
@@ -1103,7 +1103,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 54,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 65,
@@ -1120,7 +1120,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 57,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 66,
@@ -1137,7 +1137,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 60,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 67,
@@ -1154,7 +1154,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 63,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 68,
@@ -1171,7 +1171,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 26,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 69,
@@ -1188,7 +1188,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 29,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 70,
@@ -1205,7 +1205,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 32,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 71,
@@ -1222,7 +1222,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 35,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 72,
@@ -1239,7 +1239,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 38,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 73,
@@ -1256,7 +1256,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 41,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 74,
@@ -1273,7 +1273,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 44,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 75,
@@ -1290,7 +1290,7 @@ const initialData = {
                 "color": "Pink",
                 "rating": 4.8,
                 "stock": 47,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 76,
@@ -1307,7 +1307,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 50,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 77,
@@ -1324,24 +1324,24 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 53,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 78,
                 "name": "Kiskintha Hooodie",
-                "description": "Kiskintha Hooodie from Kiskintha Mens Wear Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
+                "description": "Kiskintha Hooodie from Kiskintha Mens Wear Hoodies collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
                 "price": 1299,
                 "original_price": 1819,
                 "image": "hooodie.jpg",
-                "category_id": 2,
-                "category_name": "Shirts",
-                "subcategory": "Casual Shirts",
+                "category_id": 7,
+                "category_name": "Hoodies",
+                "subcategory": "Fleece Hoodies",
                 "sleeve_type": "Full Hand",
                 "size": "S,M,L,XL,XXL",
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 56,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 79,
@@ -1358,7 +1358,7 @@ const initialData = {
                 "color": "Black",
                 "rating": 4.4,
                 "stock": 59,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 80,
@@ -1375,7 +1375,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 62,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 81,
@@ -1392,7 +1392,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 25,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 82,
@@ -1409,7 +1409,7 @@ const initialData = {
                 "color": "Black",
                 "rating": 4.9,
                 "stock": 28,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 83,
@@ -1426,7 +1426,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 31,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 84,
@@ -1443,7 +1443,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 34,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 85,
@@ -1460,7 +1460,7 @@ const initialData = {
                 "color": "Blue",
                 "rating": 4.6,
                 "stock": 37,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 86,
@@ -1477,7 +1477,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 40,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 87,
@@ -1494,7 +1494,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 43,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 88,
@@ -1511,7 +1511,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 46,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 89,
@@ -1528,7 +1528,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 49,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 90,
@@ -1545,7 +1545,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 52,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 91,
@@ -1562,7 +1562,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 55,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 92,
@@ -1579,7 +1579,7 @@ const initialData = {
                 "color": "Multi",
                 "rating": 4.7,
                 "stock": 58,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 93,
@@ -1596,7 +1596,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 61,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 94,
@@ -1613,7 +1613,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 64,
-                "created_at": "2026-09-06T15:17:00.079Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 95,
@@ -1630,7 +1630,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 27,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 96,
@@ -1647,24 +1647,24 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 30,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 97,
                 "name": "Kiskintha Luxury Gurkha Pant",
-                "description": "Kiskintha Luxury Gurkha Pant from Kiskintha Mens Wear Pants collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
+                "description": "Kiskintha Luxury Gurkha Pant from Kiskintha Mens Wear Trousers collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
                 "price": 399,
                 "original_price": 559,
                 "image": "luxury gurkha pant.jpg",
-                "category_id": 3,
-                "category_name": "Pants",
-                "subcategory": "Jeans",
+                "category_id": 4,
+                "category_name": "Trousers",
+                "subcategory": "Formal Trousers",
                 "sleeve_type": "",
                 "size": "30,32,34,36,38",
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 33,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 98,
@@ -1681,7 +1681,7 @@ const initialData = {
                 "color": "Red",
                 "rating": 4.9,
                 "stock": 36,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 99,
@@ -1698,7 +1698,7 @@ const initialData = {
                 "color": "Multi",
                 "rating": 4.8,
                 "stock": 39,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 100,
@@ -1715,7 +1715,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 42,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 101,
@@ -1732,7 +1732,7 @@ const initialData = {
                 "color": "Red",
                 "rating": 4.6,
                 "stock": 45,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 102,
@@ -1749,7 +1749,7 @@ const initialData = {
                 "color": "Multi",
                 "rating": 4.5,
                 "stock": 48,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 103,
@@ -1766,7 +1766,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 51,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 104,
@@ -1783,7 +1783,7 @@ const initialData = {
                 "color": "Blue",
                 "rating": 4.3,
                 "stock": 54,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 105,
@@ -1800,7 +1800,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 57,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 106,
@@ -1817,7 +1817,7 @@ const initialData = {
                 "color": "Grey",
                 "rating": 4.9,
                 "stock": 60,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 107,
@@ -1834,7 +1834,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 63,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 108,
@@ -1851,7 +1851,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 26,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 109,
@@ -1868,7 +1868,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 29,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 110,
@@ -1885,7 +1885,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 32,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 111,
@@ -1902,7 +1902,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 35,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 112,
@@ -1919,7 +1919,7 @@ const initialData = {
                 "color": "Sandal",
                 "rating": 4.3,
                 "stock": 38,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 113,
@@ -1936,7 +1936,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 41,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 114,
@@ -1953,7 +1953,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 44,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 115,
@@ -1970,7 +1970,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 47,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 116,
@@ -1987,7 +1987,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 50,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 117,
@@ -2004,7 +2004,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 53,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 118,
@@ -2021,7 +2021,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 56,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 119,
@@ -2038,7 +2038,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 59,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 120,
@@ -2055,7 +2055,7 @@ const initialData = {
                 "color": "Black",
                 "rating": 4.3,
                 "stock": 62,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 121,
@@ -2072,7 +2072,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 25,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 122,
@@ -2089,7 +2089,7 @@ const initialData = {
                 "color": "Black",
                 "rating": 4.9,
                 "stock": 28,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 123,
@@ -2106,24 +2106,24 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 31,
-                "created_at": "2026-09-06T15:17:00.080Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 124,
                 "name": "Kiskintha Luxury Gurkha Pant",
-                "description": "Kiskintha Luxury Gurkha Pant from Kiskintha Mens Wear Pants collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
+                "description": "Kiskintha Luxury Gurkha Pant from Kiskintha Mens Wear Trousers collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
                 "price": 1099,
                 "original_price": 1539,
                 "image": "Pants/luxury gurkha pant.jpg",
-                "category_id": 3,
-                "category_name": "Pants",
-                "subcategory": "Jeans",
+                "category_id": 4,
+                "category_name": "Trousers",
+                "subcategory": "Formal Trousers",
                 "sleeve_type": "",
                 "size": "30,32,34,36,38",
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 34,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.159Z"
         },
         {
                 "id": 125,
@@ -2140,7 +2140,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 37,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 126,
@@ -2157,7 +2157,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 40,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 127,
@@ -2174,7 +2174,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 43,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 128,
@@ -2191,7 +2191,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 46,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 129,
@@ -2208,7 +2208,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 49,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 130,
@@ -2225,7 +2225,7 @@ const initialData = {
                 "color": "Pink",
                 "rating": 4.9,
                 "stock": 52,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 131,
@@ -2242,24 +2242,24 @@ const initialData = {
                 "color": "Pink",
                 "rating": 4.8,
                 "stock": 55,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 132,
                 "name": "Kiskintha Plain White T Short",
-                "description": "Kiskintha Plain White T Short from Kiskintha Mens Wear Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
+                "description": "Kiskintha Plain White T Short from Kiskintha Mens Wear T-Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
                 "price": 549,
                 "original_price": 769,
                 "image": "plain white t short.jpg",
-                "category_id": 2,
-                "category_name": "Shirts",
-                "subcategory": "Casual Shirts",
-                "sleeve_type": "Full Hand",
+                "category_id": 1,
+                "category_name": "T-Shirts",
+                "subcategory": "Casual T-Shirts",
+                "sleeve_type": "Half Hand",
                 "size": "S,M,L,XL,XXL",
                 "color": "White",
                 "rating": 4.7,
                 "stock": 58,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 133,
@@ -2276,7 +2276,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 61,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 134,
@@ -2293,7 +2293,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 64,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 135,
@@ -2310,7 +2310,7 @@ const initialData = {
                 "color": "Blue",
                 "rating": 4.4,
                 "stock": 27,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 136,
@@ -2327,7 +2327,7 @@ const initialData = {
                 "color": "Red",
                 "rating": 4.3,
                 "stock": 30,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 137,
@@ -2344,7 +2344,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 33,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 138,
@@ -2361,7 +2361,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 36,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 139,
@@ -2378,7 +2378,7 @@ const initialData = {
                 "color": "Blue",
                 "rating": 4.8,
                 "stock": 39,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 140,
@@ -2395,7 +2395,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 42,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 141,
@@ -2412,7 +2412,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 45,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 142,
@@ -2429,7 +2429,7 @@ const initialData = {
                 "color": "Black",
                 "rating": 4.5,
                 "stock": 48,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 143,
@@ -2446,7 +2446,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 51,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 144,
@@ -2463,7 +2463,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 54,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 145,
@@ -2480,7 +2480,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 57,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 146,
@@ -2497,7 +2497,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 60,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 147,
@@ -2514,7 +2514,7 @@ const initialData = {
                 "color": "Brown",
                 "rating": 4.8,
                 "stock": 63,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 148,
@@ -2531,7 +2531,7 @@ const initialData = {
                 "color": "Brown",
                 "rating": 4.7,
                 "stock": 26,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 149,
@@ -2548,7 +2548,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 29,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 150,
@@ -2565,7 +2565,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 32,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 151,
@@ -2582,7 +2582,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 35,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 152,
@@ -2599,7 +2599,7 @@ const initialData = {
                 "color": "Multi",
                 "rating": 4.3,
                 "stock": 38,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 153,
@@ -2616,7 +2616,7 @@ const initialData = {
                 "color": "Blue",
                 "rating": 4.2,
                 "stock": 41,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 154,
@@ -2633,7 +2633,7 @@ const initialData = {
                 "color": "Black",
                 "rating": 4.9,
                 "stock": 44,
-                "created_at": "2026-09-06T15:17:00.081Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 155,
@@ -2650,7 +2650,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 47,
-                "created_at": "2026-09-06T15:17:00.082Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 156,
@@ -2667,7 +2667,7 @@ const initialData = {
                 "color": "Red",
                 "rating": 4.7,
                 "stock": 50,
-                "created_at": "2026-09-06T15:17:00.082Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 157,
@@ -2684,7 +2684,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 53,
-                "created_at": "2026-09-06T15:17:00.082Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 158,
@@ -2701,7 +2701,7 @@ const initialData = {
                 "color": "Multi",
                 "rating": 4.5,
                 "stock": 56,
-                "created_at": "2026-09-06T15:17:00.082Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 159,
@@ -2718,7 +2718,7 @@ const initialData = {
                 "color": "Blue",
                 "rating": 4.4,
                 "stock": 59,
-                "created_at": "2026-09-06T15:17:00.082Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 160,
@@ -2735,7 +2735,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 62,
-                "created_at": "2026-09-06T15:17:00.082Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 161,
@@ -2752,7 +2752,7 @@ const initialData = {
                 "color": "Green",
                 "rating": 4.2,
                 "stock": 25,
-                "created_at": "2026-09-06T15:17:00.082Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 162,
@@ -2769,7 +2769,7 @@ const initialData = {
                 "color": "Green",
                 "rating": 4.9,
                 "stock": 28,
-                "created_at": "2026-09-06T15:17:00.082Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 163,
@@ -2786,7 +2786,7 @@ const initialData = {
                 "color": "Green",
                 "rating": 4.8,
                 "stock": 31,
-                "created_at": "2026-09-06T15:17:00.082Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 164,
@@ -2803,7 +2803,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 34,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 165,
@@ -2820,7 +2820,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 37,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 166,
@@ -2837,7 +2837,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 40,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 167,
@@ -2854,7 +2854,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 43,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 168,
@@ -2871,7 +2871,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 46,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 169,
@@ -2888,7 +2888,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 49,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 170,
@@ -2905,7 +2905,7 @@ const initialData = {
                 "color": "Blue",
                 "rating": 4.9,
                 "stock": 52,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 171,
@@ -2922,7 +2922,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 55,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 172,
@@ -2939,7 +2939,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 58,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 173,
@@ -2956,7 +2956,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 61,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 174,
@@ -2973,7 +2973,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 64,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 175,
@@ -2990,7 +2990,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 27,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 176,
@@ -3007,7 +3007,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 30,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 177,
@@ -3024,7 +3024,7 @@ const initialData = {
                 "color": "Red",
                 "rating": 4.2,
                 "stock": 33,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 178,
@@ -3041,7 +3041,7 @@ const initialData = {
                 "color": "Multi",
                 "rating": 4.9,
                 "stock": 36,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 179,
@@ -3058,7 +3058,7 @@ const initialData = {
                 "color": "Red",
                 "rating": 4.8,
                 "stock": 39,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 180,
@@ -3075,7 +3075,7 @@ const initialData = {
                 "color": "Multi",
                 "rating": 4.7,
                 "stock": 42,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 181,
@@ -3092,7 +3092,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 45,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 182,
@@ -3109,7 +3109,7 @@ const initialData = {
                 "color": "Blue",
                 "rating": 4.5,
                 "stock": 48,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 183,
@@ -3126,7 +3126,7 @@ const initialData = {
                 "color": "Orange",
                 "rating": 4.4,
                 "stock": 51,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 184,
@@ -3143,7 +3143,7 @@ const initialData = {
                 "color": "Pink",
                 "rating": 4.3,
                 "stock": 54,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 185,
@@ -3160,7 +3160,7 @@ const initialData = {
                 "color": "Blue",
                 "rating": 4.2,
                 "stock": 57,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 186,
@@ -3177,7 +3177,7 @@ const initialData = {
                 "color": "Red",
                 "rating": 4.9,
                 "stock": 60,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 187,
@@ -3194,7 +3194,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 63,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 188,
@@ -3211,7 +3211,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 26,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 189,
@@ -3228,7 +3228,7 @@ const initialData = {
                 "color": "Blue",
                 "rating": 4.6,
                 "stock": 29,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 190,
@@ -3245,7 +3245,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 32,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 191,
@@ -3262,7 +3262,7 @@ const initialData = {
                 "color": "Black",
                 "rating": 4.4,
                 "stock": 35,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 192,
@@ -3279,7 +3279,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 38,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 193,
@@ -3296,7 +3296,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 41,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 194,
@@ -3313,7 +3313,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 44,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 195,
@@ -3330,7 +3330,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 47,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 196,
@@ -3347,7 +3347,7 @@ const initialData = {
                 "color": "Pink",
                 "rating": 4.7,
                 "stock": 50,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 197,
@@ -3364,7 +3364,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 53,
-                "created_at": "2026-09-06T15:17:00.083Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 198,
@@ -3381,7 +3381,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 56,
-                "created_at": "2026-09-06T15:17:00.084Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 199,
@@ -3398,7 +3398,7 @@ const initialData = {
                 "color": "Yellow",
                 "rating": 4.4,
                 "stock": 59,
-                "created_at": "2026-09-06T15:17:00.084Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 200,
@@ -3415,7 +3415,7 @@ const initialData = {
                 "color": "Yellow",
                 "rating": 4.3,
                 "stock": 62,
-                "created_at": "2026-09-06T15:17:00.084Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 201,
@@ -3432,7 +3432,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 25,
-                "created_at": "2026-09-06T15:17:00.084Z"
+                "created_at": "2026-09-06T15:34:33.160Z"
         },
         {
                 "id": 202,
@@ -3449,7 +3449,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 28,
-                "created_at": "2026-09-06T15:17:00.084Z"
+                "created_at": "2026-09-06T15:34:33.161Z"
         },
         {
                 "id": 203,
@@ -3466,7 +3466,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 31,
-                "created_at": "2026-09-06T15:17:00.084Z"
+                "created_at": "2026-09-06T15:34:33.161Z"
         },
         {
                 "id": 204,
@@ -3483,7 +3483,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 34,
-                "created_at": "2026-09-06T15:17:00.084Z"
+                "created_at": "2026-09-06T15:34:33.161Z"
         },
         {
                 "id": 205,
@@ -3500,7 +3500,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 37,
-                "created_at": "2026-09-06T15:17:00.084Z"
+                "created_at": "2026-09-06T15:34:33.161Z"
         },
         {
                 "id": 206,
@@ -3517,7 +3517,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 40,
-                "created_at": "2026-09-06T15:17:00.084Z"
+                "created_at": "2026-09-06T15:34:33.161Z"
         },
         {
                 "id": 207,
@@ -3534,7 +3534,7 @@ const initialData = {
                 "color": "Pink",
                 "rating": 4.4,
                 "stock": 43,
-                "created_at": "2026-09-06T15:17:00.084Z"
+                "created_at": "2026-09-06T15:34:33.161Z"
         },
         {
                 "id": 208,
@@ -3551,7 +3551,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 46,
-                "created_at": "2026-09-06T15:17:00.084Z"
+                "created_at": "2026-09-06T15:34:33.161Z"
         },
         {
                 "id": 209,
@@ -3568,24 +3568,24 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 49,
-                "created_at": "2026-09-06T15:17:00.084Z"
+                "created_at": "2026-09-06T15:34:33.161Z"
         },
         {
                 "id": 210,
                 "name": "Kiskintha Summer T Shrt",
-                "description": "Kiskintha Summer T Shrt from Kiskintha Mens Wear Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
+                "description": "Kiskintha Summer T Shrt from Kiskintha Mens Wear T-Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
                 "price": 449,
                 "original_price": 629,
                 "image": "summer t shrt.jpg",
-                "category_id": 2,
-                "category_name": "Shirts",
-                "subcategory": "Casual Shirts",
-                "sleeve_type": "Full Hand",
+                "category_id": 1,
+                "category_name": "T-Shirts",
+                "subcategory": "Casual T-Shirts",
+                "sleeve_type": "Half Hand",
                 "size": "S,M,L,XL,XXL",
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 52,
-                "created_at": "2026-09-06T15:17:00.084Z"
+                "created_at": "2026-09-06T15:34:33.161Z"
         },
         {
                 "id": 211,
@@ -3602,7 +3602,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 55,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.161Z"
         },
         {
                 "id": 212,
@@ -3619,7 +3619,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 58,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.161Z"
         },
         {
                 "id": 213,
@@ -3636,7 +3636,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 61,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.161Z"
         },
         {
                 "id": 214,
@@ -3653,7 +3653,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 64,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.161Z"
         },
         {
                 "id": 215,
@@ -3670,7 +3670,7 @@ const initialData = {
                 "color": "Black",
                 "rating": 4.4,
                 "stock": 27,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.161Z"
         },
         {
                 "id": 216,
@@ -3687,7 +3687,7 @@ const initialData = {
                 "color": "Blue",
                 "rating": 4.3,
                 "stock": 30,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.161Z"
         },
         {
                 "id": 217,
@@ -3704,7 +3704,7 @@ const initialData = {
                 "color": "White",
                 "rating": 4.2,
                 "stock": 33,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.161Z"
         },
         {
                 "id": 218,
@@ -3721,7 +3721,7 @@ const initialData = {
                 "color": "Brown",
                 "rating": 4.9,
                 "stock": 36,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 219,
@@ -3738,7 +3738,7 @@ const initialData = {
                 "color": "Brown",
                 "rating": 4.8,
                 "stock": 39,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 220,
@@ -3755,7 +3755,7 @@ const initialData = {
                 "color": "Brown",
                 "rating": 4.7,
                 "stock": 42,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 221,
@@ -3772,7 +3772,7 @@ const initialData = {
                 "color": "Brown",
                 "rating": 4.6,
                 "stock": 45,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 222,
@@ -3789,7 +3789,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 48,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 223,
@@ -3806,7 +3806,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 51,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 224,
@@ -3823,7 +3823,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 54,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 225,
@@ -3840,7 +3840,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 57,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 226,
@@ -3857,7 +3857,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 60,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 227,
@@ -3874,7 +3874,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 63,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 228,
@@ -3891,7 +3891,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 26,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 229,
@@ -3908,7 +3908,7 @@ const initialData = {
                 "color": "Green",
                 "rating": 4.6,
                 "stock": 29,
-                "created_at": "2026-09-06T15:17:00.085Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 230,
@@ -3925,7 +3925,7 @@ const initialData = {
                 "color": "Multi",
                 "rating": 4.5,
                 "stock": 32,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 231,
@@ -3942,7 +3942,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 35,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 232,
@@ -3959,7 +3959,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 38,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 233,
@@ -3976,7 +3976,7 @@ const initialData = {
                 "color": "Pink",
                 "rating": 4.2,
                 "stock": 41,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 234,
@@ -3993,7 +3993,7 @@ const initialData = {
                 "color": "Pink",
                 "rating": 4.9,
                 "stock": 44,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 235,
@@ -4010,7 +4010,7 @@ const initialData = {
                 "color": "White",
                 "rating": 4.8,
                 "stock": 47,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 236,
@@ -4027,7 +4027,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 50,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 237,
@@ -4044,7 +4044,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 53,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 238,
@@ -4061,7 +4061,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 56,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 239,
@@ -4078,7 +4078,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 59,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 240,
@@ -4095,7 +4095,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 62,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 241,
@@ -4112,7 +4112,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 25,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 242,
@@ -4129,7 +4129,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 28,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 243,
@@ -4146,7 +4146,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 31,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 244,
@@ -4163,7 +4163,7 @@ const initialData = {
                 "color": "White",
                 "rating": 4.7,
                 "stock": 34,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 245,
@@ -4180,7 +4180,7 @@ const initialData = {
                 "color": "Yellow",
                 "rating": 4.6,
                 "stock": 37,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 246,
@@ -4197,24 +4197,24 @@ const initialData = {
                 "color": "Yellow",
                 "rating": 4.5,
                 "stock": 40,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 247,
                 "name": "Kiskintha Touoser4",
-                "description": "Kiskintha Touoser4 from Kiskintha Mens Wear Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
+                "description": "Kiskintha Touoser4 from Kiskintha Mens Wear Trousers collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
                 "price": 699,
                 "original_price": 979,
                 "image": "touoser4.jpg",
-                "category_id": 2,
-                "category_name": "Shirts",
-                "subcategory": "Casual Shirts",
-                "sleeve_type": "Full Hand",
-                "size": "S,M,L,XL,XXL",
+                "category_id": 4,
+                "category_name": "Trousers",
+                "subcategory": "Formal Trousers",
+                "sleeve_type": "",
+                "size": "30,32,34,36,38",
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 43,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 248,
@@ -4231,7 +4231,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 46,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 249,
@@ -4248,7 +4248,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 49,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 250,
@@ -4265,7 +4265,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 52,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 251,
@@ -4282,7 +4282,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 55,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 252,
@@ -4299,7 +4299,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 58,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 253,
@@ -4316,7 +4316,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 61,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 254,
@@ -4333,7 +4333,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 64,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 255,
@@ -4350,7 +4350,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 27,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 256,
@@ -4367,7 +4367,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 30,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 257,
@@ -4384,7 +4384,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 33,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 258,
@@ -4401,7 +4401,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 36,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 259,
@@ -4418,7 +4418,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.8,
                 "stock": 39,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 260,
@@ -4435,7 +4435,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 42,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 261,
@@ -4452,7 +4452,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 45,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 262,
@@ -4469,7 +4469,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 48,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 263,
@@ -4486,7 +4486,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 51,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 264,
@@ -4503,7 +4503,7 @@ const initialData = {
                 "color": "Grey",
                 "rating": 4.3,
                 "stock": 54,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 265,
@@ -4520,7 +4520,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 57,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 266,
@@ -4537,7 +4537,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 60,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 267,
@@ -4554,7 +4554,7 @@ const initialData = {
                 "color": "Sandal",
                 "rating": 4.8,
                 "stock": 63,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 268,
@@ -4571,7 +4571,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.7,
                 "stock": 26,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 269,
@@ -4588,7 +4588,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.6,
                 "stock": 29,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 270,
@@ -4605,7 +4605,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.5,
                 "stock": 32,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 271,
@@ -4622,7 +4622,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.4,
                 "stock": 35,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 272,
@@ -4639,7 +4639,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.3,
                 "stock": 38,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 273,
@@ -4656,7 +4656,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.2,
                 "stock": 41,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 274,
@@ -4673,7 +4673,7 @@ const initialData = {
                 "color": "Assorted",
                 "rating": 4.9,
                 "stock": 44,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 275,
@@ -4690,7 +4690,7 @@ const initialData = {
                 "color": "White",
                 "rating": 4.8,
                 "stock": 47,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.162Z"
         },
         {
                 "id": 276,
@@ -4707,7 +4707,7 @@ const initialData = {
                 "color": "Yellow",
                 "rating": 4.7,
                 "stock": 50,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.163Z"
         },
         {
                 "id": 277,
@@ -4724,7 +4724,7 @@ const initialData = {
                 "color": "Yellow",
                 "rating": 4.6,
                 "stock": 53,
-                "created_at": "2026-09-06T15:17:00.086Z"
+                "created_at": "2026-09-06T15:34:33.163Z"
         }
 ]
 };
