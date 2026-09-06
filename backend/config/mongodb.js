@@ -107,29 +107,34 @@ const connectMongoDB = async (initialData = null) => {
     }
 };
 
+let isSeeded = false;
+
 const seedMongoDB = async (data) => {
-    if (!isConnected) return;
+    if (!isConnected || isSeeded) return;
     try {
-        // Seed Categories
-        if (data.categories && data.categories.length > 0) {
-            for (const cat of data.categories) {
-                await Category.updateOne({ id: cat.id }, { $set: cat }, { upsert: true });
-            }
+        // 1. Seed Categories if empty
+        const catCount = await Category.countDocuments();
+        if (catCount === 0 && data.categories && data.categories.length > 0) {
+            await Category.insertMany(data.categories, { ordered: false }).catch(() => {});
         }
 
-        // Seed Users
-        if (data.users && data.users.length > 0) {
+        // 2. Seed Users if empty
+        const userCount = await User.countDocuments();
+        if (userCount === 0 && data.users && data.users.length > 0) {
+            await User.insertMany(data.users, { ordered: false }).catch(() => {});
+        } else if (data.users && data.users.length > 0) {
             for (const u of data.users) {
-                await User.updateOne({ email: u.email }, { $set: u }, { upsert: true });
+                await User.updateOne({ email: u.email }, { $set: u }, { upsert: true }).catch(() => {});
             }
         }
 
-        // Upsert all initial products to MongoDB and sync with mongoProds
-        if (data.products && data.products.length > 0) {
-            for (const prod of data.products) {
-                await Product.updateOne({ id: prod.id }, { $set: prod }, { upsert: true });
-            }
+        // 3. Seed Products if empty, or bulk fetch if already present
+        const prodCount = await Product.countDocuments();
+        if (prodCount === 0 && data.products && data.products.length > 0) {
+            await Product.insertMany(data.products, { ordered: false }).catch(() => {});
         }
+        
+        // Fast 1-query fetch of existing products
         const mongoProds = await Product.find({}).lean();
         if (mongoProds && mongoProds.length > 0 && data.products) {
             data.products.length = 0;
@@ -154,24 +159,21 @@ const seedMongoDB = async (data) => {
             });
         }
 
-        // Sync existing MongoDB Orders to memoryStore & load disk persistent orders (Non-Destructive Merge)
+        // 4. Sync Orders (1 bulk query to MongoDB)
         const { loadPersistentOrders, savePersistentOrder } = require('./persistentOrders');
         const diskOrders = loadPersistentOrders();
         const mongoOrders = await Order.find({}).sort({ created_at: -1 }).lean();
 
         const allKnownOrders = new Map();
 
-        // 1. Add Disk Orders
         if (diskOrders && diskOrders.length > 0) {
             diskOrders.forEach(o => allKnownOrders.set(Number(o.id), o));
         }
 
-        // 2. Add MongoDB Orders
         if (mongoOrders && mongoOrders.length > 0) {
             mongoOrders.forEach(o => allKnownOrders.set(Number(o.id), o));
         }
 
-        // 3. Add MemoryStore Orders
         if (data.orders && data.orders.length > 0) {
             data.orders.forEach(o => {
                 if (!allKnownOrders.has(Number(o.id))) {
@@ -180,11 +182,12 @@ const seedMongoDB = async (data) => {
             });
         }
 
-        // Merge back to data.orders without truncating
         if (!data.orders) data.orders = [];
         if (!data.order_items) data.order_items = [];
         data.orders.length = 0;
         data.order_items.length = 0;
+
+        const bulkOrderOps = [];
 
         for (const o of Array.from(allKnownOrders.values())) {
             data.orders.push({
@@ -204,13 +207,15 @@ const seedMongoDB = async (data) => {
                 created_at: o.created_at || new Date()
             });
 
-            // Save to persistent disk storage
             savePersistentOrder(o);
 
-            // Sync to MongoDB if not existing in MongoDB
-            try {
-                await Order.updateOne({ id: Number(o.id) }, { $set: o }, { upsert: true });
-            } catch (err) {}
+            bulkOrderOps.push({
+                updateOne: {
+                    filter: { id: Number(o.id) },
+                    update: { $set: o },
+                    upsert: true
+                }
+            });
 
             if (o.items && o.items.length > 0) {
                 for (const item of o.items) {
@@ -228,9 +233,13 @@ const seedMongoDB = async (data) => {
                 }
             }
         }
-        console.log(`✅ Fully Synced ${data.orders.length} Permanent Customer Orders across MongoDB, Disk Storage, and MemoryStore!`);
 
-        console.log('✅ MongoDB Collections Auto-Seeded & Synced!');
+        if (bulkOrderOps.length > 0) {
+            await Order.bulkWrite(bulkOrderOps).catch(() => {});
+        }
+
+        isSeeded = true;
+        console.log(`✅ Fast Synced ${data.orders.length} Permanent Customer Orders across MongoDB!`);
     } catch (err) {
         console.error('Error seeding MongoDB collections:', err.message);
     }

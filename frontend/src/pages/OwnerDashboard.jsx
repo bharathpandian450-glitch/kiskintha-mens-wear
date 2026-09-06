@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import API, { getImageUrl } from '../api';
+import { initialProducts, initialCategories } from '../data/initialProducts';
 
 
 function OwnerDashboard() {
@@ -11,8 +12,8 @@ function OwnerDashboard() {
     const [overview, setOverview] = useState(null);
     const [orders, setOrders] = useState([]);
     const [customers, setCustomers] = useState([]);
-    const [products, setProducts] = useState([]);
-    const [categories, setCategories] = useState([]);
+    const [products, setProducts] = useState(initialProducts);
+    const [categories, setCategories] = useState(initialCategories);
     const [staff, setStaff] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -85,8 +86,8 @@ function OwnerDashboard() {
                     ownerName: 'Kiskintha (Store Owner)',
                     shopName: 'Kiskintha Mens Wear',
                     totalProducts: 153,
-                    totalOrders: 0,
-                    totalCustomers: 0,
+                    totalOrders: ordersRes?.data?.length || 0,
+                    totalCustomers: customersRes?.data?.length || 0,
                     totalAdmins: 1,
                     totalRevenue: 0
                 });
@@ -101,12 +102,16 @@ function OwnerDashboard() {
             }
 
             const pData = productsRes ? productsRes.data : null;
-            if (pData) {
-                setProducts(Array.isArray(pData) ? pData : (pData?.products || []));
+            if (pData && ((Array.isArray(pData) && pData.length > 0) || (pData.products && pData.products.length > 0))) {
+                setProducts(Array.isArray(pData) ? pData : pData.products);
+            } else {
+                setProducts(initialProducts);
             }
 
-            if (categoriesRes && Array.isArray(categoriesRes.data)) {
+            if (categoriesRes && Array.isArray(categoriesRes.data) && categoriesRes.data.length > 0) {
                 setCategories(categoriesRes.data);
+            } else {
+                setCategories(initialCategories);
             }
 
             if (staffRes && Array.isArray(staffRes.data)) {
@@ -132,12 +137,19 @@ function OwnerDashboard() {
 
         fetchData(true);
 
+        const safetyTimer = setTimeout(() => {
+            setLoading(false);
+        }, 3000);
+
         // Auto-refresh every 3 seconds so numbers increase in real time as orders/customers are added!
         const interval = setInterval(() => {
             fetchData(false);
         }, 3000);
 
-        return () => clearInterval(interval);
+        return () => {
+            clearTimeout(safetyTimer);
+            clearInterval(interval);
+        };
     }, [user, navigate]);
 
     // Handle Order Status Update

@@ -15,7 +15,8 @@ const getBaseURL = () => {
 export const API_BASE_URL = getBaseURL();
 
 const API = axios.create({
-    baseURL: API_BASE_URL
+    baseURL: API_BASE_URL,
+    timeout: 10000
 });
 
 // Helper for image asset URLs in production vs local dev
