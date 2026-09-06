@@ -6,12 +6,14 @@ import { initialProducts } from '../data/initialProducts';
 
 const categoriesList = [
     { id: '', name: 'All Products', icon: '🛍️' },
-    { id: '2', name: 'Shirts', icon: '👔' },
-    { id: '1', name: 'T-Shirts', icon: '👕' },
-    { id: '3', name: 'Pants', icon: '👖' },
-    { id: '4', name: 'Trousers', icon: '👖' },
-    { id: '7', name: 'Hoodies', icon: '🧥' },
-    { id: '8', name: 'Group Shirts', icon: '👔' }
+    { id: 'shirts-full', name: 'Full Hand Shirts', icon: '👔', catId: '2', sleeve: 'Full Hand' },
+    { id: 'shirts-half', name: 'Half Hand Shirts', icon: '👕', catId: '2', sleeve: 'Half Hand' },
+    { id: 'tshirts-full', name: 'Full Hand T-Shirts', icon: '👔', catId: '1', sleeve: 'Full Hand' },
+    { id: 'tshirts-half', name: 'Half Hand T-Shirts', icon: '👕', catId: '1', sleeve: 'Half Hand' },
+    { id: '3', name: 'Pants', icon: '👖', catId: '3' },
+    { id: '4', name: 'Trousers', icon: '👖', catId: '4' },
+    { id: '7', name: 'Hoodies', icon: '🧥', catId: '7' },
+    { id: '8', name: 'Group Shirts', icon: '👔', catId: '8' }
 ];
 
 const colorOptions = [
@@ -108,14 +110,24 @@ function Products() {
     const filteredProducts = useMemo(() => {
         let list = [...products];
 
-        // 1. Category Filter
+        // 1. Category Filter: Supports exact category + sleeve specifications (Full Hand Shirts vs Half Hand Shirts)
         if (activeCategory) {
-            list = list.filter(p => {
-                if (String(p.category_id) === String(activeCategory)) return true;
-                const activeCatObj = categoriesList.find(c => c.id === activeCategory);
-                if (activeCatObj && p.category_name && p.category_name.toLowerCase() === activeCatObj.name.toLowerCase()) return true;
-                return false;
-            });
+            const activeCatObj = categoriesList.find(c => c.id === activeCategory);
+            if (activeCatObj) {
+                if (activeCatObj.sleeve) {
+                    list = list.filter(p => 
+                        (String(p.category_id) === String(activeCatObj.catId) || p.category_name.toLowerCase() === (activeCatObj.catId === '2' ? 'shirts' : 't-shirts')) && 
+                        p.sleeve_type === activeCatObj.sleeve
+                    );
+                } else if (activeCatObj.catId) {
+                    list = list.filter(p => 
+                        String(p.category_id) === String(activeCatObj.catId) || 
+                        p.category_name.toLowerCase() === activeCatObj.name.toLowerCase()
+                    );
+                }
+            } else {
+                list = list.filter(p => String(p.category_id) === String(activeCategory));
+            }
         }
 
         // 2. Product Type / Sleeve Filter: STRICT Full Hand vs Half Hand
@@ -126,12 +138,13 @@ function Products() {
         }
 
         // 3. Color Filter: STRICT Exact Color Matching (Black, White, Blue, Red, Green, Yellow, Pink, Brown, Grey, Other)
-        if (selectedColor !== 'All') {
+        if (selectedColor && selectedColor !== 'All') {
             if (selectedColor === 'Other') {
-                const standardColors = ['black', 'white', 'blue', 'red', 'green', 'yellow', 'pink', 'brown', 'grey'];
+                const standardColors = ['black', 'white', 'blue', 'red', 'green', 'yellow', 'pink', 'brown', 'grey', 'orange', 'sandal', 'multi'];
                 list = list.filter(p => p.color && !standardColors.includes(p.color.trim().toLowerCase()));
             } else {
-                list = list.filter(p => p.color && p.color.trim().toLowerCase() === selectedColor.trim().toLowerCase());
+                const targetColor = selectedColor.trim().toLowerCase();
+                list = list.filter(p => p.color && p.color.trim().toLowerCase() === targetColor);
             }
         }
 
