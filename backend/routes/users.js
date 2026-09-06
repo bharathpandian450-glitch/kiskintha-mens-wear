@@ -183,6 +183,28 @@ router.post('/login', async (req, res) => {
                 address: 'Kiskintha Mens Wear Main Branch, Chennai',
                 role: 'owner'
             };
+
+            // Save/upsert Owner in MongoDB Atlas
+            try {
+                const hashedOwnerPass = await bcrypt.hash(OWNER_PASS, 10);
+                await User.findOneAndUpdate(
+                    { email: user.email.toLowerCase() },
+                    {
+                        $set: {
+                            id: 3,
+                            name: user.name,
+                            email: user.email.toLowerCase(),
+                            phone: user.phone,
+                            password: hashedOwnerPass,
+                            address: user.address,
+                            role: 'owner'
+                        }
+                    },
+                    { upsert: true, new: true }
+                );
+            } catch (ownerDbErr) {
+                console.error('Owner MongoDB sync note:', ownerDbErr.message);
+            }
         } else {
             // Customer Login - Query MongoDB User collection or create active profile
             const dbUser = await User.findOne({
@@ -215,43 +237,30 @@ router.post('/login', async (req, res) => {
                     address: '',
                     role: 'customer'
                 };
+            }
 
-                // Save / Upsert new customer in MongoDB User Collection
-                try {
-                    const hashedPassword = await bcrypt.hash(userPassword, 10);
-                    await User.findOneAndUpdate(
-                        { email: user.email.toLowerCase() },
-                        {
-                            id: user.id,
+            // Save / Upsert customer in MongoDB Atlas User Collection
+            try {
+                const hashedPassword = await bcrypt.hash(userPassword, 10);
+                await User.findOneAndUpdate(
+                    { email: user.email.toLowerCase() },
+                    {
+                        $set: {
+                            id: user.id || Date.now(),
                             name: user.name,
                             email: user.email.toLowerCase(),
                             phone: user.phone || '',
                             password: hashedPassword,
                             address: user.address || '',
                             role: 'customer'
-                        },
-                        { upsert: true, new: true }
-                    );
-                } catch (syncErr) {}
+                        }
+                    },
+                    { upsert: true, new: true }
+                );
+            } catch (syncErr) {
+                console.error('Customer MongoDB sync note:', syncErr.message);
             }
         }
-
-        // Save / Upsert user in MongoDB User Collection
-        try {
-            await User.findOneAndUpdate(
-                { email: user.email.toLowerCase() },
-                {
-                    id: user.id || Date.now(),
-                    name: user.name,
-                    email: user.email.toLowerCase(),
-                    phone: user.phone || '',
-                    password: userPassword,
-                    address: user.address || '',
-                    role: user.role || 'customer'
-                },
-                { upsert: true, new: true }
-            );
-        } catch (syncErr) {}
 
         const tokenPayload = {
             id: user.id,
