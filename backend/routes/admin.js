@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { Product, Order, User, connectMongoDB, getIsConnected } = require('../config/mongodb');
+const { initialData } = require('../config/db');
 const { auth, isAdmin } = require('../middleware/auth');
 
 router.use(async (req, res, next) => {
     if (!getIsConnected()) {
-        await connectMongoDB().catch(() => {});
+        await connectMongoDB(initialData).catch(() => {});
     }
     next();
 });
