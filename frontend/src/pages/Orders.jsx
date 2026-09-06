@@ -232,8 +232,30 @@ function Orders() {
                                                     </div>
                                                 </div>
 
-                                                <div style={{ fontWeight: '800', color: '#059669', fontSize: '16px' }}>
-                                                    ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+                                                    <div style={{ fontWeight: '800', color: '#059669', fontSize: '16px' }}>
+                                                        ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                                                    </div>
+                                                    {(item.product_id || item.id) && (
+                                                        <Link
+                                                            to={`/products/${item.product_id || item.id}`}
+                                                            style={{
+                                                                fontSize: '12px',
+                                                                fontWeight: '800',
+                                                                color: '#b45309',
+                                                                background: '#fef3c7',
+                                                                border: '1px solid #fde68a',
+                                                                padding: '4px 10px',
+                                                                borderRadius: '6px',
+                                                                textDecoration: 'none',
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                gap: '4px'
+                                                            }}
+                                                        >
+                                                            ⭐ Write Review
+                                                        </Link>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}

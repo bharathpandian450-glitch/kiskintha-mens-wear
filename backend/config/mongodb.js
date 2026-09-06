@@ -80,10 +80,21 @@ const orderSchema = new mongoose.Schema({
     created_at: { type: Date, default: Date.now }
 });
 
+const reviewSchema = new mongoose.Schema({
+    id: { type: Number, required: true, unique: true },
+    product_id: { type: Number, required: true },
+    user_id: { type: Number },
+    customer_name: { type: String, required: true },
+    rating: { type: Number, required: true, min: 1, max: 5 },
+    comment: { type: String, required: true },
+    created_at: { type: Date, default: Date.now }
+});
+
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 const Category = mongoose.models.Category || mongoose.model('Category', categorySchema);
 const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
 const Order = mongoose.models.Order || mongoose.model('Order', orderSchema);
+const Review = mongoose.models.Review || mongoose.model('Review', reviewSchema);
 
 // Connection Caching for Vercel Serverless
 let cachedConnection = null;
@@ -148,5 +159,6 @@ module.exports = {
     User,
     Category,
     Product,
-    Order
+    Order,
+    Review
 };
