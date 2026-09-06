@@ -111,8 +111,10 @@ function Checkout() {
                     name: item.name || '',
                     image: item.image || ''
                 })),
+                name: form.name || user?.name || 'Customer',
+                email: user?.email || '',
+                phone: form.phone || user?.phone || '',
                 address: form.address,
-                phone: form.phone,
                 payment_method: 'UPI QR Payment',
                 upi_id: STORE_UPI_ID,
                 utr_ref: form.utrRef || 'UPI Direct Payment'

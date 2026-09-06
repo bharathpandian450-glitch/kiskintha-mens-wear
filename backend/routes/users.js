@@ -207,11 +207,21 @@ router.post('/login', async (req, res) => {
         }
         // Rule 3: Customer Login (Allows any non-empty credentials)
         else {
+            const candidateEmail = cleanInput.includes('@') ? cleanInput : `${cleanInput}@kiskinthamenswear.com`;
             let dbUser = null;
             if (mongoose.connection && mongoose.connection.readyState === 1) {
                 try {
+                    const escaped = cleanInput.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                     dbUser = await Promise.race([
-                        User.findOne({ $or: [{ email: cleanInput }, { phone: cleanInput }] }).lean(),
+                        User.findOne({
+                            $or: [
+                                { email: cleanInput },
+                                { email: candidateEmail },
+                                { phone: cleanInput },
+                                { username: cleanInput },
+                                { name: { $regex: new RegExp(`^${escaped}$`, 'i') } }
+                            ]
+                        }).lean(),
                         new Promise((resolve) => setTimeout(() => resolve(null), 1500))
                     ]).catch(() => null);
                 } catch (e) {}
@@ -219,10 +229,10 @@ router.post('/login', async (req, res) => {
 
             if (dbUser && dbUser.role !== 'owner') {
                 user = {
-                    id: dbUser.id || Date.now(),
-                    name: dbUser.name,
-                    email: dbUser.email,
-                    phone: dbUser.phone || '',
+                    id: dbUser.id || 1000 + Math.abs(cleanInput.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0)),
+                    name: dbUser.name || 'Customer',
+                    email: dbUser.email || candidateEmail,
+                    phone: dbUser.phone || (cleanInput.includes('@') ? '' : cleanInput),
                     address: dbUser.address || '',
                     role: 'customer'
                 };
@@ -235,10 +245,13 @@ router.post('/login', async (req, res) => {
                     displayName = cleanInput.charAt(0).toUpperCase() + cleanInput.slice(1);
                 }
 
+                // Deterministic integer ID derived from cleanInput hash so customer ID remains stable across logins
+                const stableId = 1000 + Math.abs(cleanInput.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0));
+
                 user = {
-                    id: Date.now(),
+                    id: stableId,
                     name: displayName,
-                    email: cleanInput.includes('@') ? cleanInput : `${cleanInput}@kiskinthamenswear.com`,
+                    email: candidateEmail,
                     phone: cleanInput.includes('@') ? '' : cleanInput,
                     address: '',
                     role: 'customer'
@@ -252,7 +265,7 @@ router.post('/login', async (req, res) => {
                         { email: user.email.toLowerCase() },
                         {
                             $set: {
-                                id: user.id || Date.now(),
+                                id: user.id,
                                 name: user.name,
                                 email: user.email.toLowerCase(),
                                 phone: user.phone || '',

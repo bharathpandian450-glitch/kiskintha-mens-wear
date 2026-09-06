@@ -145,14 +145,18 @@ router.get('/my', auth, async (req, res) => {
     try {
         const userEmail = req.user.email ? req.user.email.toLowerCase() : '';
         const userPhone = req.user.phone ? req.user.phone.trim() : '';
+        const userName = req.user.name ? req.user.name.toLowerCase().trim() : '';
+        const userIdStr = String(req.user.id || '');
 
         let mongoOrders = [];
         if (getIsConnected()) {
             try {
-                const filterOr = [
-                    { user_id: req.user.id },
-                    { user_id: String(req.user.id) }
-                ];
+                const filterOr = [];
+                if (req.user.id) {
+                    filterOr.push({ user_id: req.user.id });
+                    filterOr.push({ user_id: Number(req.user.id) });
+                    filterOr.push({ user_id: String(req.user.id) });
+                }
                 if (userEmail) {
                     filterOr.push({ customer_email: userEmail });
                     filterOr.push({ customer_email: { $regex: new RegExp(`^${userEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } });
@@ -161,16 +165,24 @@ router.get('/my', auth, async (req, res) => {
                     filterOr.push({ customer_phone: userPhone });
                     filterOr.push({ phone: userPhone });
                 }
-                mongoOrders = await Order.find({ $or: filterOr }).sort({ created_at: -1 }).lean();
+                if (userName && userName !== 'customer') {
+                    filterOr.push({ customer_name: { $regex: new RegExp(`^${userName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } });
+                }
+
+                if (filterOr.length > 0) {
+                    mongoOrders = await Order.find({ $or: filterOr }).sort({ created_at: -1 }).lean();
+                }
             } catch (e) {}
         }
 
-        // Also check disk storage backup
-        const diskOrders = loadPersistentOrders().filter(o => 
-            String(o.user_id) === String(req.user.id) ||
-            (userEmail && o.customer_email && o.customer_email.toLowerCase() === userEmail) ||
-            (userPhone && (o.customer_phone === userPhone || o.phone === userPhone))
-        );
+        // Also check disk storage backup with multi-attribute matching
+        const diskOrders = loadPersistentOrders().filter(o => {
+            if (userIdStr && String(o.user_id) === userIdStr) return true;
+            if (userEmail && o.customer_email && o.customer_email.toLowerCase() === userEmail) return true;
+            if (userPhone && (o.customer_phone === userPhone || o.phone === userPhone)) return true;
+            if (userName && userName !== 'customer' && o.customer_name && o.customer_name.toLowerCase() === userName) return true;
+            return false;
+        });
 
         const orderMap = new Map();
         diskOrders.forEach(o => orderMap.set(Number(o.id), o));
