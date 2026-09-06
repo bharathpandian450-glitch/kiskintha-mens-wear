@@ -1,83 +1,99 @@
--- =============================================
--- Kiskintha Mens Wear - Database Schema
--- =============================================
+// =============================================
+// Kiskintha Mens Wear - MongoDB Database Schema & Init Script
+// Database Name: bharath_garments
+// Technology: MongoDB / Mongoose ODM
+// =============================================
 
-CREATE DATABASE IF NOT EXISTS bharath_garments;
-USE bharath_garments;
+// MongoDB MongoShell Initialization (mongosh)
+use bharath_garments;
 
--- Users Table
-CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    phone VARCHAR(15),
-    address TEXT,
-    role ENUM('customer', 'admin', 'owner') DEFAULT 'customer',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+// Create MongoDB Collections
+db.createCollection("users");
+db.createCollection("categories");
+db.createCollection("products");
+db.createCollection("orders");
 
--- Categories Table
-CREATE TABLE IF NOT EXISTS categories (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL
-);
+// Create MongoDB Indexes
+db.users.createIndex({ "email": 1 }, { unique: true });
+db.categories.createIndex({ "id": 1 }, { unique: true });
+db.products.createIndex({ "id": 1 }, { unique: true });
+db.orders.createIndex({ "id": 1 }, { unique: true });
+db.orders.createIndex({ "user_id": 1 });
 
--- Products Table
-CREATE TABLE IF NOT EXISTS products (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(200) NOT NULL,
-    description TEXT,
-    price DECIMAL(10, 2) NOT NULL,
-    image VARCHAR(255) DEFAULT '',
-    category_id INT,
-    size VARCHAR(100) DEFAULT 'S,M,L,XL',
-    stock INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
-);
+// =============================================
+// MongoDB Document Schema Structure
+// =============================================
 
--- Orders Table
-CREATE TABLE IF NOT EXISTS orders (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    total DECIMAL(10, 2) NOT NULL,
-    status ENUM('Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled') DEFAULT 'Pending',
-    address TEXT,
-    phone VARCHAR(15),
-    payment_method VARCHAR(50) DEFAULT 'COD',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-);
+/*
+1. USERS COLLECTION (db.users)
+{
+  "_id": ObjectId("..."),
+  "id": Number,
+  "name": String,
+  "email": String,
+  "password": String,
+  "phone": String,
+  "address": String,
+  "role": "customer" | "admin" | "owner",
+  "created_at": Date
+}
 
--- Order Items Table
-CREATE TABLE IF NOT EXISTS order_items (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    order_id INT,
-    product_id INT,
-    quantity INT NOT NULL,
-    price DECIMAL(10, 2) NOT NULL,
-    size VARCHAR(10),
-    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
-);
+2. CATEGORIES COLLECTION (db.categories)
+{
+  "_id": ObjectId("..."),
+  "id": Number,
+  "name": String
+}
 
--- =============================================
--- Seed Data
--- =============================================
+3. PRODUCTS COLLECTION (db.products)
+{
+  "_id": ObjectId("..."),
+  "id": Number,
+  "name": String,
+  "description": String,
+  "price": Number,
+  "original_price": Number,
+  "image": String,
+  "category_id": Number,
+  "category_name": String,
+  "subcategory": String,
+  "sleeve_type": String,
+  "size": String,
+  "color": String,
+  "rating": Number,
+  "stock": Number,
+  "created_at": Date
+}
 
--- Seed Users
-INSERT INTO users (name, email, password, phone, role) VALUES
-('Customer', 'customer@kiskinthamenswear.com', '$2a$10$xPLP0KJ8qXKLp6N5kJJ8CeGx6kFOkXmRVRHNF7pPT8WQFxMOEBrHK', '9876543211', 'customer'),
-('Admin', 'admin@kiskinthamenswear.com', '$2a$10$xPLP0KJ8qXKLp6N5kJJ8CeGx6kFOkXmRVRHNF7pPT8WQFxMOEBrHK', '9876543210', 'admin'),
-('Owner', 'owner@kiskinthamenswear.com', '$2a$10$xPLP0KJ8qXKLp6N5kJJ8CeGx6kFOkXmRVRHNF7pPT8WQFxMOEBrHK', '9876543200', 'owner');
-
--- Categories
-INSERT INTO categories (name) VALUES
-('T-Shirts'),
-('Shirts'),
-('Pants'),
-('Hoodies'),
-('Group Shirts');
-
--- Products table starts empty so Store Owner can upload product details.
+4. ORDERS COLLECTION (db.orders)
+{
+  "_id": ObjectId("..."),
+  "id": Number,
+  "user_id": Number,
+  "customer_name": String,
+  "customer_email": String,
+  "customer_phone": String,
+  "total": Number,
+  "status": "Pending" | "Confirmed" | "Packed" | "Shipped" | "Delivered" | "Cancelled",
+  "address": String,
+  "city": String,
+  "state": String,
+  "pincode": String,
+  "payment_method": String,
+  "payment_status": "Paid",
+  "items": [
+    {
+      "product_id": Number,
+      "product_name": String,
+      "name": String,
+      "image": String,
+      "category_name": String,
+      "color": String,
+      "size": String,
+      "quantity": Number,
+      "price": Number
+    }
+  ],
+  "created_at": Date
+}
+*/
