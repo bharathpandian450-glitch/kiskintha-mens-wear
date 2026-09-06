@@ -16,12 +16,13 @@ export function CartProvider({ children }) {
     const addToCart = (product, size = 'M', quantity = 1, color = '', customImage = '') => {
         const itemColor = color || product.selectedColor || '';
         const itemImage = customImage || product.image;
+        const productIdStr = String(product.id);
 
         setCart(prev => {
-            const existing = prev.find(item => item.id === product.id && item.size === size && item.color === itemColor);
+            const existing = prev.find(item => String(item.id) === productIdStr && item.size === size && (itemColor ? item.color === itemColor : true));
             if (existing) {
                 return prev.map(item =>
-                    item.id === product.id && item.size === size && item.color === itemColor
+                    String(item.id) === productIdStr && item.size === size && (itemColor ? item.color === itemColor : true)
                         ? { ...item, quantity: item.quantity + quantity }
                         : item
                 );
@@ -29,27 +30,29 @@ export function CartProvider({ children }) {
             return [...prev, {
                 id: product.id,
                 name: product.name,
-                price: product.price,
+                price: Number(product.price),
                 image: itemImage,
                 size,
                 color: itemColor,
                 sleeve_type: product.sleeve_type || '',
                 category_name: product.category_name || '',
-                quantity
+                quantity: Number(quantity) || 1
             }];
         });
     };
 
     const removeFromCart = (id, size, color = '') => {
-        setCart(prev => prev.filter(item => !(item.id === id && item.size === size && (color ? item.color === color : true))));
+        const targetIdStr = String(id);
+        setCart(prev => prev.filter(item => !(String(item.id) === targetIdStr && item.size === size && (color ? item.color === color : true))));
     };
 
     const updateQuantity = (id, size, quantity, color = '') => {
         if (quantity < 1) return;
+        const targetIdStr = String(id);
         setCart(prev =>
             prev.map(item =>
-                item.id === id && item.size === size && (color ? item.color === color : true)
-                    ? { ...item, quantity }
+                String(item.id) === targetIdStr && item.size === size && (color ? item.color === color : true)
+                    ? { ...item, quantity: Number(quantity) }
                     : item
             )
         );
@@ -57,6 +60,9 @@ export function CartProvider({ children }) {
 
     const clearCart = () => {
         setCart([]);
+        try {
+            localStorage.removeItem('cart');
+        } catch (e) {}
     };
 
     const getCartTotal = () => {

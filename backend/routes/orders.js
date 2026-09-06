@@ -172,6 +172,19 @@ router.get('/my', auth, async (req, res) => {
                 if (filterOr.length > 0) {
                     mongoOrders = await Order.find({ $or: filterOr }).sort({ created_at: -1 }).lean();
                 }
+
+                // If MongoDB $or query returned 0 items, scan all MongoDB orders in memory to avoid index/schema mismatch
+                if (!mongoOrders || mongoOrders.length === 0) {
+                    const allDbOrders = await Order.find({}).sort({ created_at: -1 }).lean();
+                    if (allDbOrders && allDbOrders.length > 0) {
+                        mongoOrders = allDbOrders.filter(o => 
+                            (userIdStr && String(o.user_id) === userIdStr) ||
+                            (userEmail && o.customer_email && o.customer_email.toLowerCase() === userEmail) ||
+                            (userPhone && (o.customer_phone === userPhone || o.phone === userPhone)) ||
+                            (userName && userName !== 'customer' && o.customer_name && o.customer_name.toLowerCase().includes(userName))
+                        );
+                    }
+                }
             } catch (e) {}
         }
 
