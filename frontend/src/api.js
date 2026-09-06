@@ -23,15 +23,16 @@ export const getImageUrl = (img) => {
     if (!img) return '';
     if (img.startsWith('http://') || img.startsWith('https://')) return img;
     const cleanImg = img.replace(/^\//, '');
+    const encodedImg = cleanImg.split('/').map(segment => encodeURIComponent(segment)).join('/');
     
     // In production or relative API mode, serve from relative /uploads
     if (API_BASE_URL.startsWith('/') || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')) {
-        return `/uploads/${cleanImg}`;
+        return `/uploads/${encodedImg}`;
     }
     
     // In local dev, serve from backend server at port 5000
     const serverHost = API_BASE_URL.replace(/\/api\/?$/, '');
-    return `${serverHost}/uploads/${cleanImg}`;
+    return `${serverHost}/uploads/${encodedImg}`;
 };
 
 // Add auth token & dynamic production URL check to every request
