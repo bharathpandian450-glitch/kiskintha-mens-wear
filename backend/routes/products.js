@@ -34,19 +34,35 @@ router.get('/', async (req, res) => {
         if (req.query.category) {
             const catParam = req.query.category;
             if (catParam === 'shirts-full') {
-                filter.category_id = 2;
+                filter.$or = [{ category_id: 2 }, { category_id: '2' }, { category_name: /^shirts$/i }];
                 filter.sleeve_type = 'Full Hand';
             } else if (catParam === 'shirts-half') {
-                filter.category_id = 2;
+                filter.$or = [{ category_id: 2 }, { category_id: '2' }, { category_name: /^shirts$/i }];
                 filter.sleeve_type = 'Half Hand';
             } else if (catParam === 'tshirts-full') {
-                filter.category_id = 1;
+                filter.$or = [{ category_id: 1 }, { category_id: '1' }, { category_name: /^t-shirts$/i }];
                 filter.sleeve_type = 'Full Hand';
             } else if (catParam === 'tshirts-half') {
-                filter.category_id = 1;
+                filter.$or = [{ category_id: 1 }, { category_id: '1' }, { category_name: /^t-shirts$/i }];
                 filter.sleeve_type = 'Half Hand';
             } else if (!isNaN(Number(catParam))) {
-                filter.category_id = Number(catParam);
+                const numCat = Number(catParam);
+                filter.$or = [{ category_id: numCat }, { category_id: String(numCat) }];
+            } else {
+                const catLower = catParam.toLowerCase();
+                if (catLower.includes('group')) {
+                    filter.$or = [{ category_id: 8 }, { category_id: '8' }, { category_name: /group/i }];
+                } else if (catLower.includes('t-shirt') || catLower.includes('tshirt')) {
+                    filter.$or = [{ category_id: 1 }, { category_id: '1' }, { category_name: /t-shirt/i }];
+                } else if (catLower.includes('shirt')) {
+                    filter.$or = [{ category_id: 2 }, { category_id: '2' }, { category_name: /^shirts$/i }];
+                } else if (catLower.includes('pant')) {
+                    filter.$or = [{ category_id: 3 }, { category_id: '3' }, { category_name: /pant/i }];
+                } else if (catLower.includes('trouser')) {
+                    filter.$or = [{ category_id: 4 }, { category_id: '4' }, { category_name: /trouser/i }];
+                } else if (catLower.includes('hoodie')) {
+                    filter.$or = [{ category_id: 7 }, { category_id: '7' }, { category_name: /hoodie/i }];
+                }
             }
         }
 

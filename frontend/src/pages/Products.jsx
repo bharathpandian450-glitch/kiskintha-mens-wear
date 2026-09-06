@@ -6,8 +6,10 @@ import { initialProducts } from '../data/initialProducts';
 
 const categoriesList = [
     { id: '', name: 'All Products', icon: '🛍️' },
+    { id: '2', name: 'Shirts', icon: '👔', catId: '2' },
     { id: 'shirts-full', name: 'Full Hand Shirts', icon: '👔', catId: '2', sleeve: 'Full Hand' },
     { id: 'shirts-half', name: 'Half Hand Shirts', icon: '👕', catId: '2', sleeve: 'Half Hand' },
+    { id: '1', name: 'T-Shirts', icon: '👕', catId: '1' },
     { id: 'tshirts-full', name: 'Full Hand T-Shirts', icon: '👔', catId: '1', sleeve: 'Full Hand' },
     { id: 'tshirts-half', name: 'Half Hand T-Shirts', icon: '👕', catId: '1', sleeve: 'Half Hand' },
     { id: '3', name: 'Pants', icon: '👖', catId: '3' },
@@ -112,18 +114,36 @@ function Products() {
 
         // 1. Category Filter: Supports exact category + sleeve specifications (Full Hand Shirts vs Half Hand Shirts)
         if (activeCategory) {
-            const activeCatObj = categoriesList.find(c => c.id === activeCategory);
+            const activeCatObj = categoriesList.find(c => String(c.id).toLowerCase() === String(activeCategory).toLowerCase()) ||
+                                 categoriesList.find(c => String(c.catId) === String(activeCategory) && !c.sleeve);
             if (activeCatObj) {
                 if (activeCatObj.sleeve) {
                     list = list.filter(p => 
-                        (String(p.category_id) === String(activeCatObj.catId) || p.category_name.toLowerCase() === (activeCatObj.catId === '2' ? 'shirts' : 't-shirts')) && 
+                        (String(p.category_id) === String(activeCatObj.catId) || (p.category_name && p.category_name.toLowerCase().includes(activeCatObj.catId === '2' ? 'shirt' : 't-shirt'))) && 
                         p.sleeve_type === activeCatObj.sleeve
                     );
                 } else if (activeCatObj.catId) {
-                    list = list.filter(p => 
-                        String(p.category_id) === String(activeCatObj.catId) || 
-                        p.category_name.toLowerCase() === activeCatObj.name.toLowerCase()
-                    );
+                    list = list.filter(p => {
+                        const pCatId = String(p.category_id);
+                        const targetCatId = String(activeCatObj.catId);
+                        const pCatName = (p.category_name || '').toLowerCase();
+                        const targetName = activeCatObj.name.toLowerCase();
+
+                        if (targetCatId === '2') {
+                            return (pCatId === '2' || (pCatName.includes('shirt') && !pCatName.includes('t-shirt') && !pCatName.includes('tshirt') && !pCatName.includes('group')));
+                        } else if (targetCatId === '1') {
+                            return (pCatId === '1' || pCatName.includes('t-shirt') || pCatName.includes('tshirt'));
+                        } else if (targetCatId === '3') {
+                            return (pCatId === '3' || pCatName.includes('pant'));
+                        } else if (targetCatId === '4') {
+                            return (pCatId === '4' || pCatName.includes('trouser'));
+                        } else if (targetCatId === '7') {
+                            return (pCatId === '7' || pCatName.includes('hoodie'));
+                        } else if (targetCatId === '8') {
+                            return (pCatId === '8' || pCatName.includes('group'));
+                        }
+                        return pCatId === targetCatId || pCatName.includes(targetName);
+                    });
                 }
             } else {
                 list = list.filter(p => String(p.category_id) === String(activeCategory));
@@ -203,8 +223,9 @@ function Products() {
 
     const getActiveCategoryTitle = () => {
         if (!activeCategory) return '🛍️ All Products Catalog';
-        const cat = categoriesList.find(c => c.id === activeCategory);
-        return cat ? `${cat.icon} ${cat.name} Collection` : '🛍️ Products Collection';
+        const cat = categoriesList.find(c => String(c.id).toLowerCase() === String(activeCategory).toLowerCase()) ||
+                    categoriesList.find(c => String(c.catId) === String(activeCategory) && !c.sleeve);
+        return cat ? `${cat.icon} ${cat.name} Catalog` : '🛍️ Products Catalog';
     };
 
     const hasActiveFilters = productType !== 'All' || selectedColor !== 'All' || selectedSize !== 'All' || priceRange !== 'All' || activeCategory !== '' || searchQuery !== '' || search !== '';
@@ -297,7 +318,8 @@ function Products() {
                     scrollbarWidth: 'thin'
                 }}>
                     {categoriesList.map(cat => {
-                        const isActive = (cat.id === '' && activeCategory === '') || (cat.id !== '' && activeCategory === cat.id);
+                        const isActive = (cat.id === '' && activeCategory === '') || 
+                                         (cat.id !== '' && (String(activeCategory).toLowerCase() === String(cat.id).toLowerCase() || (String(cat.catId) === String(activeCategory) && !cat.sleeve)));
                         return (
                             <button
                                 key={cat.id}
