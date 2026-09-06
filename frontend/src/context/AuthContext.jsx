@@ -56,44 +56,11 @@ export function AuthProvider({ children }) {
             throw new Error('Please enter password');
         }
 
-        const cleanLower = cleanInput.toLowerCase();
-        const isOwnerAttempt = (selectedRole === 'owner') ||
-                               cleanLower === 'kiskinthowner' ||
-                               cleanLower === 'kiskinthaowner' ||
-                               cleanLower.includes('kiskinthaowner@') ||
-                               cleanLower.includes('kiskinthowner@');
-
-        if (isOwnerAttempt) {
-            try {
-                const res = await API.post('/users/login', {
-                    credential: cleanInput,
-                    password: userPass,
-                    role: 'owner'
-                });
-
-                if (res.data && res.data.token && res.data.user && res.data.user.role === 'owner') {
-                    const newToken = res.data.token;
-                    const newUser = res.data.user;
-                    localStorage.setItem('token', newToken);
-                    localStorage.setItem('user', JSON.stringify(newUser));
-                    setToken(newToken);
-                    setUser(newUser);
-                    return newUser;
-                } else {
-                    throw new Error('Invalid credentials');
-                }
-            } catch (apiErr) {
-                const errMsg = apiErr.response?.data?.message || 'Invalid credentials';
-                throw new Error(errMsg);
-            }
-        }
-
-        // Customer Login Handler
         try {
             const res = await API.post('/users/login', {
                 credential: cleanInput,
                 password: userPass,
-                role: 'customer'
+                role: selectedRole
             });
 
             if (res.data && res.data.token && res.data.user) {
