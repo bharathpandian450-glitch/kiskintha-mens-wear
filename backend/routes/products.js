@@ -32,15 +32,30 @@ router.get('/', async (req, res) => {
         const filter = {};
 
         if (req.query.category) {
-            filter.category_id = Number(req.query.category);
+            const catParam = req.query.category;
+            if (catParam === 'shirts-full') {
+                filter.category_id = 2;
+                filter.sleeve_type = 'Full Hand';
+            } else if (catParam === 'shirts-half') {
+                filter.category_id = 2;
+                filter.sleeve_type = 'Half Hand';
+            } else if (catParam === 'tshirts-full') {
+                filter.category_id = 1;
+                filter.sleeve_type = 'Full Hand';
+            } else if (catParam === 'tshirts-half') {
+                filter.category_id = 1;
+                filter.sleeve_type = 'Half Hand';
+            } else if (!isNaN(Number(catParam))) {
+                filter.category_id = Number(catParam);
+            }
         }
 
         if (req.query.sleeve_type) {
             filter.sleeve_type = req.query.sleeve_type;
         }
 
-        if (req.query.color) {
-            filter.color = new RegExp(`^${req.query.color}$`, 'i');
+        if (req.query.color && req.query.color !== 'All') {
+            filter.color = new RegExp(`^${req.query.color.trim()}$`, 'i');
         }
 
         if (req.query.search) {
