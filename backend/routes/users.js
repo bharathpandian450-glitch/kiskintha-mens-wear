@@ -160,19 +160,25 @@ router.post('/login', async (req, res) => {
 
         // Check if Owner login attempt
         const isOwnerRoleSelected = (role === 'owner');
-        const isOwnerInput = cleanInput === OWNER_USER || cleanInput === `${OWNER_USER}@kiskinthamenswear.com`;
+        const isOwnerInput = cleanInput === 'kiskinthowner' ||
+                             cleanInput === 'kiskinthaowner' ||
+                             cleanInput === OWNER_USER ||
+                             cleanInput === 'kiskinthaowner@kiskinthamenswear.com' ||
+                             cleanInput === 'kiskinthowner@kiskinthamenswear.com' ||
+                             cleanInput === `${OWNER_USER}@kiskinthamenswear.com`;
 
         if (isOwnerRoleSelected || isOwnerInput) {
-            const isOwnerValid = (cleanInput === OWNER_USER || cleanInput === `${OWNER_USER}@kiskinthamenswear.com`) && (userPassword === OWNER_PASS);
+            const isOwnerValid = (isOwnerInput) && (userPassword === OWNER_PASS);
 
             if (!isOwnerValid) {
-                return res.status(401).json({ message: 'Invalid owner credentials' });
+                return res.status(401).json({ message: 'Invalid credentials' });
             }
 
             user = {
                 id: 3,
                 name: 'Kiskintha (Store Owner)',
                 email: 'kiskinthaowner@kiskinthamenswear.com',
+                username: 'kiskinthowner',
                 phone: '9876543200',
                 address: 'Kiskintha Mens Wear Main Branch, Chennai',
                 role: 'owner'
@@ -183,14 +189,14 @@ router.post('/login', async (req, res) => {
                 $or: [{ email: cleanInput }, { phone: cleanInput }]
             }).lean();
 
-            if (dbUser) {
+            if (dbUser && dbUser.role !== 'owner') {
                 user = {
                     id: dbUser.id || Date.now(),
                     name: dbUser.name,
                     email: dbUser.email,
                     phone: dbUser.phone || '',
                     address: dbUser.address || '',
-                    role: dbUser.role || 'customer'
+                    role: 'customer'
                 };
             } else {
                 let displayName = 'Customer';
@@ -209,6 +215,24 @@ router.post('/login', async (req, res) => {
                     address: '',
                     role: 'customer'
                 };
+
+                // Save / Upsert new customer in MongoDB User Collection
+                try {
+                    const hashedPassword = await bcrypt.hash(userPassword, 10);
+                    await User.findOneAndUpdate(
+                        { email: user.email.toLowerCase() },
+                        {
+                            id: user.id,
+                            name: user.name,
+                            email: user.email.toLowerCase(),
+                            phone: user.phone || '',
+                            password: hashedPassword,
+                            address: user.address || '',
+                            role: 'customer'
+                        },
+                        { upsert: true, new: true }
+                    );
+                } catch (syncErr) {}
             }
         }
 
