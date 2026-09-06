@@ -124,30 +124,34 @@ const seedMongoDB = async (data) => {
             }
         }
 
-        // Sync MongoDB Products to memoryStore or seed MongoDB if empty
-        const mongoProds = await Product.find({}).lean();
-        if (mongoProds && mongoProds.length > 0 && data.products) {
-            data.products = mongoProds.map(p => ({
-                id: p.id,
-                name: p.name,
-                description: p.description,
-                price: p.price,
-                original_price: p.original_price,
-                image: p.image,
-                category_id: p.category_id,
-                category_name: p.category_name,
-                subcategory: p.subcategory,
-                sleeve_type: p.sleeve_type,
-                size: p.size,
-                color: p.color,
-                rating: p.rating,
-                stock: p.stock,
-                created_at: p.created_at || new Date()
-            }));
-        } else if (data.products && data.products.length > 0) {
+        // Upsert all initial products to MongoDB and sync with mongoProds
+        if (data.products && data.products.length > 0) {
             for (const prod of data.products) {
                 await Product.updateOne({ id: prod.id }, { $set: prod }, { upsert: true });
             }
+        }
+        const mongoProds = await Product.find({}).lean();
+        if (mongoProds && mongoProds.length > 0 && data.products) {
+            data.products.length = 0;
+            mongoProds.forEach(p => {
+                data.products.push({
+                    id: p.id,
+                    name: p.name,
+                    description: p.description,
+                    price: p.price,
+                    original_price: p.original_price,
+                    image: p.image,
+                    category_id: p.category_id,
+                    category_name: p.category_name,
+                    subcategory: p.subcategory,
+                    sleeve_type: p.sleeve_type,
+                    size: p.size,
+                    color: p.color,
+                    rating: p.rating,
+                    stock: p.stock,
+                    created_at: p.created_at || new Date()
+                });
+            });
         }
 
         // Sync existing MongoDB Orders to memoryStore & load disk persistent orders (Non-Destructive Merge)
