@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import API from '../api';
 import ProductCard from '../components/ProductCard';
+import { initialCategories, initialProducts } from '../data/initialProducts';
 
 const categoryEmojis = {
     'T-Shirts': '👕',
@@ -28,22 +29,26 @@ const categoryCustomIcons = {
 };
 
 function Home() {
-    const [categories, setCategories] = useState([]);
-    const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState(initialCategories);
+    const [products, setProducts] = useState(initialProducts);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const [catRes, prodRes] = await Promise.all([
-                    API.get('/categories'),
-                    API.get('/products')
+                    API.get('/categories').catch(() => ({ data: initialCategories })),
+                    API.get('/products').catch(() => ({ data: initialProducts }))
                 ]);
-                setCategories(catRes.data);
+                const cats = Array.isArray(catRes.data) && catRes.data.length > 0 ? catRes.data : initialCategories;
+                setCategories(cats);
                 const pData = prodRes.data;
-                setProducts(Array.isArray(pData) ? pData : (pData?.products || []));
+                const fetchedProds = Array.isArray(pData) && pData.length > 0 ? pData : (pData?.products && pData.products.length > 0 ? pData.products : initialProducts);
+                setProducts(fetchedProds);
             } catch (error) {
                 console.error('Error fetching data:', error);
+                setCategories(initialCategories);
+                setProducts(initialProducts);
             } finally {
                 setLoading(false);
             }

@@ -67,8 +67,6 @@ app.get('/', (req, res) => {
     res.json({ message: 'Kiskintha Mens Wear MongoDB API is running' });
 });
 
-const { connectMongoDB, initialData } = require('./config/db');
-
 // Start server on PORT 5000 and connect to MongoDB
 const server = app.listen(PORT, () => {
     console.log(`✅ Kiskintha Mens Wear Server running on port ${PORT}`);

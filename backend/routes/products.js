@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
+const { Product, Category, connectMongoDB, getIsConnected } = require('../config/mongodb');
+const { auth, isOwner } = require('../middleware/auth');
 const { initialData } = require('../config/db');
 
 // Ensure MongoDB is connected and seeded before route handlers execute

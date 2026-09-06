@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import API from '../api';
 import ProductCard from '../components/ProductCard';
+import { initialProducts } from '../data/initialProducts';
 
 const categoriesList = [
     { id: '', name: 'All Products', icon: '🛍️' },
@@ -60,15 +61,23 @@ function Products() {
                 if (searchQuery) params.search = searchQuery;
                 const response = await API.get('/products', { params });
                 const data = response.data;
+                let list = [];
                 if (Array.isArray(data)) {
-                    setProducts(data);
+                    list = data;
                 } else if (data && Array.isArray(data.products)) {
-                    setProducts(data.products);
+                    list = data.products;
+                }
+                if ((!list || list.length === 0) && !activeCategory && !searchQuery) {
+                    list = initialProducts;
+                }
+                setProducts(list);
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                if (!activeCategory && !searchQuery) {
+                    setProducts(initialProducts);
                 } else {
                     setProducts([]);
                 }
-            } catch (error) {
-                console.error('Error fetching products:', error);
             } finally {
                 setLoading(false);
             }
