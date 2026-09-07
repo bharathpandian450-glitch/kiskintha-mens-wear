@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { Review, Product, getIsConnected } = require('../config/mongodb');
+const { Review, Product, Order, getIsConnected } = require('../config/mongodb');
 const { auth } = require('../middleware/auth');
 const { initialData } = require('../config/db');
+const { loadPersistentOrders } = require('../config/persistentOrders');
 
 // In-memory reviews array fallback
 if (!initialData.reviews) {
@@ -73,7 +74,25 @@ router.get('/product/:productId', async (req, res) => {
     }
 });
 
-// POST a new product review (Customer Portal)
+// GET all reviews for Store Owner Portal
+router.get('/all', async (req, res) => {
+    try {
+        let reviews = [];
+        if (getIsConnected()) {
+            try {
+                reviews = await Review.find({}).sort({ created_at: -1 }).lean();
+            } catch (err) {}
+        }
+        if ((!reviews || reviews.length === 0) && initialData.reviews) {
+            reviews = initialData.reviews;
+        }
+        res.json(reviews || []);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error fetching all reviews' });
+    }
+});
+
+// POST a new product review (Customer Portal - Only Purchased Customers - No Duplicates)
 router.post('/', auth, async (req, res) => {
     try {
         const { product_id, rating, comment } = req.body;
@@ -91,9 +110,73 @@ router.post('/', auth, async (req, res) => {
         }
 
         const customerName = req.user?.name || req.user?.username || 'Verified Customer';
-        const userId = req.user?.id || Date.now();
-        const reviewId = Date.now();
+        const userId = Number(req.user?.id || 0);
+        const userEmail = (req.user?.email || '').toLowerCase();
+        const userPhone = (req.user?.phone || '').trim();
 
+        // 1. PURCHASE VERIFICATION: Verify customer has purchased this product
+        let userOrders = [];
+        if (getIsConnected()) {
+            try {
+                const query = {
+                    $or: [
+                        { user_id: userId },
+                        { customer_email: userEmail },
+                        { customer_phone: userPhone },
+                        { phone: userPhone }
+                    ]
+                };
+                userOrders = await Order.find(query).lean();
+            } catch (oErr) {}
+        }
+
+        if (!userOrders || userOrders.length === 0) {
+            const diskOrders = loadPersistentOrders();
+            userOrders = diskOrders.filter(o =>
+                Number(o.user_id) === userId ||
+                (userEmail && (o.customer_email || '').toLowerCase() === userEmail) ||
+                (userPhone && (o.customer_phone || o.phone || '').trim() === userPhone)
+            );
+        }
+
+        const hasPurchased = userOrders.some(order =>
+            Array.isArray(order.items) && order.items.some(item => Number(item.product_id) === productId)
+        );
+
+        if (!hasPurchased) {
+            return res.status(403).json({
+                message: 'Only customers who have successfully purchased this product can submit a review.'
+            });
+        }
+
+        // 2. DUPLICATE REVIEW PREVENTION: Check if customer has already submitted a review for this product
+        let existingReview = null;
+        if (getIsConnected()) {
+            try {
+                existingReview = await Review.findOne({
+                    product_id: productId,
+                    $or: [
+                        { user_id: userId },
+                        { customer_name: customerName }
+                    ]
+                }).lean();
+            } catch (rErr) {}
+        }
+
+        if (!existingReview && initialData.reviews) {
+            existingReview = initialData.reviews.find(r =>
+                Number(r.product_id) === productId &&
+                (Number(r.user_id) === userId || r.customer_name === customerName)
+            );
+        }
+
+        if (existingReview) {
+            return res.status(400).json({
+                message: 'You have already submitted a review for this product. Multiple reviews for the same product are not allowed.'
+            });
+        }
+
+        const reviewId = Date.now();
         const newReview = {
             id: reviewId,
             product_id: productId,
@@ -117,7 +200,7 @@ router.post('/', auth, async (req, res) => {
         if (!initialData.reviews) initialData.reviews = [];
         initialData.reviews.unshift(newReview);
 
-        // Recalculate average rating & update Product record
+        // Recalculate average rating & update Product record in MongoDB
         try {
             let allProdReviews = initialData.reviews.filter(r => Number(r.product_id) === productId);
             if (getIsConnected()) {

@@ -43,6 +43,7 @@ function Products() {
     // Filter and Sort states
     const [search, setSearch] = useState(searchQuery);
     const [productType, setProductType] = useState('All'); // 'All', 'Full Hand', 'Half Hand'
+    const [pantsSubCategory, setPantsSubCategory] = useState('All'); // 'All', 'Jeans', 'Formal', 'Cotton'
     const [selectedColor, setSelectedColor] = useState('All'); // 'All', 'Black', 'White', 'Blue', 'Red', ...
     const [selectedSize, setSelectedSize] = useState('All');
     const [priceRange, setPriceRange] = useState('All');
@@ -150,7 +151,13 @@ function Products() {
             }
         }
 
-        // 2. Product Type / Sleeve Filter: STRICT Full Hand vs Half Hand
+        // 2. Pants Sub-Category Filter: Jeans, Formal, Cotton
+        if (pantsSubCategory && pantsSubCategory !== 'All') {
+            const targetSub = pantsSubCategory.toLowerCase();
+            list = list.filter(p => p.subcategory && p.subcategory.toLowerCase().includes(targetSub));
+        }
+
+        // 3. Product Type / Sleeve Filter: STRICT Full Hand vs Half Hand
         if (productType === 'Full Hand') {
             list = list.filter(p => p.sleeve_type === 'Full Hand');
         } else if (productType === 'Half Hand') {
@@ -207,7 +214,7 @@ function Products() {
         }
 
         return list;
-    }, [products, activeCategory, productType, selectedColor, selectedSize, priceRange, search, searchQuery, sortBy]);
+    }, [products, activeCategory, productType, pantsSubCategory, selectedColor, selectedSize, priceRange, search, searchQuery, sortBy]);
 
     // Reset pagination on filter change
     useEffect(() => {
@@ -347,6 +354,45 @@ function Products() {
                         );
                     })}
                 </div>
+
+                {/* 1.5 Pants Sub-Category Filter Bar */}
+                {(activeCategory === '3' || activeCategory === 'pants' || activeCategory === 'Pants') && (
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                        border: '1px solid #bfdbfe',
+                        padding: '12px 18px',
+                        borderRadius: '12px',
+                        marginBottom: '20px',
+                        flexWrap: 'wrap'
+                    }}>
+                        <span style={{ fontSize: '14px', fontWeight: '800', color: '#1e40af', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>👖</span> Pants Sub-Categories:
+                        </span>
+                        {['All', 'Jeans', 'Formal', 'Cotton'].map(sub => (
+                            <button
+                                key={sub}
+                                onClick={() => setPantsSubCategory(sub)}
+                                style={{
+                                    padding: '6px 16px',
+                                    borderRadius: '20px',
+                                    fontSize: '13px',
+                                    fontWeight: '800',
+                                    border: pantsSubCategory === sub ? '2px solid #2563eb' : '1px solid #93c5fd',
+                                    background: pantsSubCategory === sub ? '#2563eb' : '#ffffff',
+                                    color: pantsSubCategory === sub ? '#ffffff' : '#1e3a8a',
+                                    cursor: 'pointer',
+                                    boxShadow: pantsSubCategory === sub ? '0 2px 8px rgba(37,99,235,0.3)' : 'none',
+                                    transition: 'all 0.2s ease'
+                                }}
+                            >
+                                {sub === 'All' ? 'All Pants' : `👖 ${sub}`}
+                            </button>
+                        ))}
+                    </div>
+                )}
 
                 {/* High-Visibility Filter & Sort Toolbar */}
                 <div className="filter-bar" style={{

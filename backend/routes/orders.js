@@ -3,6 +3,7 @@ const router = express.Router();
 const { Order, Product, User, connectMongoDB, getIsConnected } = require('../config/mongodb');
 const { savePersistentOrder, loadPersistentOrders } = require('../config/persistentOrders');
 const { auth, isAdmin } = require('../middleware/auth');
+const { initialData } = require('../config/db');
 
 // Ensure MongoDB is connected before handling order requests
 router.use(async (req, res, next) => {
@@ -57,11 +58,34 @@ router.post('/', auth, async (req, res) => {
 
         const savedItems = [];
 
-        // Decrease stock in MongoDB Product collection and structure order items
+        // Step 1: Pre-validate stock availability for all items
+        for (const item of items) {
+            let currentProd = null;
+            if (getIsConnected()) {
+                try { currentProd = await Product.findOne({ id: item.product_id }).lean(); } catch (e) {}
+            }
+            if (!currentProd && initialData && initialData.products) {
+                currentProd = initialData.products.find(p => Number(p.id) === Number(item.product_id));
+            }
+            const availStock = currentProd ? Number(currentProd.stock || 0) : 0;
+            const reqQty = Number(item.quantity || 1);
+
+            if (availStock < reqQty) {
+                return res.status(400).json({
+                    message: `Insufficient stock for product "${item.name || (currentProd ? currentProd.name : 'Item')}". Only ${availStock} item(s) remaining in stock.`
+                });
+            }
+        }
+
+        // Step 2: Atomic stock decrement with rollback safety
+        const decrementedItems = [];
         for (const item of items) {
             let prod = null;
             if (getIsConnected()) {
                 try { prod = await Product.findOne({ id: item.product_id }).lean(); } catch (e) {}
+            }
+            if (!prod && initialData && initialData.products) {
+                prod = initialData.products.find(p => Number(p.id) === Number(item.product_id));
             }
 
             const itemSize = item.size || 'M';
@@ -69,7 +93,47 @@ router.post('/', auth, async (req, res) => {
             const itemName = item.name || (prod ? prod.name : 'Kiskintha Item');
             const itemImage = item.image || (prod ? prod.image : '');
             const itemCat = item.category_name || (prod ? prod.category_name : 'Men Wear');
+            const itemSubcat = item.subcategory || (prod ? prod.subcategory : '');
             const itemSleeve = item.sleeve_type || (prod ? prod.sleeve_type : '');
+            const reqQty = Number(item.quantity || 1);
+
+            let updatedProd = null;
+            if (getIsConnected()) {
+                try {
+                    updatedProd = await Product.findOneAndUpdate(
+                        { id: item.product_id, stock: { $gte: reqQty } },
+                        { $inc: { stock: -reqQty } },
+                        { new: true }
+                    ).lean();
+                } catch (mErr) {
+                    console.error('MongoDB Atomic Stock Decrement Note:', mErr.message);
+                }
+            }
+
+            // Fallback for in-memory / disconnected mode
+            if (!updatedProd && prod && Number(prod.stock || 0) >= reqQty) {
+                prod.stock = Number(prod.stock) - reqQty;
+                updatedProd = prod;
+            }
+
+            if (!updatedProd) {
+                // Rollback previously decremented items in this transaction
+                for (const rollbackItem of decrementedItems) {
+                    if (getIsConnected()) {
+                        await Product.updateOne(
+                            { id: rollbackItem.product_id },
+                            { $inc: { stock: rollbackItem.quantity } }
+                        ).catch(() => {});
+                    }
+                    const rProd = (initialData.products || []).find(p => Number(p.id) === Number(rollbackItem.product_id));
+                    if (rProd) rProd.stock = (Number(rProd.stock) || 0) + rollbackItem.quantity;
+                }
+                return res.status(400).json({
+                    message: `Product "${itemName}" is currently Out of Stock or has insufficient remaining quantity.`
+                });
+            }
+
+            decrementedItems.push({ product_id: item.product_id, quantity: reqQty });
 
             savedItems.push({
                 product_id: item.product_id,
@@ -77,24 +141,13 @@ router.post('/', auth, async (req, res) => {
                 name: itemName,
                 image: itemImage,
                 category_name: itemCat,
+                subcategory: itemSubcat,
                 sleeve_type: itemSleeve,
                 color: itemColor,
                 size: itemSize,
-                quantity: item.quantity,
+                quantity: reqQty,
                 price: item.price
             });
-
-            // Decrease stock in MongoDB if connected
-            if (getIsConnected()) {
-                try {
-                    await Product.findOneAndUpdate(
-                        { id: item.product_id, stock: { $gte: item.quantity } },
-                        { $inc: { stock: -item.quantity } }
-                    );
-                } catch (mErr) {
-                    console.log('MongoDB Stock Decrement Note:', mErr.message);
-                }
-            }
         }
 
         const fullOrderObj = {

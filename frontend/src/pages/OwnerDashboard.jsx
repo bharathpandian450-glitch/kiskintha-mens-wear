@@ -187,6 +187,7 @@ function OwnerDashboard() {
             description: '',
             price: '',
             category_id: categories[0]?.id || '2',
+            subcategory: 'Jeans',
             sleeve_type: 'Full Hand',
             color: 'Blue',
             size: 'S,M,L,XL',
@@ -204,6 +205,7 @@ function OwnerDashboard() {
             description: prod.description || '',
             price: prod.price,
             category_id: prod.category_id,
+            subcategory: prod.subcategory || 'Jeans',
             sleeve_type: prod.sleeve_type || 'Full Hand',
             color: prod.color || 'Blue',
             size: prod.size || 'S,M,L,XL',
@@ -225,6 +227,7 @@ function OwnerDashboard() {
             formData.append('description', prodForm.description);
             formData.append('price', prodForm.price);
             formData.append('category_id', prodForm.category_id);
+            formData.append('subcategory', prodForm.subcategory || '');
             formData.append('sleeve_type', prodForm.sleeve_type || 'Full Hand');
             formData.append('color', prodForm.color || 'Blue');
             formData.append('size', prodForm.size);
@@ -1276,6 +1279,22 @@ function OwnerDashboard() {
                                         </select>
                                     </div>
                                 </div>
+
+                                {String(prodForm.category_id) === '3' && (
+                                    <div className="form-group" style={{ marginBottom: '12px', background: '#eff6ff', padding: '10px 14px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+                                        <label style={{ fontWeight: '800', fontSize: '13px', color: '#1e40af' }}>👖 Pants Sub-Category *</label>
+                                        <select
+                                            className="form-control"
+                                            value={prodForm.subcategory || 'Jeans'}
+                                            onChange={(e) => setProdForm({ ...prodForm, subcategory: e.target.value })}
+                                            style={{ fontWeight: '700' }}
+                                        >
+                                            <option value="Jeans">👖 Jeans Pants</option>
+                                            <option value="Formal">👔 Formal Pants</option>
+                                            <option value="Cotton">👕 Cotton Pants</option>
+                                        </select>
+                                    </div>
+                                )}
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                                     <div className="form-group">

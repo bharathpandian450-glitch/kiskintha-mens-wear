@@ -70,6 +70,10 @@ router.get('/', async (req, res) => {
             filter.sleeve_type = req.query.sleeve_type;
         }
 
+        if (req.query.subcategory && req.query.subcategory !== 'All') {
+            filter.subcategory = new RegExp(`^${req.query.subcategory.trim()}$`, 'i');
+        }
+
         if (req.query.color && req.query.color !== 'All') {
             filter.color = new RegExp(`^${req.query.color.trim()}$`, 'i');
         }
@@ -133,20 +137,34 @@ router.get('/', async (req, res) => {
 // GET single product by ID (Native MongoDB)
 router.get('/:id', async (req, res) => {
     try {
-        const prod = await Product.findOne({ id: Number(req.params.id) }).lean();
+        let prod = null;
+        if (getIsConnected()) {
+            try { prod = await Product.findOne({ id: Number(req.params.id) }).lean(); } catch (e) {}
+        }
+        if (!prod && initialData && initialData.products) {
+            prod = initialData.products.find(p => Number(p.id) === Number(req.params.id));
+        }
 
         if (!prod) {
             return res.status(404).json({ message: 'Product not found' });
         }
 
         if (!prod.category_name && prod.category_id) {
-            const cat = await Category.findOne({ id: Number(prod.category_id) }).lean();
-            if (cat) prod.category_name = cat.name;
+            if (getIsConnected()) {
+                try {
+                    const cat = await Category.findOne({ id: Number(prod.category_id) }).lean();
+                    if (cat) prod.category_name = cat.name;
+                } catch (e) {}
+            }
         }
 
         res.json(prod);
     } catch (error) {
         console.error('Error fetching product from MongoDB:', error);
+        if (initialData && initialData.products) {
+            const fallbackProd = initialData.products.find(p => Number(p.id) === Number(req.params.id));
+            if (fallbackProd) return res.json(fallbackProd);
+        }
         res.status(500).json({ message: 'Server error fetching product' });
     }
 });
@@ -360,6 +378,39 @@ router.delete('/:id', auth, isOwner, async (req, res) => {
     } catch (error) {
         console.error('Error deleting product from MongoDB:', error);
         res.status(500).json({ message: 'Server error deleting product' });
+    }
+});
+
+// PATCH update product stock (Store Owner only - Native MongoDB)
+router.patch('/:id/stock', auth, isOwner, async (req, res) => {
+    try {
+        const productId = Number(req.params.id);
+        const { stock } = req.body;
+        const numStock = parseInt(stock);
+        if (isNaN(numStock) || numStock < 0) {
+            return res.status(400).json({ message: 'Invalid stock quantity' });
+        }
+
+        let updated = null;
+        if (getIsConnected()) {
+            try {
+                updated = await Product.findOneAndUpdate(
+                    { id: productId },
+                    { $set: { stock: numStock } },
+                    { new: true }
+                ).lean();
+            } catch (e) {}
+        }
+
+        if (initialData && initialData.products) {
+            const p = initialData.products.find(x => Number(x.id) === productId);
+            if (p) p.stock = numStock;
+        }
+
+        res.json({ message: 'Stock updated successfully in MongoDB', productId, stock: numStock, product: updated });
+    } catch (error) {
+        console.error('Error updating stock:', error);
+        res.status(500).json({ message: 'Server error updating stock' });
     }
 });
 

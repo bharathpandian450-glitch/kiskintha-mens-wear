@@ -83,12 +83,14 @@ const orderSchema = new mongoose.Schema({
 const reviewSchema = new mongoose.Schema({
     id: { type: Number, required: true, unique: true },
     product_id: { type: Number, required: true },
-    user_id: { type: Number },
+    user_id: { type: Number, required: true },
     customer_name: { type: String, required: true },
     rating: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String, required: true },
     created_at: { type: Date, default: Date.now }
 });
+
+reviewSchema.index({ product_id: 1, user_id: 1 }, { unique: true });
 
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 const Category = mongoose.models.Category || mongoose.model('Category', categorySchema);
