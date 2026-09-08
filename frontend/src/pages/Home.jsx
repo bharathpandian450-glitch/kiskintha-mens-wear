@@ -71,8 +71,29 @@ function Home() {
                     <h2 className="section-title">Shop by Category</h2>
                     <div className="categories-grid">
                         {categories.map(cat => (
-                            <Link to={`/products?category=${cat.id}`} key={cat.id}>
-                                <div className="category-card" style={{ textAlign: 'center', padding: '24px 16px' }}>
+                            <Link
+                                to={`/products?category=${cat.id}`}
+                                key={cat.id}
+                                style={{
+                                    textDecoration: 'none',
+                                    color: 'inherit',
+                                    display: 'block',
+                                    width: '100%',
+                                    height: '100%',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <div className="category-card" style={{
+                                    textAlign: 'center',
+                                    padding: '24px 16px',
+                                    height: '100%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    userSelect: 'none'
+                                }}>
                                     <div className="emoji" style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
                                         {categoryCustomIcons[cat.name] || (
                                             <span style={{ fontSize: '36px' }}>{categoryEmojis[cat.name] || '🏷️'}</span>
