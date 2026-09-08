@@ -254,15 +254,14 @@ router.post('/', auth, isOwner, handleUpload, async (req, res) => {
 // PUT update product (Store Owner only - Native MongoDB)
 router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
     try {
+        if (!getIsConnected()) {
+            return res.status(503).json({ message: 'MongoDB is not connected' });
+        }
+
         const productId = Number(req.params.id);
         const { name, description, price, category_id, size, stock, color, sleeve_type, subcategory } = req.body || {};
 
-        let existing = null;
-        if (getIsConnected()) {
-            try {
-                existing = await Product.findOne({ id: productId }).lean();
-            } catch (e) {}
-        }
+        let existing = await Product.findOne({ id: productId }).lean();
         if (!existing && initialData && initialData.products) {
             existing = initialData.products.find(p => Number(p.id) === productId);
         }
@@ -278,12 +277,10 @@ router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
         else if (numCatId === 7) catName = 'Hoodies';
         else if (numCatId === 8) catName = 'Group Shirts';
 
-        if (getIsConnected()) {
-            try {
-                const cat = await Category.findOne({ id: numCatId }).lean();
-                if (cat) catName = cat.name;
-            } catch (e) {}
-        }
+        try {
+            const cat = await Category.findOne({ id: numCatId }).lean();
+            if (cat) catName = cat.name;
+        } catch (e) {}
 
         const updateData = {
             id: productId,
@@ -300,39 +297,40 @@ router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
         };
         if (image) updateData.image = image;
 
-        let updatedProd = null;
-        if (getIsConnected()) {
-            try {
-                updatedProd = await Product.findOneAndUpdate(
-                    { id: productId },
-                    { $set: updateData },
-                    { upsert: true, new: true }
-                ).lean();
-            } catch (mErr) {
-                console.error('MongoDB product update note:', mErr.message);
-            }
+        const updatedProd = await Product.findOneAndUpdate(
+            { id: productId },
+            { $set: updateData },
+            { upsert: true, new: true, runValidators: true }
+        ).lean();
+
+        if (!updatedProd) {
+            return res.status(404).json({ message: 'Product not found' });
         }
 
-        // Also update initialData array in memory
+        // Keep initialData array in sync
         if (initialData && initialData.products) {
             const idx = initialData.products.findIndex(p => Number(p.id) === productId);
             if (idx !== -1) {
-                initialData.products[idx] = { ...initialData.products[idx], ...updateData };
+                initialData.products[idx] = { ...initialData.products[idx], ...updatedProd };
             } else {
-                initialData.products.push(updateData);
+                initialData.products.unshift(updatedProd);
             }
         }
 
-        res.json({ message: 'Product updated successfully by Owner', product: updatedProd || updateData });
+        return res.json({ message: 'Product updated successfully', product: updatedProd });
     } catch (error) {
         console.error('Error updating product in MongoDB:', error);
-        res.status(500).json({ message: 'Server error updating product' });
+        return res.status(500).json({ message: error.message || 'Failed to update product in MongoDB' });
     }
 });
 
 // PATCH update product price (Store Owner only - Native MongoDB)
 router.patch('/:id/price', auth, isOwner, async (req, res) => {
     try {
+        if (!getIsConnected()) {
+            return res.status(503).json({ message: 'MongoDB is not connected' });
+        }
+
         const productId = Number(req.params.id);
         const { price } = req.body;
         const numPrice = parseFloat(price);
@@ -340,33 +338,35 @@ router.patch('/:id/price', auth, isOwner, async (req, res) => {
             return res.status(400).json({ message: 'Invalid price value' });
         }
 
-        let updated = null;
-        if (getIsConnected()) {
-            try {
-                updated = await Product.findOneAndUpdate(
-                    { id: productId },
-                    { $set: { price: numPrice } },
-                    { new: true }
-                ).lean();
-            } catch (e) {}
+        const updatedProd = await Product.findOneAndUpdate(
+            { id: productId },
+            { $set: { price: numPrice } },
+            { new: true, runValidators: true }
+        ).lean();
+
+        if (!updatedProd) {
+            return res.status(404).json({ message: 'Product not found' });
         }
 
-        // Also update initialData in memory fallback if present
         if (initialData && initialData.products) {
             const p = initialData.products.find(x => Number(x.id) === productId);
             if (p) p.price = numPrice;
         }
 
-        res.json({ message: 'Price updated successfully in MongoDB', productId, price: numPrice, product: updated || { id: productId, price: numPrice } });
+        return res.json({ message: 'Price updated successfully in MongoDB', productId, price: numPrice, product: updatedProd });
     } catch (error) {
         console.error('Error updating product price in MongoDB:', error);
-        res.status(500).json({ message: 'Server error updating price' });
+        return res.status(500).json({ message: error.message || 'Failed to update price in MongoDB' });
     }
 });
 
 // DELETE product (Store Owner only - Native MongoDB)
 router.delete('/:id', auth, isOwner, async (req, res) => {
     try {
+        if (!getIsConnected()) {
+            return res.status(503).json({ message: 'MongoDB is not connected' });
+        }
+
         const productId = Number(req.params.id);
         const result = await Product.deleteOne({ id: productId });
 
@@ -374,16 +374,25 @@ router.delete('/:id', auth, isOwner, async (req, res) => {
             return res.status(404).json({ message: 'Product not found' });
         }
 
-        res.json({ message: 'Product deleted by Owner from MongoDB' });
+        if (initialData && initialData.products) {
+            const idx = initialData.products.findIndex(p => Number(p.id) === productId);
+            if (idx !== -1) initialData.products.splice(idx, 1);
+        }
+
+        return res.json({ message: 'Product deleted by Owner from MongoDB' });
     } catch (error) {
         console.error('Error deleting product from MongoDB:', error);
-        res.status(500).json({ message: 'Server error deleting product' });
+        return res.status(500).json({ message: error.message || 'Failed to delete product from MongoDB' });
     }
 });
 
 // PATCH update product stock (Store Owner only - Native MongoDB)
 router.patch('/:id/stock', auth, isOwner, async (req, res) => {
     try {
+        if (!getIsConnected()) {
+            return res.status(503).json({ message: 'MongoDB is not connected' });
+        }
+
         const productId = Number(req.params.id);
         const { stock } = req.body;
         const numStock = parseInt(stock);
@@ -391,15 +400,14 @@ router.patch('/:id/stock', auth, isOwner, async (req, res) => {
             return res.status(400).json({ message: 'Invalid stock quantity' });
         }
 
-        let updated = null;
-        if (getIsConnected()) {
-            try {
-                updated = await Product.findOneAndUpdate(
-                    { id: productId },
-                    { $set: { stock: numStock } },
-                    { new: true }
-                ).lean();
-            } catch (e) {}
+        const updatedProd = await Product.findOneAndUpdate(
+            { id: productId },
+            { $set: { stock: numStock } },
+            { new: true, runValidators: true }
+        ).lean();
+
+        if (!updatedProd) {
+            return res.status(404).json({ message: 'Product not found' });
         }
 
         if (initialData && initialData.products) {
@@ -407,10 +415,10 @@ router.patch('/:id/stock', auth, isOwner, async (req, res) => {
             if (p) p.stock = numStock;
         }
 
-        res.json({ message: 'Stock updated successfully in MongoDB', productId, stock: numStock, product: updated });
+        return res.json({ message: 'Stock updated successfully in MongoDB', productId, stock: numStock, product: updatedProd });
     } catch (error) {
         console.error('Error updating stock:', error);
-        res.status(500).json({ message: 'Server error updating stock' });
+        return res.status(500).json({ message: error.message || 'Failed to update stock in MongoDB' });
     }
 });
 

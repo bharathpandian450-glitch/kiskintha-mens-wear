@@ -106,7 +106,7 @@ let cachedConnection = null;
 let connectionPromise = null;
 let lastAttemptTime = 0;
 
-const connectMongoDB = async () => {
+const connectMongoDB = async (seedData = null) => {
     if (cachedConnection && mongoose.connection.readyState === 1) {
         return cachedConnection;
     }
@@ -129,24 +129,58 @@ const connectMongoDB = async () => {
         maxPoolSize: 10
     };
 
+    const runAutoSeed = async () => {
+        try {
+            const count = await Product.countDocuments();
+            if (count === 0) {
+                const data = seedData || require('./db').initialData;
+                if (data && data.products && data.products.length > 0) {
+                    console.log(`🌱 Empty MongoDB detected. Seeding ${data.products.length} initial products...`);
+                    if (data.users && data.users.length) {
+                        await User.deleteMany({}).catch(() => {});
+                        await User.insertMany(data.users).catch(() => {});
+                    }
+                    if (data.categories && data.categories.length) {
+                        await Category.deleteMany({}).catch(() => {});
+                        await Category.insertMany(data.categories).catch(() => {});
+                    }
+                    await Product.insertMany(data.products).catch(() => {});
+                    console.log(`✅ MongoDB auto-seeded successfully!`);
+                }
+            }
+        } catch (sErr) {
+            console.error("Auto-seed note:", sErr.message);
+        }
+    };
+
     connectionPromise = (async () => {
         try {
             cachedConnection = await mongoose.connect(uri, opts);
             console.log("✅ MongoDB Connected Successfully to Atlas Cluster");
+            await runAutoSeed();
             return cachedConnection;
         } catch (err) {
             if (uri.startsWith('mongodb+srv://')) {
                 try {
                     cachedConnection = await mongoose.connect(ATLAS_DIRECT_URI, opts);
                     console.log("✅ MongoDB Connected via Direct Seedlist to Atlas Cluster");
+                    await runAutoSeed();
                     return cachedConnection;
                 } catch (directErr) {
-                    cachedConnection = null;
                     console.error("❌ MongoDB Direct Connection Note:", directErr.message);
                 }
             } else {
-                cachedConnection = null;
                 console.error("❌ MongoDB Connection Note:", err.message);
+            }
+
+            try {
+                cachedConnection = await mongoose.connect("mongodb://127.0.0.1:27017/garments", opts);
+                console.log("✅ MongoDB Connected Successfully to Local MongoDB instance");
+                await runAutoSeed();
+                return cachedConnection;
+            } catch (localErr) {
+                cachedConnection = null;
+                console.error("❌ Local MongoDB Connection Note:", localErr.message);
             }
             return null;
         } finally {

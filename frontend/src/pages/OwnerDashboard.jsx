@@ -250,19 +250,32 @@ function OwnerDashboard() {
             }
 
             if (editingProduct) {
-                await API.put(`/products/${editingProduct.id}`, formData);
+                const res = await API.put(`/products/${editingProduct.id}`, formData);
+                const updatedProd = res.data.product;
+                if (updatedProd && updatedProd.id) {
+                    setProducts(prev => prev.map(p => Number(p.id) === Number(updatedProd.id) ? { ...p, ...updatedProd } : p));
+                }
                 setProdMsg('✓ Product updated successfully in MongoDB!');
+                setTimeout(() => {
+                    setShowProductModal(false);
+                    fetchData();
+                }, 1000);
             } else {
-                await API.post('/products', formData);
+                const res = await API.post('/products', formData);
+                const createdProd = res.data.product;
+                if (createdProd && createdProd.id) {
+                    setProducts(prev => [createdProd, ...prev]);
+                }
                 setProdMsg('✓ Product added to catalog & saved to MongoDB!');
+                setTimeout(() => {
+                    setShowProductModal(false);
+                    fetchData();
+                }, 1000);
             }
-
-            setTimeout(() => {
-                setShowProductModal(false);
-                fetchData();
-            }, 1200);
         } catch (err) {
-            setProdMsg(err.response?.data?.message || 'Error saving product');
+            const errMsg = err.response?.data?.message || err.message || 'Error saving product to MongoDB';
+            setProdMsg(`❌ ${errMsg}`);
+            // Modal remains open on error
         } finally {
             setProdLoading(false);
         }
@@ -276,15 +289,17 @@ function OwnerDashboard() {
         }
         setUpdatingPrice(true);
         try {
-            await API.patch(`/products/${prodId}/price`, { price: num });
-            const updatedProd = products.find(p => p.id === prodId);
-            setProducts(prev => prev.map(p => p.id === prodId ? { ...p, price: num } : p));
-            setStatusUpdateMsg(`✓ Price updated successfully for "${updatedProd?.name || 'Product'}" to ₹${num.toLocaleString('en-IN')}`);
+            const res = await API.patch(`/products/${prodId}/price`, { price: num });
+            const returnedProd = res.data.product;
+            setProducts(prev => prev.map(p => Number(p.id) === Number(prodId) ? { ...p, price: num, ...(returnedProd || {}) } : p));
+            setStatusUpdateMsg(`✓ Price updated successfully for "${returnedProd?.name || 'Product'}" to ₹${num.toLocaleString('en-IN')}`);
             setEditingPriceId(null);
             setEditingPriceVal('');
+            fetchData();
             setTimeout(() => setStatusUpdateMsg(''), 4000);
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to update price. Please try again.');
+            const errMsg = err.response?.data?.message || err.message || 'Failed to update price in MongoDB';
+            alert(`❌ ${errMsg}`);
         } finally {
             setUpdatingPrice(false);
         }
