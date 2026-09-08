@@ -1,8 +1,5 @@
 const mongoose = require('mongoose');
 
-// Disable Mongoose command buffering so queries fail-fast when disconnected instead of timing out after 10000ms
-mongoose.set('bufferCommands', false);
-
 const ATLAS_SRV_URI = "mongodb+srv://kiskinthowner:Gowtham%40123@cluster0.o5j3a.mongodb.net/garments?retryWrites=true&w=majority";
 const ATLAS_DIRECT_URI = "mongodb://kiskinthowner:Gowtham%40123@cluster0-shard-00-00.o5j3a.mongodb.net:27017,cluster0-shard-00-01.o5j3a.mongodb.net:27017,cluster0-shard-00-02.o5j3a.mongodb.net:27017/garments?ssl=true&replicaSet=atlas-13cypq-shard-0&authSource=admin&retryWrites=true&w=majority";
 
@@ -125,7 +122,7 @@ const connectMongoDB = async (seedData = null) => {
     lastAttemptTime = now;
     const uri = getMongoURI();
     const opts = {
-        serverSelectionTimeoutMS: 8000,
+        serverSelectionTimeoutMS: 5000,
         maxPoolSize: 10
     };
 
