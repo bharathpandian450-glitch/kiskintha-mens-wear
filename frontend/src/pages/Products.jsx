@@ -38,7 +38,13 @@ function Products() {
     const [searchParams, setSearchParams] = useSearchParams();
 
     const activeCategory = searchParams.get('category') || '';
-    const searchQuery = searchParams.get('search') || '';
+    const isPantsCategory = String(activeCategory).toLowerCase() === '3' || String(activeCategory).toLowerCase() === 'pants';
+
+    useEffect(() => {
+        if (isPantsCategory) {
+            setProductType('All');
+        }
+    }, [activeCategory, isPantsCategory]);
 
     // Filter and Sort states
     const [search, setSearch] = useState(searchQuery);
@@ -151,16 +157,16 @@ function Products() {
             }
         }
 
-        // 2. Pants Sub-Category Filter: Jeans, Formal, Cotton
-        if (pantsSubCategory && pantsSubCategory !== 'All') {
+        // 2. Pants Sub-Category Filter: Jeans, Formal, Cotton (Applies when Pants category is selected)
+        if (isPantsCategory && pantsSubCategory && pantsSubCategory !== 'All') {
             const targetSub = pantsSubCategory.toLowerCase();
             list = list.filter(p => p.subcategory && p.subcategory.toLowerCase().includes(targetSub));
         }
 
-        // 3. Product Type / Sleeve Filter: STRICT Full Hand vs Half Hand
-        if (productType === 'Full Hand') {
+        // 3. Product Type / Sleeve Filter: STRICT Full Hand vs Half Hand (Only for Shirts/T-Shirts, NEVER for Pants)
+        if (!isPantsCategory && productType === 'Full Hand') {
             list = list.filter(p => p.sleeve_type === 'Full Hand');
-        } else if (productType === 'Half Hand') {
+        } else if (!isPantsCategory && productType === 'Half Hand') {
             list = list.filter(p => p.sleeve_type === 'Half Hand');
         }
 
@@ -356,7 +362,7 @@ function Products() {
                 </div>
 
                 {/* 1.5 Pants Sub-Category Filter Bar */}
-                {(activeCategory === '3' || activeCategory === 'pants' || activeCategory === 'Pants') && (
+                {isPantsCategory && (
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -435,50 +441,52 @@ function Products() {
                     {/* Filter Controls Row */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-                        {/* ROW 1: Product Type (Full Hand vs Half Hand) */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', minWidth: '110px' }}>
-                                👔 {activeCategory === '2' ? 'Shirt Style:' : activeCategory === '1' ? 'T-Shirt Style:' : 'Product Type:'}
-                            </span>
-                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                {[
-                                    { 
-                                        label: activeCategory === '2' ? 'All Shirts' : activeCategory === '1' ? 'All T-Shirts' : 'All Types', 
-                                        value: 'All' 
-                                    },
-                                    { 
-                                        label: activeCategory === '2' ? '👔 Full Hand Shirts' : activeCategory === '1' ? '👔 Full Hand T-Shirts' : '👔 Full Hand', 
-                                        value: 'Full Hand' 
-                                    },
-                                    { 
-                                        label: activeCategory === '2' ? '👕 Half Hand Shirts' : activeCategory === '1' ? '👕 Half Hand T-Shirts' : '👕 Half Hand', 
-                                        value: 'Half Hand' 
-                                    }
-                                ].map(t => {
-                                    const isSelected = productType === t.value;
-                                    return (
-                                        <button
-                                            key={t.value}
-                                            onClick={() => setProductType(t.value)}
-                                            style={{
-                                                padding: '7px 16px',
-                                                borderRadius: '8px',
-                                                fontSize: '13px',
-                                                fontWeight: '800',
-                                                border: isSelected ? '2px solid #0f172a' : '1px solid #cbd5e1',
-                                                background: isSelected ? '#0f172a' : '#ffffff',
-                                                color: isSelected ? '#ffffff' : '#334155',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.15s ease',
-                                                boxShadow: isSelected ? '0 2px 8px rgba(15,23,42,0.15)' : 'none'
-                                            }}
-                                        >
-                                            {t.label}
-                                        </button>
-                                    );
-                                })}
+                        {/* ROW 1: Product Type (Full Hand vs Half Hand - Hidden for Pants) */}
+                        {!isPantsCategory && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', minWidth: '110px' }}>
+                                    👔 {activeCategory === '2' ? 'Shirt Style:' : activeCategory === '1' ? 'T-Shirt Style:' : 'Product Type:'}
+                                </span>
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                    {[
+                                        { 
+                                            label: activeCategory === '2' ? 'All Shirts' : activeCategory === '1' ? 'All T-Shirts' : 'All Types', 
+                                            value: 'All' 
+                                        },
+                                        { 
+                                            label: activeCategory === '2' ? '👔 Full Hand Shirts' : activeCategory === '1' ? '👔 Full Hand T-Shirts' : '👔 Full Hand', 
+                                            value: 'Full Hand' 
+                                        },
+                                        { 
+                                            label: activeCategory === '2' ? '👕 Half Hand Shirts' : activeCategory === '1' ? '👕 Half Hand T-Shirts' : '👕 Half Hand', 
+                                            value: 'Half Hand' 
+                                        }
+                                    ].map(t => {
+                                        const isSelected = productType === t.value;
+                                        return (
+                                            <button
+                                                key={t.value}
+                                                onClick={() => setProductType(t.value)}
+                                                style={{
+                                                    padding: '7px 16px',
+                                                    borderRadius: '8px',
+                                                    fontSize: '13px',
+                                                    fontWeight: '800',
+                                                    border: isSelected ? '2px solid #0f172a' : '1px solid #cbd5e1',
+                                                    background: isSelected ? '#0f172a' : '#ffffff',
+                                                    color: isSelected ? '#ffffff' : '#334155',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.15s ease',
+                                                    boxShadow: isSelected ? '0 2px 8px rgba(15,23,42,0.15)' : 'none'
+                                                }}
+                                            >
+                                                {t.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* ROW 2: Size, Price Range & Sort Options */}
                         <div style={{
