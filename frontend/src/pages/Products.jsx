@@ -38,6 +38,7 @@ function Products() {
     const [searchParams, setSearchParams] = useSearchParams();
 
     const activeCategory = searchParams.get('category') || '';
+    const searchQuery = searchParams.get('search') || '';
     const isPantsCategory = String(activeCategory).toLowerCase() === '3' || String(activeCategory).toLowerCase() === 'pants';
 
     useEffect(() => {
