@@ -89,34 +89,25 @@ router.get('/', async (req, res) => {
         }
 
         let products = [];
-        if (getIsConnected()) {
-            try {
-                products = await Product.find(filter).sort({ created_at: -1 }).lean();
-            } catch (pErr) {}
+        if (!getIsConnected()) {
+            return res.status(503).json({ message: 'MongoDB is not connected' });
         }
-        
-        // Fallback guarantee: if MongoDB is disconnected or yields empty results, serve initialData products
-        if ((!products || products.length === 0) && initialData && initialData.products && initialData.products.length > 0) {
-            let filteredInitial = initialData.products;
-            if (filter.category_id) filteredInitial = filteredInitial.filter(p => Number(p.category_id) === Number(filter.category_id));
-            if (filter.sleeve_type) filteredInitial = filteredInitial.filter(p => p.sleeve_type === filter.sleeve_type);
-            if (filter.color) filteredInitial = filteredInitial.filter(p => filter.color.test(p.color));
-            products = filteredInitial;
+
+        try {
+            products = await Product.find(filter).sort({ created_at: -1 }).lean();
+        } catch (pErr) {
+            console.error('Error querying MongoDB products:', pErr.message);
+            return res.status(500).json({ message: 'Error fetching products from MongoDB: ' + pErr.message });
         }
         
         // Fetch categories map for category_name normalization
         const catMap = new Map();
-        if (getIsConnected()) {
-            try {
-                const categories = await Category.find({}).lean();
-                if (categories && categories.length > 0) {
-                    categories.forEach(c => catMap.set(Number(c.id), c.name));
-                }
-            } catch (e) {}
-        }
-        if (catMap.size === 0 && initialData && initialData.categories) {
-            initialData.categories.forEach(c => catMap.set(Number(c.id), c.name));
-        }
+        try {
+            const categories = await Category.find({}).lean();
+            if (categories && categories.length > 0) {
+                categories.forEach(c => catMap.set(Number(c.id), c.name));
+            }
+        } catch (e) {}
 
         const formattedProducts = (products || []).map(p => ({
             ...p,
@@ -126,10 +117,6 @@ router.get('/', async (req, res) => {
         res.json(formattedProducts);
     } catch (error) {
         console.error('Error fetching products from MongoDB:', error);
-        // Resilient fallback on error: return initialData products instead of 500
-        if (initialData && initialData.products && initialData.products.length > 0) {
-            return res.json(initialData.products);
-        }
         res.status(500).json({ message: 'Server error fetching products' });
     }
 });
@@ -137,34 +124,27 @@ router.get('/', async (req, res) => {
 // GET single product by ID (Native MongoDB)
 router.get('/:id', async (req, res) => {
     try {
-        let prod = null;
-        if (getIsConnected()) {
-            try { prod = await Product.findOne({ id: Number(req.params.id) }).lean(); } catch (e) {}
+        if (!getIsConnected()) {
+            return res.status(503).json({ message: 'MongoDB is not connected' });
         }
-        if (!prod && initialData && initialData.products) {
-            prod = initialData.products.find(p => Number(p.id) === Number(req.params.id));
-        }
+
+        const productId = Number(req.params.id);
+        const prod = await Product.findOne({ id: productId }).lean();
 
         if (!prod) {
             return res.status(404).json({ message: 'Product not found' });
         }
 
         if (!prod.category_name && prod.category_id) {
-            if (getIsConnected()) {
-                try {
-                    const cat = await Category.findOne({ id: Number(prod.category_id) }).lean();
-                    if (cat) prod.category_name = cat.name;
-                } catch (e) {}
-            }
+            try {
+                const cat = await Category.findOne({ id: Number(prod.category_id) }).lean();
+                if (cat) prod.category_name = cat.name;
+            } catch (e) {}
         }
 
         res.json(prod);
     } catch (error) {
         console.error('Error fetching product from MongoDB:', error);
-        if (initialData && initialData.products) {
-            const fallbackProd = initialData.products.find(p => Number(p.id) === Number(req.params.id));
-            if (fallbackProd) return res.json(fallbackProd);
-        }
         res.status(500).json({ message: 'Server error fetching product' });
     }
 });
@@ -182,22 +162,20 @@ const handleUpload = (req, res, next) => {
 // POST create product (Store Owner only - Native MongoDB)
 router.post('/', auth, isOwner, handleUpload, async (req, res) => {
     try {
+        if (!getIsConnected()) {
+            return res.status(503).json({ message: 'MongoDB is not connected' });
+        }
+
         const { name, description, price, category_id, size, stock, color, sleeve_type, subcategory } = req.body || {};
         const image = req.file ? req.file.filename : '';
 
         let maxMongoId = 0;
-        if (getIsConnected()) {
-            try {
-                const maxProd = await Product.findOne({}).sort({ id: -1 }).lean();
-                if (maxProd && maxProd.id) maxMongoId = Number(maxProd.id);
-            } catch (e) {}
-        }
-        
-        let maxDiskId = 0;
-        if (initialData && initialData.products) {
-            maxDiskId = initialData.products.reduce((max, p) => Math.max(max, Number(p.id || 0)), 0);
-        }
-        const newId = Math.max(maxMongoId, maxDiskId, 0) + 1;
+        try {
+            const maxProd = await Product.findOne({}).sort({ id: -1 }).lean();
+            if (maxProd && maxProd.id) maxMongoId = Number(maxProd.id);
+        } catch (e) {}
+
+        const newId = maxMongoId + 1;
 
         // Resolve Category Name
         const numCatId = parseInt(category_id) || 1;
@@ -209,12 +187,12 @@ router.post('/', auth, isOwner, handleUpload, async (req, res) => {
         else if (numCatId === 7) catName = 'Hoodies';
         else if (numCatId === 8) catName = 'Group Shirts';
 
-        if (getIsConnected()) {
-            try {
-                const cat = await Category.findOne({ id: numCatId }).lean();
-                if (cat) catName = cat.name;
-            } catch (e) {}
-        }
+        try {
+            const cat = await Category.findOne({ id: numCatId }).lean();
+            if (cat) catName = cat.name;
+        } catch (e) {}
+
+        const isPants = numCatId === 3 || catName.toLowerCase().includes('pant');
 
         const newProductObj = {
             id: newId,
@@ -225,29 +203,24 @@ router.post('/', auth, isOwner, handleUpload, async (req, res) => {
             category_id: numCatId,
             category_name: catName,
             subcategory: subcategory || '',
-            sleeve_type: sleeve_type || 'Full Hand',
+            sleeve_type: isPants ? '' : (sleeve_type || 'Full Hand'),
             size: size || 'S,M,L,XL',
-            color: color || 'Blue',
+            color: color ? color.trim() : 'Blue',
             stock: parseInt(stock) || 50,
             created_at: new Date()
         };
 
-        if (getIsConnected()) {
-            try {
-                await Product.create(newProductObj);
-            } catch (mErr) {
-                console.error('MongoDB product create note:', mErr.message);
-            }
-        }
+        const createdProd = await Product.create(newProductObj);
 
+        // Keep initialData array in sync
         if (initialData && initialData.products) {
-            initialData.products.unshift(newProductObj);
+            initialData.products.unshift(createdProd.toObject());
         }
 
-        res.status(201).json({ message: 'Product created successfully by Owner', id: newId, product: newProductObj });
+        res.status(201).json({ message: 'Product created successfully by Owner', id: newId, product: createdProd });
     } catch (error) {
         console.error('Error creating product:', error);
-        res.status(500).json({ message: 'Server error creating product' });
+        res.status(500).json({ message: error.message || 'Server error creating product' });
     }
 });
 
@@ -262,9 +235,6 @@ router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
         const { name, description, price, category_id, size, stock, color, sleeve_type, subcategory } = req.body || {};
 
         let existing = await Product.findOne({ id: productId }).lean();
-        if (!existing && initialData && initialData.products) {
-            existing = initialData.products.find(p => Number(p.id) === productId);
-        }
 
         const image = req.file ? req.file.filename : (existing ? existing.image : '');
 
@@ -282,6 +252,8 @@ router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
             if (cat) catName = cat.name;
         } catch (e) {}
 
+        const isPants = numCatId === 3 || catName.toLowerCase().includes('pant');
+
         const updateData = {
             id: productId,
             name: name ? name.trim() : (existing ? existing.name : 'Garment Product'),
@@ -290,9 +262,9 @@ router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
             category_id: numCatId,
             category_name: catName,
             size: size || (existing ? existing.size : 'S,M,L,XL'),
-            color: color || (existing ? existing.color : 'Assorted'),
+            color: color ? color.trim() : (existing ? existing.color : 'Assorted'),
             stock: stock !== undefined ? parseInt(stock) : (existing ? existing.stock : 50),
-            sleeve_type: sleeve_type !== undefined ? sleeve_type : (existing ? existing.sleeve_type : ''),
+            sleeve_type: isPants ? '' : (sleeve_type !== undefined ? sleeve_type : (existing ? existing.sleeve_type : '')),
             subcategory: subcategory !== undefined ? subcategory : (existing ? existing.subcategory : '')
         };
         if (image) updateData.image = image;
@@ -317,7 +289,7 @@ router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
             }
         }
 
-        return res.json({ message: 'Product updated successfully', product: updatedProd });
+        return res.json({ message: 'Product updated successfully in MongoDB', product: updatedProd });
     } catch (error) {
         console.error('Error updating product in MongoDB:', error);
         return res.status(500).json({ message: error.message || 'Failed to update product in MongoDB' });

@@ -1343,19 +1343,20 @@ function OwnerDashboard() {
                                     </div>
                                 )}
 
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                                    <div className="form-group">
-                                        <label style={{ fontWeight: '600', fontSize: '13px' }}>Sleeve / Hand Type</label>
-                                        <select
-                                            className="form-control"
-                                            value={prodForm.sleeve_type || 'Full Hand'}
-                                            onChange={(e) => setProdForm({ ...prodForm, sleeve_type: e.target.value })}
-                                        >
-                                            <option value="Full Hand">Full Hand</option>
-                                            <option value="Half Hand">Half Hand</option>
-                                            <option value="N/A">N/A (Pants/Trousers)</option>
-                                        </select>
-                                    </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: String(prodForm.category_id) === '3' ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                                    {String(prodForm.category_id) !== '3' && (
+                                        <div className="form-group">
+                                            <label style={{ fontWeight: '600', fontSize: '13px' }}>Sleeve / Hand Type</label>
+                                            <select
+                                                className="form-control"
+                                                value={prodForm.sleeve_type || 'Full Hand'}
+                                                onChange={(e) => setProdForm({ ...prodForm, sleeve_type: e.target.value })}
+                                            >
+                                                <option value="Full Hand">Full Hand</option>
+                                                <option value="Half Hand">Half Hand</option>
+                                            </select>
+                                        </div>
+                                    )}
                                     <div className="form-group">
                                         <label style={{ fontWeight: '600', fontSize: '13px' }}>Color</label>
                                         <select

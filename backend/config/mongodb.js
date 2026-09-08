@@ -125,9 +125,11 @@ const connectMongoDB = async (seedData = null) => {
     lastAttemptTime = now;
     const uri = getMongoURI();
     const opts = {
-        serverSelectionTimeoutMS: 2000,
+        serverSelectionTimeoutMS: 8000,
         maxPoolSize: 10
     };
+
+    const maskURI = (str) => str ? str.replace(/\/\/[^:]+:[^@]+@/, '//***:***@') : '';
 
     const runAutoSeed = async () => {
         try {
@@ -155,6 +157,7 @@ const connectMongoDB = async (seedData = null) => {
 
     connectionPromise = (async () => {
         try {
+            console.log(` Attempting MongoDB Connection to: ${maskURI(uri)}`);
             cachedConnection = await mongoose.connect(uri, opts);
             console.log("✅ MongoDB Connected Successfully to Atlas Cluster");
             await runAutoSeed();
@@ -162,6 +165,7 @@ const connectMongoDB = async (seedData = null) => {
         } catch (err) {
             if (uri.startsWith('mongodb+srv://')) {
                 try {
+                    console.log(` Direct Atlas connection fallback attempt...`);
                     cachedConnection = await mongoose.connect(ATLAS_DIRECT_URI, opts);
                     console.log("✅ MongoDB Connected via Direct Seedlist to Atlas Cluster");
                     await runAutoSeed();
