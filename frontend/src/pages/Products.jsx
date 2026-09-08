@@ -378,7 +378,7 @@ function Products() {
                         <span style={{ fontSize: '14px', fontWeight: '800', color: '#1e40af', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span>👖</span> Pants Sub-Categories:
                         </span>
-                        {['All', 'Jeans', 'Formal', 'Cotton'].map(sub => (
+                        {['All', 'Formal', 'Cotton', 'Baggy'].map(sub => (
                             <button
                                 key={sub}
                                 onClick={() => setPantsSubCategory(sub)}

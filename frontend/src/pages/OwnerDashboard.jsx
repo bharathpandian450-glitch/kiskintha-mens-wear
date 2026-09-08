@@ -200,7 +200,7 @@ function OwnerDashboard() {
             description: '',
             price: '',
             category_id: categories[0]?.id || '2',
-            subcategory: 'Jeans',
+            subcategory: 'Formal',
             sleeve_type: 'Full Hand',
             color: 'Blue',
             size: 'S,M,L,XL',
@@ -1317,13 +1317,13 @@ function OwnerDashboard() {
                                         <label style={{ fontWeight: '800', fontSize: '13px', color: '#1e40af' }}>👖 Pants Sub-Category *</label>
                                         <select
                                             className="form-control"
-                                            value={prodForm.subcategory || 'Jeans'}
+                                            value={prodForm.subcategory || 'Formal'}
                                             onChange={(e) => setProdForm({ ...prodForm, subcategory: e.target.value })}
                                             style={{ fontWeight: '700' }}
                                         >
-                                            <option value="Jeans">👖 Jeans Pants</option>
                                             <option value="Formal">👔 Formal Pants</option>
                                             <option value="Cotton">👕 Cotton Pants</option>
+                                            <option value="Baggy">👖 Baggy Pants</option>
                                         </select>
                                     </div>
                                 )}
