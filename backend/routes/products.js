@@ -126,6 +126,7 @@ router.get('/', async (req, res) => {
         res.json(formattedProducts);
     } catch (error) {
         console.error('Error fetching products from MongoDB:', error);
+        // Resilient fallback on error: return initialData products instead of 500
         if (initialData && initialData.products && initialData.products.length > 0) {
             return res.json(initialData.products);
         }
@@ -138,11 +139,8 @@ router.get('/:id', async (req, res) => {
     try {
         let prod = null;
         if (getIsConnected()) {
-            try {
-                prod = await Product.findOne({ id: Number(req.params.id) }).lean();
-            } catch (e) {}
+            try { prod = await Product.findOne({ id: Number(req.params.id) }).lean(); } catch (e) {}
         }
-
         if (!prod && initialData && initialData.products) {
             prod = initialData.products.find(p => Number(p.id) === Number(req.params.id));
         }
@@ -184,20 +182,22 @@ const handleUpload = (req, res, next) => {
 // POST create product (Store Owner only - Native MongoDB)
 router.post('/', auth, isOwner, handleUpload, async (req, res) => {
     try {
-        if (!getIsConnected()) {
-            return res.status(503).json({ message: 'MongoDB is not connected' });
-        }
-
         const { name, description, price, category_id, size, stock, color, sleeve_type, subcategory } = req.body || {};
         const image = req.file ? req.file.filename : '';
 
         let maxMongoId = 0;
-        try {
-            const maxProd = await Product.findOne({}).sort({ id: -1 }).lean();
-            if (maxProd && maxProd.id) maxMongoId = Number(maxProd.id);
-        } catch (e) {}
-
-        const newId = maxMongoId + 1;
+        if (getIsConnected()) {
+            try {
+                const maxProd = await Product.findOne({}).sort({ id: -1 }).lean();
+                if (maxProd && maxProd.id) maxMongoId = Number(maxProd.id);
+            } catch (e) {}
+        }
+        
+        let maxDiskId = 0;
+        if (initialData && initialData.products) {
+            maxDiskId = initialData.products.reduce((max, p) => Math.max(max, Number(p.id || 0)), 0);
+        }
+        const newId = Math.max(maxMongoId, maxDiskId, 0) + 1;
 
         // Resolve Category Name
         const numCatId = parseInt(category_id) || 1;
@@ -209,12 +209,12 @@ router.post('/', auth, isOwner, handleUpload, async (req, res) => {
         else if (numCatId === 7) catName = 'Hoodies';
         else if (numCatId === 8) catName = 'Group Shirts';
 
-        try {
-            const cat = await Category.findOne({ id: numCatId }).lean();
-            if (cat) catName = cat.name;
-        } catch (e) {}
-
-        const isPants = numCatId === 3 || catName.toLowerCase().includes('pant');
+        if (getIsConnected()) {
+            try {
+                const cat = await Category.findOne({ id: numCatId }).lean();
+                if (cat) catName = cat.name;
+            } catch (e) {}
+        }
 
         const newProductObj = {
             id: newId,
@@ -225,35 +225,35 @@ router.post('/', auth, isOwner, handleUpload, async (req, res) => {
             category_id: numCatId,
             category_name: catName,
             subcategory: subcategory || '',
-            sleeve_type: isPants ? '' : (sleeve_type || 'Full Hand'),
+            sleeve_type: sleeve_type || 'Full Hand',
             size: size || 'S,M,L,XL',
-            color: color ? color.trim() : 'Blue',
+            color: color || 'Blue',
             stock: parseInt(stock) || 50,
             created_at: new Date()
         };
 
-        const createdProd = await Product.create(newProductObj);
-
-        // Keep initialData array in sync
-        if (initialData && initialData.products) {
-            initialData.products.unshift(createdProd.toObject());
+        if (getIsConnected()) {
+            try {
+                await Product.create(newProductObj);
+            } catch (mErr) {
+                console.error('MongoDB product create note:', mErr.message);
+            }
         }
 
-        res.status(201).json({ message: 'Product created successfully by Owner', id: newId, product: createdProd });
+        if (initialData && initialData.products) {
+            initialData.products.unshift(newProductObj);
+        }
+
+        res.status(201).json({ message: 'Product created successfully by Owner', id: newId, product: newProductObj });
     } catch (error) {
         console.error('Error creating product:', error);
-        res.status(500).json({ message: error.message || 'Server error creating product' });
+        res.status(500).json({ message: 'Server error creating product' });
     }
 });
 
 // PUT update product (Store Owner only - Native MongoDB)
-// PUT update product (Store Owner only - Native MongoDB)
 router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
     try {
-        if (!getIsConnected()) {
-            await connectMongoDB(initialData).catch(() => {});
-        }
-
         const productId = Number(req.params.id);
         const { name, description, price, category_id, size, stock, color, sleeve_type, subcategory } = req.body || {};
 
@@ -278,12 +278,12 @@ router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
         else if (numCatId === 7) catName = 'Hoodies';
         else if (numCatId === 8) catName = 'Group Shirts';
 
-        try {
-            const cat = await Category.findOne({ id: numCatId }).lean();
-            if (cat) catName = cat.name;
-        } catch (e) {}
-
-        const isPants = numCatId === 3 || catName.toLowerCase().includes('pant');
+        if (getIsConnected()) {
+            try {
+                const cat = await Category.findOne({ id: numCatId }).lean();
+                if (cat) catName = cat.name;
+            } catch (e) {}
+        }
 
         const updateData = {
             id: productId,
@@ -293,9 +293,9 @@ router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
             category_id: numCatId,
             category_name: catName,
             size: size || (existing ? existing.size : 'S,M,L,XL'),
-            color: color ? color.trim() : (existing ? existing.color : 'Assorted'),
+            color: color || (existing ? existing.color : 'Assorted'),
             stock: stock !== undefined ? parseInt(stock) : (existing ? existing.stock : 50),
-            sleeve_type: isPants ? '' : (sleeve_type !== undefined ? sleeve_type : (existing ? existing.sleeve_type : '')),
+            sleeve_type: sleeve_type !== undefined ? sleeve_type : (existing ? existing.sleeve_type : ''),
             subcategory: subcategory !== undefined ? subcategory : (existing ? existing.subcategory : '')
         };
         if (image) updateData.image = image;
@@ -313,30 +313,26 @@ router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
             }
         }
 
-        // Keep initialData array in sync
+        // Also update initialData array in memory
         if (initialData && initialData.products) {
             const idx = initialData.products.findIndex(p => Number(p.id) === productId);
             if (idx !== -1) {
-                initialData.products[idx] = { ...initialData.products[idx], ...(updatedProd || updateData) };
+                initialData.products[idx] = { ...initialData.products[idx], ...updateData };
             } else {
-                initialData.products.unshift(updatedProd || updateData);
+                initialData.products.push(updateData);
             }
         }
 
-        return res.json({ message: 'Product updated successfully by Owner', product: updatedProd || updateData });
+        res.json({ message: 'Product updated successfully by Owner', product: updatedProd || updateData });
     } catch (error) {
         console.error('Error updating product in MongoDB:', error);
-        return res.status(500).json({ message: 'Server error updating product' });
+        res.status(500).json({ message: 'Server error updating product' });
     }
 });
 
 // PATCH update product price (Store Owner only - Native MongoDB)
 router.patch('/:id/price', auth, isOwner, async (req, res) => {
     try {
-        if (!getIsConnected()) {
-            await connectMongoDB(initialData).catch(() => {});
-        }
-
         const productId = Number(req.params.id);
         const { price } = req.body;
         const numPrice = parseFloat(price);
@@ -355,51 +351,39 @@ router.patch('/:id/price', auth, isOwner, async (req, res) => {
             } catch (e) {}
         }
 
+        // Also update initialData in memory fallback if present
         if (initialData && initialData.products) {
             const p = initialData.products.find(x => Number(x.id) === productId);
             if (p) p.price = numPrice;
         }
 
-        return res.json({ message: 'Price updated successfully in MongoDB', productId, price: numPrice, product: updated || { id: productId, price: numPrice } });
+        res.json({ message: 'Price updated successfully in MongoDB', productId, price: numPrice, product: updated || { id: productId, price: numPrice } });
     } catch (error) {
         console.error('Error updating product price in MongoDB:', error);
-        return res.status(500).json({ message: 'Server error updating price' });
+        res.status(500).json({ message: 'Server error updating price' });
     }
 });
 
 // DELETE product (Store Owner only - Native MongoDB)
 router.delete('/:id', auth, isOwner, async (req, res) => {
     try {
-        if (!getIsConnected()) {
-            await connectMongoDB(initialData).catch(() => {});
-        }
-
         const productId = Number(req.params.id);
-        if (getIsConnected()) {
-            try {
-                await Product.deleteOne({ id: productId });
-            } catch (e) {}
+        const result = await Product.deleteOne({ id: productId });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: 'Product not found' });
         }
 
-        if (initialData && initialData.products) {
-            const idx = initialData.products.findIndex(p => Number(p.id) === productId);
-            if (idx !== -1) initialData.products.splice(idx, 1);
-        }
-
-        return res.json({ message: 'Product deleted by Owner from MongoDB' });
+        res.json({ message: 'Product deleted by Owner from MongoDB' });
     } catch (error) {
         console.error('Error deleting product from MongoDB:', error);
-        return res.status(500).json({ message: 'Server error deleting product' });
+        res.status(500).json({ message: 'Server error deleting product' });
     }
 });
 
 // PATCH update product stock (Store Owner only - Native MongoDB)
 router.patch('/:id/stock', auth, isOwner, async (req, res) => {
     try {
-        if (!getIsConnected()) {
-            await connectMongoDB(initialData).catch(() => {});
-        }
-
         const productId = Number(req.params.id);
         const { stock } = req.body;
         const numStock = parseInt(stock);
@@ -423,10 +407,10 @@ router.patch('/:id/stock', auth, isOwner, async (req, res) => {
             if (p) p.stock = numStock;
         }
 
-        return res.json({ message: 'Stock updated successfully in MongoDB', productId, stock: numStock, product: updated || { id: productId, stock: numStock } });
+        res.json({ message: 'Stock updated successfully in MongoDB', productId, stock: numStock, product: updated });
     } catch (error) {
         console.error('Error updating stock:', error);
-        return res.status(500).json({ message: 'Server error updating stock' });
+        res.status(500).json({ message: 'Server error updating stock' });
     }
 });
 

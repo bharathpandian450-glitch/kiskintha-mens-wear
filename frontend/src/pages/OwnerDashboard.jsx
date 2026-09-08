@@ -250,32 +250,19 @@ function OwnerDashboard() {
             }
 
             if (editingProduct) {
-                const res = await API.put(`/products/${editingProduct.id}`, formData);
-                const updatedProd = res.data.product;
-                if (updatedProd && updatedProd.id) {
-                    setProducts(prev => prev.map(p => Number(p.id) === Number(updatedProd.id) ? { ...p, ...updatedProd } : p));
-                }
+                await API.put(`/products/${editingProduct.id}`, formData);
                 setProdMsg('✓ Product updated successfully in MongoDB!');
-                setTimeout(() => {
-                    setShowProductModal(false);
-                    fetchData();
-                }, 1000);
             } else {
-                const res = await API.post('/products', formData);
-                const createdProd = res.data.product;
-                if (createdProd && createdProd.id) {
-                    setProducts(prev => [createdProd, ...prev]);
-                }
+                await API.post('/products', formData);
                 setProdMsg('✓ Product added to catalog & saved to MongoDB!');
-                setTimeout(() => {
-                    setShowProductModal(false);
-                    fetchData();
-                }, 1000);
             }
+
+            setTimeout(() => {
+                setShowProductModal(false);
+                fetchData();
+            }, 1200);
         } catch (err) {
-            const errMsg = err.response?.data?.message || err.message || 'Error saving product to MongoDB';
-            setProdMsg(`❌ ${errMsg}`);
-            // Modal remains open on error
+            setProdMsg(err.response?.data?.message || 'Error saving product');
         } finally {
             setProdLoading(false);
         }
@@ -289,17 +276,15 @@ function OwnerDashboard() {
         }
         setUpdatingPrice(true);
         try {
-            const res = await API.patch(`/products/${prodId}/price`, { price: num });
-            const returnedProd = res.data.product;
-            setProducts(prev => prev.map(p => Number(p.id) === Number(prodId) ? { ...p, price: num, ...(returnedProd || {}) } : p));
-            setStatusUpdateMsg(`✓ Price updated successfully for "${returnedProd?.name || 'Product'}" to ₹${num.toLocaleString('en-IN')}`);
+            await API.patch(`/products/${prodId}/price`, { price: num });
+            const updatedProd = products.find(p => p.id === prodId);
+            setProducts(prev => prev.map(p => p.id === prodId ? { ...p, price: num } : p));
+            setStatusUpdateMsg(`✓ Price updated successfully for "${updatedProd?.name || 'Product'}" to ₹${num.toLocaleString('en-IN')}`);
             setEditingPriceId(null);
             setEditingPriceVal('');
-            fetchData();
             setTimeout(() => setStatusUpdateMsg(''), 4000);
         } catch (err) {
-            const errMsg = err.response?.data?.message || err.message || 'Failed to update price in MongoDB';
-            alert(`❌ ${errMsg}`);
+            alert(err.response?.data?.message || 'Failed to update price. Please try again.');
         } finally {
             setUpdatingPrice(false);
         }
@@ -1343,20 +1328,19 @@ function OwnerDashboard() {
                                     </div>
                                 )}
 
-                                <div style={{ display: 'grid', gridTemplateColumns: String(prodForm.category_id) === '3' ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                                    {String(prodForm.category_id) !== '3' && (
-                                        <div className="form-group">
-                                            <label style={{ fontWeight: '600', fontSize: '13px' }}>Sleeve / Hand Type</label>
-                                            <select
-                                                className="form-control"
-                                                value={prodForm.sleeve_type || 'Full Hand'}
-                                                onChange={(e) => setProdForm({ ...prodForm, sleeve_type: e.target.value })}
-                                            >
-                                                <option value="Full Hand">Full Hand</option>
-                                                <option value="Half Hand">Half Hand</option>
-                                            </select>
-                                        </div>
-                                    )}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                                    <div className="form-group">
+                                        <label style={{ fontWeight: '600', fontSize: '13px' }}>Sleeve / Hand Type</label>
+                                        <select
+                                            className="form-control"
+                                            value={prodForm.sleeve_type || 'Full Hand'}
+                                            onChange={(e) => setProdForm({ ...prodForm, sleeve_type: e.target.value })}
+                                        >
+                                            <option value="Full Hand">Full Hand</option>
+                                            <option value="Half Hand">Half Hand</option>
+                                            <option value="N/A">N/A (Pants/Trousers)</option>
+                                        </select>
+                                    </div>
                                     <div className="form-group">
                                         <label style={{ fontWeight: '600', fontSize: '13px' }}>Color</label>
                                         <select
