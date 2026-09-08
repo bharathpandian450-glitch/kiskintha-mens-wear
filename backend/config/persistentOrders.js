@@ -42,7 +42,19 @@ function savePersistentOrder(orderObj) {
     }
 }
 
+// Delete persistent order from JSON file
+function deletePersistentOrder(orderId) {
+    try {
+        const orders = loadPersistentOrders().filter(o => Number(o.id) !== Number(orderId));
+        fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), 'utf8');
+        console.log(`🗑️ Order #${orderId} deleted from persistent disk storage (orders.json)!`);
+    } catch (err) {
+        console.error('Error deleting from orders.json:', err.message);
+    }
+}
+
 module.exports = {
     loadPersistentOrders,
-    savePersistentOrder
+    savePersistentOrder,
+    deletePersistentOrder
 };

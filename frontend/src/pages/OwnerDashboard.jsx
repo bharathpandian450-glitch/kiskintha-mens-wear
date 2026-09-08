@@ -164,6 +164,19 @@ function OwnerDashboard() {
         }
     };
 
+    // Handle Delete Order
+    const handleDeleteOrder = async (orderId) => {
+        if (!window.confirm(`Are you sure you want to delete Order #${orderId}? This will remove it permanently.`)) return;
+        try {
+            await API.delete(`/orders/${orderId}`);
+            setStatusUpdateMsg(`✓ Order #${orderId} deleted successfully!`);
+            setTimeout(() => setStatusUpdateMsg(''), 3000);
+            fetchData();
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to delete order.');
+        }
+    };
+
     // View Order Items Breakdown
     const handleViewOrderDetails = async (order) => {
         setSelectedOrder(order);
@@ -722,24 +735,43 @@ function OwnerDashboard() {
                                                             </select>
                                                         </td>
 
-                                                        {/* Action / Breakdown Modal Trigger */}
+                                                        {/* Action / Breakdown Modal Trigger & Delete Order Button */}
                                                         <td style={{ padding: '14px 12px', textAlign: 'center' }}>
-                                                            <button
-                                                                onClick={() => handleViewOrderDetails(order)}
-                                                                style={{
-                                                                    background: 'linear-gradient(135deg, #111111 0%, #1e1e1e 100%)',
-                                                                    color: '#fef08a',
-                                                                    border: '1px solid #d4af37',
-                                                                    padding: '6px 12px',
-                                                                    borderRadius: '6px',
-                                                                    fontWeight: '700',
-                                                                    fontSize: '11px',
-                                                                    cursor: 'pointer',
-                                                                    whiteSpace: 'nowrap'
-                                                                }}
-                                                            >
-                                                                👁️ Breakdown
-                                                            </button>
+                                                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                                                <button
+                                                                    onClick={() => handleViewOrderDetails(order)}
+                                                                    style={{
+                                                                        background: 'linear-gradient(135deg, #111111 0%, #1e1e1e 100%)',
+                                                                        color: '#fef08a',
+                                                                        border: '1px solid #d4af37',
+                                                                        padding: '6px 12px',
+                                                                        borderRadius: '6px',
+                                                                        fontWeight: '700',
+                                                                        fontSize: '11px',
+                                                                        cursor: 'pointer',
+                                                                        whiteSpace: 'nowrap'
+                                                                    }}
+                                                                >
+                                                                    👁️ Breakdown
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteOrder(order.id)}
+                                                                    style={{
+                                                                        background: '#fee2e2',
+                                                                        color: '#b91c1c',
+                                                                        border: '1px solid #fca5a5',
+                                                                        padding: '6px 10px',
+                                                                        borderRadius: '6px',
+                                                                        fontWeight: '700',
+                                                                        fontSize: '11px',
+                                                                        cursor: 'pointer',
+                                                                        whiteSpace: 'nowrap'
+                                                                    }}
+                                                                    title="Delete Order"
+                                                                >
+                                                                    🗑️ Delete
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 );

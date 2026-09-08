@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Order, Product, User, connectMongoDB, getIsConnected } = require('../config/mongodb');
-const { savePersistentOrder, loadPersistentOrders } = require('../config/persistentOrders');
+const { savePersistentOrder, loadPersistentOrders, deletePersistentOrder } = require('../config/persistentOrders');
 const { auth, isAdmin } = require('../middleware/auth');
 const { initialData } = require('../config/db');
 
@@ -382,5 +382,25 @@ const handleStatusUpdate = async (req, res) => {
 
 router.put('/:id', auth, isAdmin, handleStatusUpdate);
 router.patch('/:id/status', auth, isAdmin, handleStatusUpdate);
+
+// DELETE order (Admin & Owner Only - Native MongoDB & Disk Backup)
+router.delete('/:id', auth, isAdmin, async (req, res) => {
+    try {
+        const orderId = Number(req.params.id);
+
+        if (getIsConnected()) {
+            try {
+                await Order.deleteOne({ id: orderId });
+            } catch (e) {}
+        }
+
+        deletePersistentOrder(orderId);
+
+        res.json({ message: `Order #${orderId} deleted successfully!`, orderId });
+    } catch (error) {
+        console.error('Error deleting order:', error);
+        res.status(500).json({ message: 'Server error deleting order' });
+    }
+});
 
 module.exports = router;
