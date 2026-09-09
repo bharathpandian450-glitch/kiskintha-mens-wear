@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "name": "Kiskintha Premium Pants Test",
+    "description": "Kiskintha 473wx593h 700593828 Grey Model from Kiskintha Mens Wear Pants collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
+    "price": 949,
+    "category_id": 3,
+    "category_name": "Pants",
+    "size": "30,32,34,36,38",
+    "color": "Red",
+    "stock": 75,
+    "sleeve_type": "",
+    "subcategory": "Jeans",
+    "image": "-473Wx593H-700593828-grey-MODEL.avif"
+  }
+]

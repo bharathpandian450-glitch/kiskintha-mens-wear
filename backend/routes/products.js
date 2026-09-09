@@ -5,6 +5,7 @@ const path = require('path');
 const { Product, Category, connectMongoDB, getIsConnected } = require('../config/mongodb');
 const { auth, isOwner } = require('../middleware/auth');
 const { initialData } = require('../config/db');
+const { savePersistentProduct, loadPersistentProducts, deletePersistentProduct } = require('../config/persistentProducts');
 
 // Ensure MongoDB is connected and seeded before route handlers execute
 router.use(async (req, res, next) => {
@@ -88,22 +89,83 @@ router.get('/', async (req, res) => {
             ];
         }
 
-        let products = [];
+        if (!getIsConnected()) {
+            await connectMongoDB().catch(() => {});
+        }
+
+        let mongoProducts = [];
         if (getIsConnected()) {
             try {
-                products = await Product.find(filter).sort({ created_at: -1 }).lean();
+                mongoProducts = await Product.find({}).sort({ created_at: -1 }).lean();
             } catch (pErr) {}
         }
         
-        // Fallback guarantee: if MongoDB is disconnected or yields empty results, serve initialData products
-        if ((!products || products.length === 0) && initialData && initialData.products && initialData.products.length > 0) {
-            let filteredInitial = initialData.products;
-            if (filter.category_id) filteredInitial = filteredInitial.filter(p => Number(p.category_id) === Number(filter.category_id));
-            if (filter.sleeve_type) filteredInitial = filteredInitial.filter(p => p.sleeve_type === filter.sleeve_type);
-            if (filter.color) filteredInitial = filteredInitial.filter(p => filter.color.test(p.color));
-            products = filteredInitial;
+        const persistentProds = loadPersistentProducts();
+
+        // Build master products map with layered priority: initialData < persistentProds < mongoProducts
+        const productMap = new Map();
+        (initialData.products || []).forEach(p => productMap.set(Number(p.id), { ...p }));
+        persistentProds.forEach(p => productMap.set(Number(p.id), { ...productMap.get(Number(p.id)), ...p }));
+        mongoProducts.forEach(p => productMap.set(Number(p.id), { ...productMap.get(Number(p.id)), ...p }));
+
+        let products = Array.from(productMap.values());
+
+        // Apply filters in-memory if query parameters are present
+        if (req.query.category) {
+            const catParam = req.query.category;
+            if (catParam === 'shirts-full') {
+                products = products.filter(p => (Number(p.category_id) === 2 || /shirts/i.test(p.category_name)) && p.sleeve_type === 'Full Hand');
+            } else if (catParam === 'shirts-half') {
+                products = products.filter(p => (Number(p.category_id) === 2 || /shirts/i.test(p.category_name)) && p.sleeve_type === 'Half Hand');
+            } else if (catParam === 'tshirts-full') {
+                products = products.filter(p => (Number(p.category_id) === 1 || /t-shirts/i.test(p.category_name)) && p.sleeve_type === 'Full Hand');
+            } else if (catParam === 'tshirts-half') {
+                products = products.filter(p => (Number(p.category_id) === 1 || /t-shirts/i.test(p.category_name)) && p.sleeve_type === 'Half Hand');
+            } else if (!isNaN(Number(catParam))) {
+                const numCat = Number(catParam);
+                products = products.filter(p => Number(p.category_id) === numCat);
+            } else {
+                const catLower = catParam.toLowerCase();
+                if (catLower.includes('group')) {
+                    products = products.filter(p => Number(p.category_id) === 8 || /group/i.test(p.category_name));
+                } else if (catLower.includes('t-shirt') || catLower.includes('tshirt')) {
+                    products = products.filter(p => Number(p.category_id) === 1 || /t-shirt/i.test(p.category_name));
+                } else if (catLower.includes('shirt')) {
+                    products = products.filter(p => Number(p.category_id) === 2 || /shirts/i.test(p.category_name));
+                } else if (catLower.includes('pant')) {
+                    products = products.filter(p => Number(p.category_id) === 3 || /pant/i.test(p.category_name));
+                } else if (catLower.includes('trouser')) {
+                    products = products.filter(p => Number(p.category_id) === 4 || /trouser/i.test(p.category_name));
+                } else if (catLower.includes('hoodie')) {
+                    products = products.filter(p => Number(p.category_id) === 7 || /hoodie/i.test(p.category_name));
+                }
+            }
         }
-        
+
+        if (req.query.sleeve_type) {
+            products = products.filter(p => p.sleeve_type === req.query.sleeve_type);
+        }
+
+        if (req.query.subcategory && req.query.subcategory !== 'All') {
+            const sub = req.query.subcategory.trim().toLowerCase();
+            products = products.filter(p => (p.subcategory || '').toLowerCase() === sub);
+        }
+
+        if (req.query.color && req.query.color !== 'All') {
+            const col = req.query.color.trim().toLowerCase();
+            products = products.filter(p => (p.color || '').toLowerCase().includes(col));
+        }
+
+        if (req.query.search) {
+            const term = req.query.search.trim().toLowerCase();
+            products = products.filter(p => 
+                (p.name || '').toLowerCase().includes(term) ||
+                (p.description || '').toLowerCase().includes(term) ||
+                (p.color || '').toLowerCase().includes(term) ||
+                (p.subcategory || '').toLowerCase().includes(term)
+            );
+        }
+
         // Fetch categories map for category_name normalization
         const catMap = new Map();
         if (getIsConnected()) {
@@ -126,7 +188,6 @@ router.get('/', async (req, res) => {
         res.json(formattedProducts);
     } catch (error) {
         console.error('Error fetching products from MongoDB:', error);
-        // Resilient fallback on error: return initialData products instead of 500
         if (initialData && initialData.products && initialData.products.length > 0) {
             return res.json(initialData.products);
         }
@@ -232,6 +293,13 @@ router.post('/', auth, isOwner, handleUpload, async (req, res) => {
             created_at: new Date()
         };
 
+        // 1. Save to persistent disk storage (products.json backup)
+        savePersistentProduct(newProductObj);
+
+        // 2. Save in live MongoDB collection
+        if (!getIsConnected()) {
+            await connectMongoDB().catch(() => {});
+        }
         if (getIsConnected()) {
             try {
                 await Product.create(newProductObj);
@@ -251,17 +319,25 @@ router.post('/', auth, isOwner, handleUpload, async (req, res) => {
     }
 });
 
-// PUT update product (Store Owner only - Native MongoDB)
+// PUT update product (Store Owner & Admin - Native MongoDB & Persistent Storage)
 router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
     try {
         const productId = Number(req.params.id);
         const { name, description, price, category_id, size, stock, color, sleeve_type, subcategory } = req.body || {};
+
+        if (!getIsConnected()) {
+            await connectMongoDB().catch(() => {});
+        }
 
         let existing = null;
         if (getIsConnected()) {
             try {
                 existing = await Product.findOne({ id: productId }).lean();
             } catch (e) {}
+        }
+        if (!existing) {
+            const diskProds = loadPersistentProducts();
+            existing = diskProds.find(p => Number(p.id) === productId);
         }
         if (!existing && initialData && initialData.products) {
             existing = initialData.products.find(p => Number(p.id) === productId);
@@ -300,6 +376,10 @@ router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
         };
         if (image) updateData.image = image;
 
+        // 1. Save to persistent disk storage (products.json backup)
+        savePersistentProduct(updateData);
+
+        // 2. Save in live MongoDB collection
         let updatedProd = null;
         if (getIsConnected()) {
             try {
@@ -313,7 +393,7 @@ router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
             }
         }
 
-        // Also update initialData array in memory
+        // 3. Update initialData array in memory
         if (initialData && initialData.products) {
             const idx = initialData.products.findIndex(p => Number(p.id) === productId);
             if (idx !== -1) {
@@ -330,7 +410,7 @@ router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
     }
 });
 
-// PATCH update product price (Store Owner only - Native MongoDB)
+// PATCH update product price (Store Owner & Admin - Native MongoDB & Persistent Storage)
 router.patch('/:id/price', auth, isOwner, async (req, res) => {
     try {
         const productId = Number(req.params.id);
@@ -338,6 +418,10 @@ router.patch('/:id/price', auth, isOwner, async (req, res) => {
         const numPrice = parseFloat(price);
         if (isNaN(numPrice) || numPrice < 0) {
             return res.status(400).json({ message: 'Invalid price value' });
+        }
+
+        if (!getIsConnected()) {
+            await connectMongoDB().catch(() => {});
         }
 
         let updated = null;
@@ -351,7 +435,16 @@ router.patch('/:id/price', auth, isOwner, async (req, res) => {
             } catch (e) {}
         }
 
-        // Also update initialData in memory fallback if present
+        // Update persistent disk storage copy
+        const diskProds = loadPersistentProducts();
+        const diskProd = diskProds.find(p => Number(p.id) === productId) || (initialData && initialData.products ? initialData.products.find(p => Number(p.id) === productId) : null);
+        if (diskProd) {
+            savePersistentProduct({ ...diskProd, id: productId, price: numPrice });
+        } else {
+            savePersistentProduct({ id: productId, price: numPrice });
+        }
+
+        // Also update initialData in memory fallback
         if (initialData && initialData.products) {
             const p = initialData.products.find(x => Number(x.id) === productId);
             if (p) p.price = numPrice;
@@ -364,14 +457,24 @@ router.patch('/:id/price', auth, isOwner, async (req, res) => {
     }
 });
 
-// DELETE product (Store Owner only - Native MongoDB)
+// DELETE product (Store Owner & Admin - Native MongoDB & Persistent Storage)
 router.delete('/:id', auth, isOwner, async (req, res) => {
     try {
         const productId = Number(req.params.id);
-        const result = await Product.deleteOne({ id: productId });
 
-        if (result.deletedCount === 0) {
-            return res.status(404).json({ message: 'Product not found' });
+        if (!getIsConnected()) {
+            await connectMongoDB().catch(() => {});
+        }
+
+        deletePersistentProduct(productId);
+
+        if (getIsConnected()) {
+            await Product.deleteOne({ id: productId });
+        }
+
+        if (initialData && initialData.products) {
+            const idx = initialData.products.findIndex(p => Number(p.id) === productId);
+            if (idx !== -1) initialData.products.splice(idx, 1);
         }
 
         res.json({ message: 'Product deleted by Owner from MongoDB' });
@@ -381,7 +484,7 @@ router.delete('/:id', auth, isOwner, async (req, res) => {
     }
 });
 
-// PATCH update product stock (Store Owner only - Native MongoDB)
+// PATCH update product stock (Store Owner & Admin - Native MongoDB & Persistent Storage)
 router.patch('/:id/stock', auth, isOwner, async (req, res) => {
     try {
         const productId = Number(req.params.id);
@@ -389,6 +492,10 @@ router.patch('/:id/stock', auth, isOwner, async (req, res) => {
         const numStock = parseInt(stock);
         if (isNaN(numStock) || numStock < 0) {
             return res.status(400).json({ message: 'Invalid stock quantity' });
+        }
+
+        if (!getIsConnected()) {
+            await connectMongoDB().catch(() => {});
         }
 
         let updated = null;
@@ -400,6 +507,14 @@ router.patch('/:id/stock', auth, isOwner, async (req, res) => {
                     { new: true }
                 ).lean();
             } catch (e) {}
+        }
+
+        const diskProds = loadPersistentProducts();
+        const diskProd = diskProds.find(p => Number(p.id) === productId) || (initialData && initialData.products ? initialData.products.find(p => Number(p.id) === productId) : null);
+        if (diskProd) {
+            savePersistentProduct({ ...diskProd, id: productId, stock: numStock });
+        } else {
+            savePersistentProduct({ id: productId, stock: numStock });
         }
 
         if (initialData && initialData.products) {

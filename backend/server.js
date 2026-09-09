@@ -37,14 +37,14 @@ app.use(async (req, res, next) => {
     next();
 });
 
-// Cache-Control headers for ultra-fast CDN responses on static images and public endpoints
+// Cache-Control headers: long cache for static images, no-cache for all dynamic API endpoints
 app.use((req, res, next) => {
-    if (req.method === 'GET') {
-        if (req.path.startsWith('/uploads') || req.path.startsWith('/picture')) {
-            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-        } else if (req.path.includes('/products') || req.path.includes('/categories')) {
-            res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
-        }
+    if (req.path.startsWith('/uploads') || req.path.startsWith('/picture')) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
     }
     next();
 });
