@@ -27,13 +27,11 @@ app.use(express.json());
 
 const { connectMongoDB, initialData } = require('./config/db');
 
-// Ensure MongoDB is connected and seeded on incoming API requests in serverless environments
-app.use(async (req, res, next) => {
+// Connect to MongoDB asynchronously in background without blocking incoming HTTP requests
+app.use((req, res, next) => {
     try {
-        await connectMongoDB(initialData);
-    } catch (err) {
-        console.error('Serverless connection error:', err.message);
-    }
+        connectMongoDB(initialData).catch(() => {});
+    } catch (err) {}
     next();
 });
 

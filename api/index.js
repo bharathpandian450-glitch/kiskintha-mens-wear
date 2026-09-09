@@ -16,9 +16,12 @@ module.exports = async (req, res) => {
     }
 
     try {
-        await connectMongoDB(initialData);
+        await Promise.race([
+            connectMongoDB(initialData),
+            new Promise((resolve) => setTimeout(resolve, 1500))
+        ]);
     } catch (err) {
-        console.error('Serverless connectMongoDB error:', err.message);
+        console.error('Serverless connectMongoDB note:', err.message);
     }
 
     return app(req, res);

@@ -7,10 +7,10 @@ const { auth, isOwner } = require('../middleware/auth');
 const { initialData } = require('../config/db');
 const { savePersistentProduct, loadPersistentProducts, deletePersistentProduct } = require('../config/persistentProducts');
 
-// Ensure MongoDB is connected and seeded before route handlers execute
-router.use(async (req, res, next) => {
+// Non-blocking background MongoDB check
+router.use((req, res, next) => {
     if (!getIsConnected()) {
-        await connectMongoDB(initialData).catch(() => {});
+        connectMongoDB(initialData).catch(() => {});
     }
     next();
 });
@@ -336,14 +336,13 @@ router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
         const productId = Number(req.params.id);
         const { name, description, price, category_id, size, stock, color, sleeve_type, subcategory } = req.body || {};
 
-        if (!getIsConnected()) {
-            await connectMongoDB().catch(() => {});
-        }
-
         let existing = null;
         if (getIsConnected()) {
             try {
-                existing = await Product.findOne({ id: productId }).lean();
+                existing = await Promise.race([
+                    Product.findOne({ id: productId }).lean(),
+                    new Promise((resolve) => setTimeout(() => resolve(null), 1200))
+                ]);
             } catch (e) {}
         }
         if (!existing) {
@@ -367,7 +366,10 @@ router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
 
         if (getIsConnected()) {
             try {
-                const cat = await Category.findOne({ id: numCatId }).lean();
+                const cat = await Promise.race([
+                    Category.findOne({ id: numCatId }).lean(),
+                    new Promise((resolve) => setTimeout(() => resolve(null), 800))
+                ]);
                 if (cat) catName = cat.name;
             } catch (e) {}
         }
@@ -387,24 +389,10 @@ router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
         };
         if (image) updateData.image = image;
 
-        // 1. Save to persistent disk storage (products.json backup)
+        // 1. Save to persistent disk storage (products.json backup) immediately
         savePersistentProduct(updateData);
 
-        // 2. Save in live MongoDB collection
-        let updatedProd = null;
-        if (getIsConnected()) {
-            try {
-                updatedProd = await Product.findOneAndUpdate(
-                    { id: productId },
-                    { $set: updateData },
-                    { upsert: true, new: true }
-                ).lean();
-            } catch (mErr) {
-                console.error('MongoDB product update note:', mErr.message);
-            }
-        }
-
-        // 3. Update initialData array in memory
+        // 2. Update initialData array in memory immediately
         if (initialData && initialData.products) {
             const idx = initialData.products.findIndex(p => Number(p.id) === productId);
             if (idx !== -1) {
@@ -414,10 +402,27 @@ router.put('/:id', auth, isOwner, handleUpload, async (req, res) => {
             }
         }
 
-        res.json({ message: 'Product updated successfully by Owner', product: updatedProd || updateData });
+        // 3. Save in live MongoDB collection if connected (with safe timeout)
+        let updatedProd = null;
+        if (getIsConnected()) {
+            try {
+                updatedProd = await Promise.race([
+                    Product.findOneAndUpdate(
+                        { id: productId },
+                        { $set: updateData },
+                        { upsert: true, new: true }
+                    ).lean(),
+                    new Promise((resolve) => setTimeout(() => resolve(null), 1500))
+                ]);
+            } catch (mErr) {
+                console.error('MongoDB product update note:', mErr.message);
+            }
+        }
+
+        res.json({ message: 'Product updated successfully', product: updatedProd || updateData });
     } catch (error) {
-        console.error('Error updating product in MongoDB:', error);
-        res.status(500).json({ message: 'Server error updating product' });
+        console.error('Error updating product:', error);
+        res.status(500).json({ message: error.message || 'Server error updating product' });
     }
 });
 
@@ -431,40 +436,37 @@ router.patch('/:id/price', auth, isOwner, async (req, res) => {
             return res.status(400).json({ message: 'Invalid price value' });
         }
 
-        if (!getIsConnected()) {
-            await connectMongoDB().catch(() => {});
-        }
-
-        let updated = null;
-        if (getIsConnected()) {
-            try {
-                updated = await Product.findOneAndUpdate(
-                    { id: productId },
-                    { $set: { price: numPrice } },
-                    { new: true }
-                ).lean();
-            } catch (e) {}
-        }
-
-        // Update persistent disk storage copy
+        // 1. Update persistent disk storage copy immediately
         const diskProds = loadPersistentProducts();
         const diskProd = diskProds.find(p => Number(p.id) === productId) || (initialData && initialData.products ? initialData.products.find(p => Number(p.id) === productId) : null);
-        if (diskProd) {
-            savePersistentProduct({ ...diskProd, id: productId, price: numPrice });
-        } else {
-            savePersistentProduct({ id: productId, price: numPrice });
-        }
+        const savedData = diskProd ? { ...diskProd, id: productId, price: numPrice } : { id: productId, price: numPrice };
+        savePersistentProduct(savedData);
 
-        // Also update initialData in memory fallback
+        // 2. Also update initialData in memory fallback
         if (initialData && initialData.products) {
             const p = initialData.products.find(x => Number(x.id) === productId);
             if (p) p.price = numPrice;
         }
 
-        res.json({ message: 'Price updated successfully in MongoDB', productId, price: numPrice, product: updated || { id: productId, price: numPrice } });
+        // 3. Update in MongoDB with safe timeout if connected
+        let updated = null;
+        if (getIsConnected()) {
+            try {
+                updated = await Promise.race([
+                    Product.findOneAndUpdate(
+                        { id: productId },
+                        { $set: { price: numPrice } },
+                        { new: true }
+                    ).lean(),
+                    new Promise((resolve) => setTimeout(() => resolve(null), 1500))
+                ]);
+            } catch (e) {}
+        }
+
+        res.json({ message: 'Price updated successfully', productId, price: numPrice, product: updated || savedData });
     } catch (error) {
-        console.error('Error updating product price in MongoDB:', error);
-        res.status(500).json({ message: 'Server error updating price' });
+        console.error('Error updating product price:', error);
+        res.status(500).json({ message: error.message || 'Server error updating price' });
     }
 });
 
