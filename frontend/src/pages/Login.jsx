@@ -44,7 +44,7 @@ function Login() {
 
         try {
             const loggedUser = await login(credential.trim(), password, loginRole);
-            if (loggedUser && loggedUser.role === 'owner') {
+            if (loggedUser && (loggedUser.role === 'owner' || loggedUser.role === 'admin')) {
                 navigate('/owner');
             } else {
                 navigate('/');

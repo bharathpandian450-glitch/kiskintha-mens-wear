@@ -18,6 +18,7 @@ const getMongoURI = () => {
 const userSchema = new mongoose.Schema({
     id: { type: Number },
     name: { type: String, required: true },
+    username: { type: String, default: '' },
     email: { type: String, required: true, lowercase: true },
     phone: { type: String, default: '' },
     password: { type: String, required: true },
@@ -113,16 +114,9 @@ const connectMongoDB = async () => {
         return connectionPromise;
     }
 
-    // Throttle connection attempts to once every 5 seconds if disconnected
-    const now = Date.now();
-    if (now - lastAttemptTime < 5000 && mongoose.connection.readyState !== 1) {
-        return null;
-    }
-
-    lastAttemptTime = now;
     const uri = getMongoURI();
     const opts = {
-        serverSelectionTimeoutMS: 2000,
+        serverSelectionTimeoutMS: 4000,
         maxPoolSize: 10
     };
 

@@ -46,7 +46,7 @@ function ProtectedRoute({ children }) {
     return children;
 }
 
-// Protected Route Component for Store Owner Only (Redirects non-owners to Customer Home, unauthenticated to Login)
+// Protected Route Component for Store Owner & Admin (Redirects unauthenticated to Login, customers to Home)
 function ProtectedOwnerRoute({ children }) {
     const { user, loading } = useAuth();
     if (loading) {
@@ -59,18 +59,18 @@ function ProtectedOwnerRoute({ children }) {
     if (!user) {
         return <Navigate to="/login" replace />;
     }
-    if (user.role !== 'owner') {
+    if (user.role !== 'owner' && user.role !== 'admin') {
         return <Navigate to="/" replace />;
     }
     return children;
 }
 
-// Public Auth Route Component (Redirects to Home if already logged in)
+// Public Auth Route Component (Redirects to Dashboard if already logged in as staff, Home if customer)
 function PublicAuthRoute({ children }) {
     const { user, loading } = useAuth();
     if (loading) return null;
     if (user) {
-        return <Navigate to={user.role === 'owner' ? "/owner" : "/"} replace />;
+        return <Navigate to={(user.role === 'owner' || user.role === 'admin') ? "/owner" : "/"} replace />;
     }
     return children;
 }

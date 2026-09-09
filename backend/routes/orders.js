@@ -13,13 +13,9 @@ router.use(async (req, res, next) => {
     next();
 });
 
-// POST place order (Auth required - Only Customers can place orders - Native MongoDB)
+// POST place order (Auth required - Native MongoDB & Persistent Storage)
 router.post('/', auth, async (req, res) => {
     try {
-        if (req.user && (req.user.role === 'owner' || req.user.role === 'admin')) {
-            return res.status(403).json({ message: 'Store Owner accounts cannot place orders. Only customers can place orders.' });
-        }
-
         const { items, address, phone, name, email, city, state, pincode, payment_method } = req.body;
 
         if (!items || items.length === 0) {
@@ -172,10 +168,17 @@ router.post('/', auth, async (req, res) => {
         // 1. Save to persistent disk storage (orders.json backup)
         savePersistentOrder(fullOrderObj);
 
-        // 2. Save permanently in MongoDB Order Collection if connected
+        // 2. Save permanently in MongoDB Order Collection
+        if (!getIsConnected()) {
+            await connectMongoDB().catch(() => {});
+        }
         if (getIsConnected()) {
             try {
-                await Order.updateOne({ id: orderId }, { $set: fullOrderObj }, { upsert: true });
+                await Order.findOneAndUpdate(
+                    { id: orderId },
+                    { $set: fullOrderObj },
+                    { upsert: true, new: true }
+                );
                 console.log(`✅ Order #${orderId} saved permanently in MongoDB for ${custName}!`);
             } catch (mSaveErr) {
                 console.error('MongoDB Order Save Note:', mSaveErr.message);
@@ -267,6 +270,9 @@ router.get('/my', auth, async (req, res) => {
 // GET all customer orders (Admin & Owner Only - Native MongoDB)
 router.get('/', auth, isAdmin, async (req, res) => {
     try {
+        if (!getIsConnected()) {
+            await connectMongoDB().catch(() => {});
+        }
         let mongoOrders = [];
         if (getIsConnected()) {
             try {

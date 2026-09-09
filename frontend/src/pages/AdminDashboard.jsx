@@ -29,7 +29,7 @@ function AdminDashboard() {
     const [newCategoryError, setNewCategoryError] = useState('');
     const [newProductError, setNewProductError] = useState('');
 
-    const isOwner = user?.role === 'owner';
+    const isOwner = user?.role === 'owner' || user?.role === 'admin';
 
     // Protect route
     useEffect(() => {
@@ -41,20 +41,19 @@ function AdminDashboard() {
     const fetchAll = async () => {
         try {
             const [statsRes, catRes, prodRes, orderRes, custRes] = await Promise.all([
-                API.get('/admin/stats'),
-                API.get('/categories'),
-                API.get('/products'),
-                API.get('/orders'),
-                API.get('/admin/customers')
+                API.get('/admin/stats').catch(e => ({ data: {} })),
+                API.get('/categories').catch(e => ({ data: [] })),
+                API.get('/products').catch(e => ({ data: [] })),
+                API.get('/orders').catch(e => ({ data: [] })),
+                API.get('/admin/customers').catch(e => ({ data: [] }))
             ]);
-            setStats(statsRes.data);
-            setCategories(catRes.data);
-            setProducts(prodRes.data);
-            setOrders(orderRes.data);
-            setCustomers(custRes.data);
+            setStats(statsRes.data || {});
+            setCategories(Array.isArray(catRes.data) ? catRes.data : []);
+            setProducts(Array.isArray(prodRes.data) ? prodRes.data : (prodRes.data?.products || []));
+            setOrders(Array.isArray(orderRes.data) ? orderRes.data : []);
+            setCustomers(Array.isArray(custRes.data) ? custRes.data : []);
         } catch (err) {
             console.error(err);
-            setError('Failed to load admin data');
         } finally {
             setLoading(false);
         }

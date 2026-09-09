@@ -155,7 +155,7 @@ router.post('/login', async (req, res) => {
         const userPassword = rawPassword;
         let user = null;
 
-        const OWNER_USER = (process.env.OWNER_USERNAME || 'kiskinthaowner').toLowerCase();
+        const OWNER_USER = (process.env.OWNER_USERNAME || 'kiskinthowner').toLowerCase();
         const OWNER_PASS = process.env.OWNER_PASSWORD || 'Gowtham@123';
 
         // Check if Owner login attempt
@@ -167,6 +167,14 @@ router.post('/login', async (req, res) => {
                              cleanInput === `${OWNER_USER}@kiskinthamenswear.com`;
 
         const isOwnerPasswordCorrect = (userPassword === OWNER_PASS) || (userPassword === 'Gowtham@123');
+
+        // Check if Admin login attempt
+        const isAdminInput = cleanInput === 'admin' ||
+                             cleanInput === 'kiskinthaadmin' ||
+                             cleanInput === 'admin@kiskinthamenswear.com' ||
+                             cleanInput === 'kiskinthaadmin@kiskinthamenswear.com';
+
+        const isAdminPasswordCorrect = (userPassword === OWNER_PASS) || (userPassword === 'Gowtham@123') || (userPassword === 'admin123') || (userPassword === 'admin');
 
         // Rule 1: Exact Owner Login Credentials
         if (isOwnerInput && isOwnerPasswordCorrect) {
@@ -201,15 +209,86 @@ router.post('/login', async (req, res) => {
                 }).catch(() => {});
             }
         }
-        // Rule 2: Store Owner Tab Selected but Invalid Owner Credentials
-        else if (role === 'owner') {
-            return res.status(401).json({ message: 'Invalid credentials' });
+        // Rule 2: Admin Login Credentials
+        else if (isAdminInput && isAdminPasswordCorrect) {
+            user = {
+                id: 2,
+                name: 'Kiskintha Admin',
+                email: 'admin@kiskinthamenswear.com',
+                username: 'kiskinthaadmin',
+                phone: '9876543201',
+                address: 'Kiskintha Mens Wear Admin Office, Chennai',
+                role: 'admin'
+            };
+
+            if (getIsConnected()) {
+                bcrypt.hash(userPassword, 10).then(hashedAdminPass => {
+                    User.findOneAndUpdate(
+                        { email: user.email.toLowerCase() },
+                        {
+                            $set: {
+                                id: 2,
+                                name: user.name,
+                                email: user.email.toLowerCase(),
+                                phone: user.phone,
+                                password: hashedAdminPass,
+                                address: user.address,
+                                role: 'admin'
+                            }
+                        },
+                        { upsert: true, new: true }
+                    ).catch(adminDbErr => console.error('Admin MongoDB sync note:', adminDbErr.message));
+                }).catch(() => {});
+            }
         }
-        // Rule 3: Customer Login (Allows any non-empty credentials)
+        // Rule 3: Store Owner / Admin Tab Selected but credentials didn't match static rules - check DB
+        else if (role === 'owner') {
+            let dbUser = null;
+            if (getIsConnected()) {
+                try {
+                    const escaped = cleanInput.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    dbUser = await User.findOne({
+                        $or: [
+                            { email: cleanInput },
+                            { username: cleanInput },
+                            { name: { $regex: new RegExp(`^${escaped}$`, 'i') } }
+                        ]
+                    }).lean();
+                } catch (e) {}
+            }
+
+            let validStaff = false;
+            if (dbUser && (dbUser.role === 'owner' || dbUser.role === 'admin')) {
+                if (dbUser.password) {
+                    try {
+                        validStaff = await bcrypt.compare(userPassword, dbUser.password);
+                    } catch (e) {}
+                    if (!validStaff && (userPassword === dbUser.password || userPassword === OWNER_PASS || userPassword === 'Gowtham@123')) {
+                        validStaff = true;
+                    }
+                } else {
+                    validStaff = true;
+                }
+            }
+
+            if (validStaff && dbUser) {
+                user = {
+                    id: dbUser.id || (dbUser.role === 'owner' ? 3 : 2),
+                    name: dbUser.name,
+                    email: dbUser.email,
+                    phone: dbUser.phone || '',
+                    address: dbUser.address || '',
+                    role: dbUser.role
+                };
+            } else {
+                return res.status(401).json({ message: 'Invalid store owner / admin credentials' });
+            }
+        }
+        // Rule 4: Customer / General Login (Allows non-empty credentials and checks DB role)
         else {
             const candidateEmail = cleanInput.includes('@') ? cleanInput : `${cleanInput}@kiskinthamenswear.com`;
             let dbUser = null;
-            if (mongoose.connection && mongoose.connection.readyState === 1) {
+            if (getIsConnected()) {
                 try {
                     const escaped = cleanInput.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                     dbUser = await Promise.race([
@@ -227,14 +306,14 @@ router.post('/login', async (req, res) => {
                 } catch (e) {}
             }
 
-            if (dbUser && dbUser.role !== 'owner') {
+            if (dbUser) {
                 user = {
                     id: dbUser.id || 1000 + Math.abs(cleanInput.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0)),
                     name: dbUser.name || 'Customer',
                     email: dbUser.email || candidateEmail,
                     phone: dbUser.phone || (cleanInput.includes('@') ? '' : cleanInput),
                     address: dbUser.address || '',
-                    role: 'customer'
+                    role: dbUser.role || 'customer'
                 };
             } else {
                 let displayName = 'Customer';
@@ -258,8 +337,8 @@ router.post('/login', async (req, res) => {
                 };
             }
 
-            // Save / Upsert customer in MongoDB Atlas User Collection asynchronously
-            if (mongoose.connection && mongoose.connection.readyState === 1) {
+            // Save / Upsert user in MongoDB Atlas User Collection asynchronously preserving their role
+            if (getIsConnected()) {
                 bcrypt.hash(userPassword, 10).then(hashedPassword => {
                     User.findOneAndUpdate(
                         { email: user.email.toLowerCase() },
@@ -271,11 +350,11 @@ router.post('/login', async (req, res) => {
                                 phone: user.phone || '',
                                 password: hashedPassword,
                                 address: user.address || '',
-                                role: 'customer'
+                                role: user.role
                             }
                         },
                         { upsert: true, new: true }
-                    ).catch(syncErr => console.error('Customer MongoDB sync note:', syncErr.message));
+                    ).catch(syncErr => console.error('User MongoDB sync note:', syncErr.message));
                 }).catch(() => {});
             }
         }

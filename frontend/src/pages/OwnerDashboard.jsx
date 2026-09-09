@@ -121,7 +121,7 @@ function OwnerDashboard() {
             setError('');
         } catch (err) {
             console.error('Error loading Store Owner dashboard data:', err);
-            if (isInitial && (!user || user.role !== 'owner')) {
+            if (isInitial && (!user || (user.role !== 'owner' && user.role !== 'admin'))) {
                 setError('Failed to load Store Owner data. Please verify authorization.');
             }
         } finally {
@@ -130,7 +130,7 @@ function OwnerDashboard() {
     };
 
     useEffect(() => {
-        if (!user || user.role !== 'owner') {
+        if (!user || (user.role !== 'owner' && user.role !== 'admin')) {
             navigate('/login');
             return;
         }
