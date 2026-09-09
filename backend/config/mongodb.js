@@ -116,7 +116,7 @@ const connectMongoDB = async () => {
 
     const uri = getMongoURI();
     const opts = {
-        serverSelectionTimeoutMS: 4000,
+        serverSelectionTimeoutMS: 3000,
         maxPoolSize: 10
     };
 
@@ -126,25 +126,17 @@ const connectMongoDB = async () => {
             console.log("✅ MongoDB Connected Successfully to Atlas Cluster");
             return cachedConnection;
         } catch (err) {
-            if (uri.startsWith('mongodb+srv://')) {
-                try {
-                    cachedConnection = await mongoose.connect(ATLAS_DIRECT_URI, opts);
-                    console.log("✅ MongoDB Connected via Direct Seedlist to Atlas Cluster");
-                    return cachedConnection;
-                } catch (directErr) {
-                    cachedConnection = null;
-                    console.error("❌ MongoDB Direct Connection Note:", directErr.message);
-                }
-            } else {
-                cachedConnection = null;
-                console.error("❌ MongoDB Connection Note:", err.message);
-            }
+            console.error("❌ MongoDB Atlas Connection Error:", err.message);
 
-            try {
-                cachedConnection = await mongoose.connect("mongodb://127.0.0.1:27017/garments", opts);
-                console.log("✅ MongoDB Connected Successfully to Local MongoDB instance");
-                return cachedConnection;
-            } catch (localErr) {}
+            // In local environment only (not Vercel), fall back to local MongoDB
+            if (!process.env.VERCEL) {
+                try {
+                    cachedConnection = await mongoose.connect("mongodb://127.0.0.1:27017/garments", { serverSelectionTimeoutMS: 2000 });
+                    console.log("✅ MongoDB Connected Successfully to Local MongoDB instance");
+                    return cachedConnection;
+                } catch (localErr) {}
+            }
+            cachedConnection = null;
             return null;
         } finally {
             connectionPromise = null;

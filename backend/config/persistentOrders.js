@@ -1,7 +1,10 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
-const DATA_DIR = path.join(__dirname, '../data');
+const DATA_DIR = process.env.VERCEL 
+    ? path.join(os.tmpdir(), 'garments_data')
+    : path.join(__dirname, '../data');
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
 
 // Ensure data directory exists

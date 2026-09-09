@@ -15,13 +15,24 @@ router.use(async (req, res, next) => {
     next();
 });
 
+const os = require('os');
+const fs = require('fs');
+
+const uploadsDir = process.env.VERCEL 
+    ? path.join(os.tmpdir(), 'uploads')
+    : path.join(__dirname, '../uploads');
+
+if (!fs.existsSync(uploadsDir)) {
+    try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch (e) {}
+}
+
 // Multer config for product image uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '../uploads'));
+        cb(null, uploadsDir);
     },
     filename: (req, file, cb) => {
-        const uniqueName = Date.now() + '-' + file.originalname;
+        const uniqueName = Date.now() + '-' + (file.originalname || 'image.jpg').replace(/[^a-zA-Z0-9.-]/g, '_');
         cb(null, uniqueName);
     }
 });

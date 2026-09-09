@@ -262,7 +262,8 @@ function OwnerDashboard() {
                 fetchData();
             }, 1200);
         } catch (err) {
-            setProdMsg(err.response?.data?.message || 'Error saving product');
+            const errDetail = err.response?.data?.message || err.message || 'Error saving product';
+            setProdMsg('⚠️ ' + errDetail);
         } finally {
             setProdLoading(false);
         }
