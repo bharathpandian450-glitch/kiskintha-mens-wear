@@ -15,14 +15,10 @@ module.exports = async (req, res) => {
         return;
     }
 
+    // Connect to MongoDB asynchronously in background without delaying HTTP responses
     try {
-        await Promise.race([
-            connectMongoDB(initialData),
-            new Promise((resolve) => setTimeout(resolve, 1500))
-        ]);
-    } catch (err) {
-        console.error('Serverless connectMongoDB note:', err.message);
-    }
+        connectMongoDB(initialData).catch(() => {});
+    } catch (err) {}
 
     return app(req, res);
 };

@@ -4,10 +4,10 @@ const { Category, connectMongoDB, getIsConnected } = require('../config/mongodb'
 const { initialData } = require('../config/db');
 const { auth, isOwner } = require('../middleware/auth');
 
-// Middleware to ensure MongoDB is connected before running operations
-router.use(async (req, res, next) => {
+// Middleware to ensure MongoDB connection is triggered in background without blocking
+router.use((req, res, next) => {
     if (!getIsConnected()) {
-        await connectMongoDB(initialData).catch(() => {});
+        connectMongoDB(initialData).catch(() => {});
     }
     next();
 });

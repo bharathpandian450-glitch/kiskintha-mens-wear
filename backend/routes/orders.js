@@ -5,10 +5,10 @@ const { savePersistentOrder, loadPersistentOrders, deletePersistentOrder } = req
 const { auth, isAdmin } = require('../middleware/auth');
 const { initialData } = require('../config/db');
 
-// Ensure MongoDB is connected before handling order requests
-router.use(async (req, res, next) => {
+// Ensure MongoDB connection is triggered in background without blocking order requests
+router.use((req, res, next) => {
     if (!getIsConnected()) {
-        await connectMongoDB().catch(() => {});
+        connectMongoDB().catch(() => {});
     }
     next();
 });
@@ -170,7 +170,7 @@ router.post('/', auth, async (req, res) => {
 
         // 2. Save permanently in MongoDB Order Collection
         if (!getIsConnected()) {
-            await connectMongoDB().catch(() => {});
+            connectMongoDB().catch(() => {});
         }
         if (getIsConnected()) {
             try {
@@ -271,7 +271,7 @@ router.get('/my', auth, async (req, res) => {
 router.get('/', auth, isAdmin, async (req, res) => {
     try {
         if (!getIsConnected()) {
-            await connectMongoDB().catch(() => {});
+            connectMongoDB().catch(() => {});
         }
         let mongoOrders = [];
         if (getIsConnected()) {

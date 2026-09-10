@@ -76,7 +76,7 @@ function Navbar() {
                                 alignItems: 'center',
                                 gap: '6px'
                             }}>
-                                <span>👤</span> Welcome, {user.name.split(' ')[0]}
+                                <span>👤</span> Welcome, {user?.name ? user.name.split(' ')[0] : 'Customer'}
                             </div>
 
                             {user.role !== 'owner' && (

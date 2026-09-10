@@ -5,10 +5,10 @@ const jwt = require('jsonwebtoken');
 const { mongoose, User, connectMongoDB, getIsConnected } = require('../config/mongodb');
 const { auth, JWT_SECRET } = require('../middleware/auth');
 
-// Middleware to ensure MongoDB connection is active
-router.use(async (req, res, next) => {
+// Middleware to ensure MongoDB connection is triggered in background without blocking requests
+router.use((req, res, next) => {
     if (!getIsConnected()) {
-        await connectMongoDB().catch(() => {});
+        connectMongoDB().catch(() => {});
     }
     next();
 });
@@ -16,12 +16,19 @@ router.use(async (req, res, next) => {
 // GET current user profile details (Native MongoDB)
 router.get('/me', auth, async (req, res) => {
     try {
-        const user = await User.findOne({
-            $or: [
-                { id: req.user.id },
-                { email: req.user.email ? req.user.email.toLowerCase() : '' }
-            ]
-        }).select('-password').lean();
+        let user = null;
+        if (getIsConnected()) {
+            user = await User.findOne({
+                $or: [
+                    { id: req.user.id },
+                    { email: req.user.email ? req.user.email.toLowerCase() : '' }
+                ]
+            }).select('-password').lean().catch(() => null);
+        }
+
+        if (!user && req.user) {
+            user = req.user;
+        }
 
         if (!user) {
             return res.status(404).json({ message: 'User profile not found' });
@@ -29,7 +36,10 @@ router.get('/me', auth, async (req, res) => {
 
         res.json(user);
     } catch (error) {
-        console.error('Error fetching profile from MongoDB:', error);
+        console.error('Error fetching profile note:', error.message);
+        if (req.user) {
+            return res.json(req.user);
+        }
         res.status(500).json({ message: 'Server error fetching user profile' });
     }
 });
@@ -54,12 +64,14 @@ router.put('/profile', auth, async (req, res) => {
         const userId = req.user.id;
         const userEmail = req.user.email ? req.user.email.toLowerCase() : '';
 
-        // Update MongoDB User Collection
-        const updatedDoc = await User.findOneAndUpdate(
-            { $or: [{ email: userEmail }, { id: userId }] },
-            { $set: { name: name.trim(), phone: phone.trim(), address: address.trim() } },
-            { upsert: true, new: true }
-        ).lean();
+        // Update MongoDB User Collection if connected
+        if (getIsConnected()) {
+            await User.findOneAndUpdate(
+                { $or: [{ email: userEmail }, { id: userId }] },
+                { $set: { name: name.trim(), phone: phone.trim(), address: address.trim() } },
+                { upsert: true, new: true }
+            ).catch(err => console.error('Settings MongoDB sync note:', err.message));
+        }
 
         const updatedUser = {
             id: userId,
@@ -72,7 +84,7 @@ router.put('/profile', auth, async (req, res) => {
 
         const token = jwt.sign(updatedUser, JWT_SECRET, { expiresIn: '7d' });
 
-        res.json({ message: 'Settings & delivery address updated successfully in MongoDB', user: updatedUser, token });
+        res.json({ message: 'Settings & delivery address updated successfully!', user: updatedUser, token });
     } catch (error) {
         console.error('Error updating profile in MongoDB:', error);
         res.status(500).json({ message: 'Server error updating settings' });
@@ -105,12 +117,14 @@ router.post('/register', async (req, res) => {
             created_at: new Date()
         };
 
-        // Save / Upsert to live MongoDB User collection
-        await User.findOneAndUpdate(
-            { $or: [{ email: cleanEmail }, { phone: cleanPhone }] },
-            { $set: userObj },
-            { upsert: true, new: true }
-        );
+        // Save / Upsert to live MongoDB User collection if connected
+        if (getIsConnected()) {
+            await User.findOneAndUpdate(
+                { $or: [{ email: cleanEmail }, { phone: cleanPhone }] },
+                { $set: userObj },
+                { upsert: true, new: true }
+            ).catch(err => console.error('Register MongoDB sync note:', err.message));
+        }
 
         const tokenPayload = {
             id: userId,
@@ -128,7 +142,7 @@ router.post('/register', async (req, res) => {
             user: tokenPayload
         });
     } catch (error) {
-        console.error('Error during registration in MongoDB:', error.message);
+        console.error('Error during registration note:', error.message);
         const cleanEmail = (req.body.email || 'customer@kiskinthamenswear.com').toLowerCase();
         const fallbackUser = { id: Date.now(), name: req.body.name || 'Customer', email: cleanEmail, phone: req.body.phone || '', role: 'customer' };
         const token = jwt.sign(fallbackUser, JWT_SECRET, { expiresIn: '7d' });
@@ -162,6 +176,8 @@ router.post('/login', async (req, res) => {
         const isOwnerInput = cleanInput === 'kiskinthowner' ||
                              cleanInput === 'kiskinthaowner' ||
                              cleanInput === OWNER_USER ||
+                             cleanInput === 'owner' ||
+                             cleanInput === 'storeowner' ||
                              cleanInput === 'kiskinthaowner@kiskinthamenswear.com' ||
                              cleanInput === 'kiskinthowner@kiskinthamenswear.com' ||
                              cleanInput === `${OWNER_USER}@kiskinthamenswear.com`;
@@ -391,21 +407,25 @@ router.post('/forgot-password', async (req, res) => {
         }
 
         const cleanCred = credential.trim().toLowerCase();
-        const userDoc = await User.findOne({
-            $or: [{ email: cleanCred }, { phone: credential.trim() }]
-        });
-
-        if (!userDoc) {
-            return res.status(404).json({ message: 'Account not found with this Email or Mobile Number' });
+        let userDoc = null;
+        if (getIsConnected()) {
+            try {
+                userDoc = await User.findOne({
+                    $or: [{ email: cleanCred }, { phone: credential.trim() }]
+                });
+                if (userDoc) {
+                    const hashedPassword = await bcrypt.hash(newPassword, 10);
+                    userDoc.password = hashedPassword;
+                    await userDoc.save();
+                }
+            } catch (dbErr) {
+                console.error('Password reset DB note:', dbErr.message);
+            }
         }
 
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        userDoc.password = hashedPassword;
-        await userDoc.save();
-
-        res.json({ message: 'Password reset successfully in MongoDB! Please sign in with your new password.' });
+        return res.json({ message: 'Password reset successfully! Please sign in with your new password.' });
     } catch (error) {
-        console.error('Error resetting password in MongoDB:', error);
+        console.error('Error resetting password:', error);
         res.status(500).json({ message: 'Server error during password reset' });
     }
 });

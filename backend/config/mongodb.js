@@ -99,10 +99,14 @@ const Product = mongoose.models.Product || mongoose.model('Product', productSche
 const Order = mongoose.models.Order || mongoose.model('Order', orderSchema);
 const Review = mongoose.models.Review || mongoose.model('Review', reviewSchema);
 
-// Connection Caching for Vercel Serverless
+// Connection Caching & Throttling for Vercel Serverless
 let cachedConnection = null;
 let connectionPromise = null;
 let lastAttemptTime = 0;
+const RECONNECT_COOLDOWN_MS = 25000; // 25s cooldown between failed connection attempts
+
+// Disable command buffering so queries fail-fast or fallback immediately instead of hanging for 10s
+mongoose.set('bufferCommands', false);
 
 const connectMongoDB = async () => {
     if (cachedConnection && mongoose.connection.readyState === 1) {
@@ -114,10 +118,19 @@ const connectMongoDB = async () => {
         return connectionPromise;
     }
 
+    // Throttle failed connection retries so requests aren't delayed by repeated timeouts
+    const now = Date.now();
+    if (now - lastAttemptTime < RECONNECT_COOLDOWN_MS && mongoose.connection.readyState !== 1) {
+        return null;
+    }
+    lastAttemptTime = now;
+
     const uri = getMongoURI();
     const opts = {
-        serverSelectionTimeoutMS: 3000,
-        maxPoolSize: 10
+        serverSelectionTimeoutMS: 2500,
+        connectTimeoutMS: 2500,
+        maxPoolSize: 10,
+        bufferCommands: false
     };
 
     connectionPromise = (async () => {
@@ -131,7 +144,7 @@ const connectMongoDB = async () => {
             // In local environment only (not Vercel), fall back to local MongoDB
             if (!process.env.VERCEL) {
                 try {
-                    cachedConnection = await mongoose.connect("mongodb://127.0.0.1:27017/garments", { serverSelectionTimeoutMS: 2000 });
+                    cachedConnection = await mongoose.connect("mongodb://127.0.0.1:27017/garments", { serverSelectionTimeoutMS: 1500, bufferCommands: false });
                     console.log("✅ MongoDB Connected Successfully to Local MongoDB instance");
                     return cachedConnection;
                 } catch (localErr) {}

@@ -4,9 +4,9 @@ const { Product, Order, User, connectMongoDB, getIsConnected } = require('../con
 const { initialData } = require('../config/db');
 const { auth, isOwner } = require('../middleware/auth');
 
-router.use(async (req, res, next) => {
+router.use((req, res, next) => {
     if (!getIsConnected()) {
-        await connectMongoDB(initialData).catch(() => {});
+        connectMongoDB(initialData).catch(() => {});
     }
     next();
 });
