@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -9,6 +10,7 @@ function ProductCard({ product }) {
     const { user } = useAuth();
     const { addToCart } = useCart();
     const isOwnerOrAdmin = user && (user.role === 'owner' || user.role === 'admin');
+    const [added, setAdded] = useState(false);
 
     const handleAddToCart = (e) => {
         e.preventDefault();
@@ -16,7 +18,8 @@ function ProductCard({ product }) {
         const sizes = product.size ? product.size.split(',').map(s => s.trim()) : ['M'];
         const selectedSize = sizes[0] || 'M';
         addToCart(product, selectedSize, 1, product.color || '');
-        alert(`Added ${product.name} (Size: ${selectedSize}) to cart!`);
+        setAdded(true);
+        setTimeout(() => setAdded(false), 2000);
     };
 
     const availableSizes = product.size ? product.size.split(',').slice(0, 5).join(', ') : 'S, M, L, XL, XXL';
@@ -161,12 +164,13 @@ function ProductCard({ product }) {
                             justifyContent: 'center',
                             alignItems: 'center',
                             gap: '6px',
-                            background: isOutOfStock ? '#94a3b8' : '#2563eb',
-                            borderColor: isOutOfStock ? '#94a3b8' : '#2563eb',
-                            cursor: isOutOfStock ? 'not-allowed' : 'pointer'
+                            background: isOutOfStock ? '#94a3b8' : added ? '#059669' : '#2563eb',
+                            borderColor: isOutOfStock ? '#94a3b8' : added ? '#059669' : '#2563eb',
+                            cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.2s ease'
                         }}
                     >
-                        {isOutOfStock ? '🚫 Out of Stock' : '🛒 Add to Cart'}
+                        {isOutOfStock ? '🚫 Out of Stock' : added ? '✓ Added to Cart!' : '🛒 Add to Cart'}
                     </button>
                 )}
             </div>

@@ -63,9 +63,10 @@ function Settings() {
         }
     }, [user, navigate]);
 
+    const phoneDigits = (form.phone || '').replace(/\D/g, '').slice(-10);
     const isFullyConfigured =
         form.name.trim().length >= 2 &&
-        /^[0-9]{10}$/.test((form.phone || '').trim()) &&
+        phoneDigits.length === 10 &&
         form.streetAddress.trim().length >= 5 &&
         /^[0-9]{6}$/.test((form.pincode || '').trim());
 
@@ -84,8 +85,8 @@ function Settings() {
             return;
         }
 
-        const phoneClean = (form.phone || '').trim();
-        if (!/^[0-9]{10}$/.test(phoneClean)) {
+        const phoneClean = (form.phone || '').replace(/\D/g, '').slice(-10);
+        if (phoneClean.length !== 10) {
             setErrorMsg('⚠️ Mobile Number must be a valid 10-digit phone number (e.g. 9876543210).');
             return;
         }
@@ -110,6 +111,7 @@ function Settings() {
                 phone: phoneClean,
                 address: fullFormattedAddress
             });
+            setForm(prev => ({ ...prev, phone: phoneClean }));
             setSuccessMsg('✓ Account Settings & Delivery Address saved successfully! Your profile is 100% complete.');
         } catch (err) {
             setErrorMsg(err.response?.data?.message || 'Failed to update settings. Please check all fields.');
