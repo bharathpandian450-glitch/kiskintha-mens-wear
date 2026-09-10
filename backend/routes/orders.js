@@ -303,7 +303,12 @@ router.get('/', auth, isAdmin, async (req, res) => {
 router.get('/:id/items', auth, async (req, res) => {
     try {
         const orderId = Number(req.params.id);
-        const order = await Order.findOne({ id: orderId }).lean();
+        let order = null;
+        if (getIsConnected()) {
+            try {
+                order = await Order.findOne({ id: orderId }).lean();
+            } catch (e) {}
+        }
         
         if (order && order.items && order.items.length > 0) {
             return res.json(order.items);
