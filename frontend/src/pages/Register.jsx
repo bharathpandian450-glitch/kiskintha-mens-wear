@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 function Register() {
-    const { register } = useAuth();
+    const { user, register } = useAuth();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -13,7 +13,7 @@ function Register() {
         password: '',
         confirmPassword: '',
         gender: '',
-        agreeTerms: false
+        agreeTerms: true
     });
 
     const [showPassword, setShowPassword] = useState(false);
@@ -41,23 +41,19 @@ function Register() {
             return;
         }
 
-        if (!formData.phone.trim()) {
-            setError('Please enter your Mobile Number');
+        const cleanPhone = (formData.phone || '').replace(/\D/g, '').slice(-10);
+        if (cleanPhone.length !== 10) {
+            setError('Please enter a valid 10-digit Mobile Number');
             return;
         }
 
-        const phoneRegex = /^[0-9]{10}$/;
-        if (!phoneRegex.test(formData.phone.trim())) {
-            setError('Mobile Number must be a valid 10-digit phone number');
-            return;
-        }
-
-        if (!formData.email.trim()) {
+        const cleanEmail = (formData.email || '').trim().toLowerCase();
+        if (!cleanEmail) {
             setError('Please enter your Email Address');
             return;
         }
 
-        if (formData.password.length < 6) {
+        if (!formData.password || formData.password.length < 6) {
             setError('Password must be at least 6 characters long');
             return;
         }
@@ -77,19 +73,19 @@ function Register() {
         try {
             await register({
                 name: formData.name.trim(),
-                phone: formData.phone.trim(),
-                email: formData.email.trim(),
+                phone: cleanPhone,
+                email: cleanEmail,
                 password: formData.password,
                 gender: formData.gender
             });
 
-            setSuccessMsg('✨ Account Ready! Logging in...');
+            setSuccessMsg('✨ Account Ready! Welcome to Kiskintha Mens Wear...');
 
             setTimeout(() => {
                 navigate('/');
-            }, 1000);
+            }, 1200);
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed. Email or Mobile may already exist.');
+            setError(err.response?.data?.message || err.message || 'Registration failed. Please check details and try again.');
         } finally {
             setLoading(false);
         }
@@ -104,6 +100,12 @@ function Register() {
                         <h2>Create Account</h2>
                         <p className="subtitle">Kiskintha Mens Wear — Premium Collection</p>
                     </div>
+
+                    {user && (
+                        <div className="alert alert-info" style={{ marginBottom: '16px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
+                            ℹ️ You are currently signed in as <strong>{user.name}</strong>. Create a new account below or <Link to="/" style={{ textDecoration: 'underline', fontWeight: 'bold' }}>continue to Store</Link>.
+                        </div>
+                    )}
 
                     {error && (
                         <div className="alert alert-danger" style={{ marginBottom: '16px' }}>
@@ -137,10 +139,10 @@ function Register() {
                                 type="tel"
                                 name="phone"
                                 className="form-control"
-                                placeholder="10-digit mobile number"
+                                placeholder="10-digit mobile number (e.g. 9876543210)"
                                 value={formData.phone}
                                 onChange={handleChange}
-                                maxLength={10}
+                                maxLength={15}
                                 required
                             />
                         </div>

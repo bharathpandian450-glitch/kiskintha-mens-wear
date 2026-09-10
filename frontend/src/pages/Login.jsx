@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import API from '../api';
 
 function Login() {
-    const { login } = useAuth();
+    const { user, login } = useAuth();
     const navigate = useNavigate();
 
     const [loginRole, setLoginRole] = useState('customer'); // 'customer' or 'owner'
@@ -99,6 +99,12 @@ function Login() {
                         <h2>Sign In</h2>
                         <p className="subtitle">Kiskintha Mens Wear — Premium Collection</p>
                     </div>
+
+                    {user && (
+                        <div className="alert alert-info" style={{ marginBottom: '16px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
+                            ℹ️ You are currently signed in as <strong>{user.name}</strong> ({user.role}). You can sign in with another account below or <Link to={user.role === 'owner' || user.role === 'admin' ? '/owner' : '/'} style={{ textDecoration: 'underline', fontWeight: 'bold' }}>go to {user.role === 'owner' || user.role === 'admin' ? 'Owner Portal' : 'Store'}</Link>.
+                        </div>
+                    )}
 
                     {/* Role Selector Tabs (Customer Login vs Store Owner Login) */}
                     <div className="login-role-tabs" style={{

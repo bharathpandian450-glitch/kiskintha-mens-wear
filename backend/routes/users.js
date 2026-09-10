@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { mongoose, User, connectMongoDB, getIsConnected } = require('../config/mongodb');
 const { auth, JWT_SECRET } = require('../middleware/auth');
+const { savePersistentUser, findPersistentUser, loadPersistentUsers } = require('../config/persistentUsers');
 
 // Middleware to ensure MongoDB connection is triggered in background without blocking requests
 router.use((req, res, next) => {
@@ -91,33 +92,40 @@ router.put('/profile', auth, async (req, res) => {
     }
 });
 
-// POST register user (Native MongoDB)
+// POST register user (Native MongoDB & Persistent Storage)
 router.post('/register', async (req, res) => {
     try {
         const { name, email, phone, password, address, role } = req.body;
 
-        if (!name || !email || !password || !phone) {
-            return res.status(400).json({ message: 'Full Name, Mobile Number, Email, and Password are required' });
+        if (!name || (!email && !phone) || !password) {
+            return res.status(400).json({ message: 'Full Name, Mobile Number/Email, and Password are required' });
         }
 
         const userRole = ['customer', 'admin', 'owner'].includes(role) ? role : 'customer';
-        const cleanEmail = email.trim().toLowerCase();
-        const cleanPhone = phone.trim();
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const cleanPhone = (phone || '').toString().trim().replace(/\D/g, '').slice(-10);
+        let cleanEmail = (email || '').toString().trim().toLowerCase();
+        if (!cleanEmail && cleanPhone) {
+            cleanEmail = `${cleanPhone}@kiskinthamenswear.com`;
+        }
+
+        const hashedPassword = await bcrypt.hash(password.toString(), 10);
         const userId = Date.now();
 
         const userObj = {
             id: userId,
             name: name.trim(),
             email: cleanEmail,
-            phone: cleanPhone,
+            phone: cleanPhone || '',
             password: hashedPassword,
             address: address || 'Chennai, Tamil Nadu',
             role: userRole,
             created_at: new Date()
         };
 
-        // Save / Upsert to live MongoDB User collection if connected
+        // 1. Save to persistent disk storage (users.json backup)
+        savePersistentUser(userObj);
+
+        // 2. Save / Upsert to live MongoDB User collection if connected
         if (getIsConnected()) {
             await User.findOneAndUpdate(
                 { $or: [{ email: cleanEmail }, { phone: cleanPhone }] },
@@ -143,8 +151,10 @@ router.post('/register', async (req, res) => {
         });
     } catch (error) {
         console.error('Error during registration note:', error.message);
-        const cleanEmail = (req.body.email || 'customer@kiskinthamenswear.com').toLowerCase();
-        const fallbackUser = { id: Date.now(), name: req.body.name || 'Customer', email: cleanEmail, phone: req.body.phone || '', role: 'customer' };
+        const cleanPhone = (req.body.phone || '').toString().trim().replace(/\D/g, '').slice(-10);
+        const cleanEmail = (req.body.email || (cleanPhone ? `${cleanPhone}@kiskinthamenswear.com` : 'customer@kiskinthamenswear.com')).toLowerCase();
+        const fallbackUser = { id: Date.now(), name: req.body.name || 'Customer', email: cleanEmail, phone: cleanPhone, role: 'customer' };
+        savePersistentUser(fallbackUser);
         const token = jwt.sign(fallbackUser, JWT_SECRET, { expiresIn: '7d' });
         return res.status(200).json({ message: 'Account ready!', token, user: fallbackUser });
     }
@@ -332,25 +342,37 @@ router.post('/login', async (req, res) => {
                     role: dbUser.role || 'customer'
                 };
             } else {
-                let displayName = 'Customer';
-                if (cleanInput.includes('@')) {
-                    const prefix = cleanInput.split('@')[0];
-                    displayName = prefix.charAt(0).toUpperCase() + prefix.slice(1);
-                } else if (cleanInput.length >= 2) {
-                    displayName = cleanInput.charAt(0).toUpperCase() + cleanInput.slice(1);
+                const pUser = findPersistentUser(cleanInput);
+                if (pUser) {
+                    user = {
+                        id: pUser.id || 1000 + Math.abs(cleanInput.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0)),
+                        name: pUser.name || 'Customer',
+                        email: pUser.email || candidateEmail,
+                        phone: pUser.phone || (cleanInput.includes('@') ? '' : cleanInput),
+                        address: pUser.address || '',
+                        role: pUser.role || 'customer'
+                    };
+                } else {
+                    let displayName = 'Customer';
+                    if (cleanInput.includes('@')) {
+                        const prefix = cleanInput.split('@')[0];
+                        displayName = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+                    } else if (cleanInput.length >= 2) {
+                        displayName = cleanInput.charAt(0).toUpperCase() + cleanInput.slice(1);
+                    }
+
+                    // Deterministic integer ID derived from cleanInput hash so customer ID remains stable across logins
+                    const stableId = 1000 + Math.abs(cleanInput.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0));
+
+                    user = {
+                        id: stableId,
+                        name: displayName,
+                        email: candidateEmail,
+                        phone: cleanInput.includes('@') ? '' : cleanInput,
+                        address: '',
+                        role: 'customer'
+                    };
                 }
-
-                // Deterministic integer ID derived from cleanInput hash so customer ID remains stable across logins
-                const stableId = 1000 + Math.abs(cleanInput.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0));
-
-                user = {
-                    id: stableId,
-                    name: displayName,
-                    email: candidateEmail,
-                    phone: cleanInput.includes('@') ? '' : cleanInput,
-                    address: '',
-                    role: 'customer'
-                };
             }
 
             // Save / Upsert user in MongoDB Atlas User Collection asynchronously preserving their role
@@ -422,6 +444,15 @@ router.post('/forgot-password', async (req, res) => {
                 console.error('Password reset DB note:', dbErr.message);
             }
         }
+
+        // Also update persistent users storage
+        try {
+            const pUser = findPersistentUser(cleanCred);
+            if (pUser) {
+                pUser.password = await bcrypt.hash(newPassword, 10);
+                savePersistentUser(pUser);
+            }
+        } catch (e) {}
 
         return res.json({ message: 'Password reset successfully! Please sign in with your new password.' });
     } catch (error) {

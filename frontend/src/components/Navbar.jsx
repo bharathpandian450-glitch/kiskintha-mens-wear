@@ -90,6 +90,17 @@ function Navbar() {
                             </button>
                         </div>
                     )}
+
+                    {!user && (
+                        <div className="navbar-user" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Link to="/login" className="btn btn-sm btn-gold" onClick={() => setMobileMenuOpen(false)}>
+                                🔐 Sign In
+                            </Link>
+                            <Link to="/register" className="btn btn-sm" style={{ background: '#f8fafc', color: '#1e293b', border: '1px solid #cbd5e1', fontWeight: '600' }} onClick={() => setMobileMenuOpen(false)}>
+                                📝 Register
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </div>
         </nav>

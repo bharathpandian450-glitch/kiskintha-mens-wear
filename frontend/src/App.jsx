@@ -65,31 +65,23 @@ function ProtectedOwnerRoute({ children }) {
     return children;
 }
 
-// Public Auth Route Component (Redirects to Dashboard if already logged in as staff, Home if customer)
-function PublicAuthRoute({ children }) {
-    const { user, loading } = useAuth();
-    if (loading) return null;
-    if (user) {
-        return <Navigate to={(user.role === 'owner' || user.role === 'admin') ? "/owner" : "/"} replace />;
-    }
-    return children;
-}
-
 function App() {
     const { user } = useAuth();
+    const location = useLocation();
+    const showHeaderAndFooter = location.pathname !== '/welcome';
 
     return (
         <div className="app">
             <ScrollToTop />
-            {/* Display Navbar only when user is logged in */}
-            {user && <Navbar />}
+            {/* Display Navbar across all pages except the splash Welcome card */}
+            {showHeaderAndFooter && <Navbar />}
 
             <main className="main-content">
                 <Routes>
-                    {/* Welcome & Authentication Flow Routes */}
-                    <Route path="/welcome" element={<PublicAuthRoute><Welcome /></PublicAuthRoute>} />
-                    <Route path="/login" element={<PublicAuthRoute><Login /></PublicAuthRoute>} />
-                    <Route path="/register" element={<PublicAuthRoute><Register /></PublicAuthRoute>} />
+                    {/* Welcome & Authentication Flow Routes - Accessible without premature redirect */}
+                    <Route path="/welcome" element={<Welcome />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
 
                     {/* Protected Shop Routes (Require Login First) */}
                     <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
@@ -107,8 +99,8 @@ function App() {
                 </Routes>
             </main>
 
-            {/* Display Footer only when user is logged in */}
-            {user && <Footer />}
+            {/* Display Footer across all pages except the splash Welcome card */}
+            {showHeaderAndFooter && <Footer />}
         </div>
     );
 }
