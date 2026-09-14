@@ -68,12 +68,14 @@ function ProtectedOwnerRoute({ children }) {
 function App() {
     const { user } = useAuth();
     const location = useLocation();
-    const showHeaderAndFooter = location.pathname !== '/welcome';
+    // Do not display shop Navbar and Footer on authentication pages (Welcome, Login, Register)
+    const isAuthPage = ['/welcome', '/login', '/register'].includes(location.pathname);
+    const showHeaderAndFooter = !isAuthPage;
 
     return (
         <div className="app">
             <ScrollToTop />
-            {/* Display Navbar across all pages except the splash Welcome card */}
+            {/* Display Navbar only on protected shop and dashboard pages */}
             {showHeaderAndFooter && <Navbar />}
 
             <main className="main-content">

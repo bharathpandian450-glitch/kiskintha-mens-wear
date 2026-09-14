@@ -95,8 +95,15 @@ function Register() {
         <div className="auth-page">
             <div className="auth-container">
                 <div className="auth-card shadow-gold">
+                    <div style={{ marginBottom: '14px' }}>
+                        <Link to="/welcome" style={{ color: '#64748b', fontSize: '13px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>
+                            ← Back to Welcome
+                        </Link>
+                    </div>
                     <div className="auth-header">
-                        <div className="brand-logo">👑</div>
+                        <Link to="/welcome" style={{ textDecoration: 'none' }}>
+                            <div className="brand-logo" title="Kiskintha Mens Wear">👑</div>
+                        </Link>
                         <h2>Create Account</h2>
                         <p className="subtitle">Kiskintha Mens Wear — Premium Collection</p>
                     </div>
