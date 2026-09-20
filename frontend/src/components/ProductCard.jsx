@@ -71,7 +71,7 @@ function ProductCard({ product }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <span className="badge badge-primary category" style={{ background: '#eff6ff', color: '#1e40af', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700' }}>
-                            {product.subcategory || product.category_name || 'Men Wear'}
+                            {"Men's Dress"}
                         </span>
                         {product.sleeve_type && (
                             <span style={{
@@ -83,7 +83,7 @@ function ProductCard({ product }) {
                                 fontSize: '10px',
                                 fontWeight: '800'
                             }}>
-                                {product.sleeve_type === 'Half Hand' ? '👕 Half Hand' : '👔 Full Hand'}
+                                {product.sleeve_type === 'Half Hand' ? '👕 Half Hand Dress' : '👔 Full Hand Dress'}
                             </span>
                         )}
                         {product.color && product.color !== 'Assorted' && (

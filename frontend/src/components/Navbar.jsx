@@ -39,7 +39,7 @@ function Navbar() {
 
                 <div className={`navbar-links ${mobileMenuOpen ? 'active' : ''}`}>
                     <Link to="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>
-                    <Link to="/products" onClick={() => setMobileMenuOpen(false)}>Products</Link>
+                    <Link to="/products" onClick={() => setMobileMenuOpen(false)}>Men's Dresses</Link>
 
                     {user && (user.role === 'owner' || user.role === 'admin') && (
                         <Link to="/owner" className="owner-nav-link" onClick={() => setMobileMenuOpen(false)} style={{ color: '#b45309', fontWeight: '700' }}>

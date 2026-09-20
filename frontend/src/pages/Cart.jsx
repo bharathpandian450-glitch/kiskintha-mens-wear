@@ -31,8 +31,8 @@ function Cart() {
                     <div className="cart-empty">
                         <div className="emoji">🛒</div>
                         <h2>Your cart is empty</h2>
-                        <p>Looks like you haven't added any items to your cart yet.</p>
-                        <Link to="/products" className="btn btn-primary">Start Shopping →</Link>
+                        <p>Looks like you haven't added any dresses to your cart yet.</p>
+                        <Link to="/products" className="btn btn-primary">Explore Men's Dresses →</Link>
                     </div>
                 </div>
             </div>
@@ -74,7 +74,7 @@ function Cart() {
                             Proceed to Checkout →
                         </button>
                         <Link to="/products" style={{ display: 'block', textAlign: 'center', marginTop: '12px', fontSize: '14px', color: '#1a56db' }}>
-                            ← Continue Shopping
+                            ← Continue Shopping for Dresses
                         </Link>
                     </div>
                 </div>
