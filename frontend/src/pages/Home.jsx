@@ -11,26 +11,7 @@ const categoryEmojis = {
     'Trousers': '👖',
     'Hoodies': '🧥',
     'Hoodie': '🧥',
-    'Group Shirts': '👑'
-};
-
-const getDressCategoryDisplayName = (name) => {
-    switch (String(name || '').toLowerCase().trim()) {
-        case 'shirts':
-            return "Formal & Casual Dresses";
-        case 't-shirts':
-            return "Casual Dresses";
-        case 'pants':
-            return "Bottom Wear Dresses";
-        case 'trousers':
-            return "Formal Fit Dresses";
-        case 'hoodies':
-            return "Winter Dresses";
-        case 'group shirts':
-            return "Combo Dresses";
-        default:
-            return name ? `${name} Dresses` : "Men's Dresses";
-    }
+    'Group Shirts': '👔'
 };
 
 // Custom visual icons for categories
@@ -79,15 +60,15 @@ function Home() {
             <section className="hero">
                 <div className="container">
                     <h1>Kiskintha Mens Wear</h1>
-                    <p>Premium Men's Clothing Store — Shop the latest collection of Men's Dresses at the best prices.</p>
-                    <Link to="/products" className="btn">Explore Men's Dresses →</Link>
+                    <p>Premium Men's Clothing Store — Shop the latest collection of T-Shirts, Shirts, Group Shirts, Pants, and Hoodies at the best prices.</p>
+                    <Link to="/products" className="btn">Shop Now →</Link>
                 </div>
             </section>
 
             {/* Categories Section */}
             <section className="section">
                 <div className="container">
-                    <h2 className="section-title">Explore Men's Dress Collections</h2>
+                    <h2 className="section-title">Shop by Category</h2>
                     <div className="categories-grid">
                         {categories.map(cat => (
                             <Link
@@ -118,9 +99,7 @@ function Home() {
                                             <span style={{ fontSize: '36px' }}>{categoryEmojis[cat.name] || '🏷️'}</span>
                                         )}
                                     </div>
-                                    <div className="name" style={{ fontWeight: '700', color: '#0f172a', fontSize: '16px' }}>
-                                        {getDressCategoryDisplayName(cat.name)}
-                                    </div>
+                                    <div className="name" style={{ fontWeight: '700', color: '#0f172a', fontSize: '16px' }}>{cat.name}</div>
                                 </div>
                             </Link>
                         ))}
@@ -131,7 +110,7 @@ function Home() {
             {/* Featured Products Section */}
             <section className="section" style={{ paddingTop: 0 }}>
                 <div className="container">
-                    <h2 className="section-title">Featured Men's Dresses</h2>
+                    <h2 className="section-title">Featured Products</h2>
                     {products.length > 0 ? (
                         <>
                             <div className="products-grid">
@@ -140,13 +119,13 @@ function Home() {
                                 ))}
                             </div>
                             <div style={{ textAlign: 'center', marginTop: '30px' }}>
-                                <Link to="/products" className="btn btn-primary">View All Men's Dresses →</Link>
+                                <Link to="/products" className="btn btn-primary">View All Products →</Link>
                             </div>
                         </>
                     ) : (
                         <div style={{ textAlign: 'center', padding: '40px 20px', background: '#fff', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                             <div style={{ fontSize: '48px', marginBottom: '12px' }}>🛍️</div>
-                            <h3>No Men's Dresses Uploaded Yet</h3>
+                            <h3>No Clothes Uploaded Yet</h3>
                             <p style={{ color: '#6b7280', marginBottom: '16px' }}>Store Owner or Admin can log in to upload product details, pricing, and stock.</p>
                             <Link to="/login" className="btn btn-primary">Login to Upload Products →</Link>
                         </div>

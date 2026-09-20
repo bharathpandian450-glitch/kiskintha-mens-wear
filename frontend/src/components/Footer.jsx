@@ -7,13 +7,13 @@ function Footer() {
                 <div className="footer-grid">
                     <div className="footer-col">
                         <h4>Kiskintha Mens Wear</h4>
-                        <p>Your one-stop destination for premium men's clothing. We offer the best quality Men's Dresses and apparel at affordable prices.</p>
+                        <p>Your one-stop destination for premium men's clothing. We offer the best quality T-Shirts, Shirts, Jeans, Trousers, and more at affordable prices.</p>
                     </div>
                     <div className="footer-col">
                         <h4>Quick Links</h4>
                         <ul>
                             <li><Link to="/">Home</Link></li>
-                            <li><Link to="/products">Men's Dresses</Link></li>
+                            <li><Link to="/products">Products</Link></li>
                             <li><Link to="/cart">Cart</Link></li>
                             <li><Link to="/login">Login</Link></li>
                         </ul>

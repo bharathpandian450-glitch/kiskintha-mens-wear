@@ -214,9 +214,11 @@ function Orders() {
                                                             {item.product_name || item.name || 'Kiskintha Item'}
                                                         </div>
                                                         <div style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#64748b', marginTop: '4px', flexWrap: 'wrap' }}>
-                                                            <span style={{ background: '#eff6ff', color: '#1e40af', padding: '2px 6px', borderRadius: '4px', fontWeight: '700' }}>
-                                                                🏷️ Men's Dress
-                                                            </span>
+                                                            {item.category_name && (
+                                                                <span style={{ background: '#eff6ff', color: '#1e40af', padding: '2px 6px', borderRadius: '4px', fontWeight: '700' }}>
+                                                                    🏷️ {item.category_name}
+                                                                </span>
+                                                            )}
                                                             {item.sleeve_type && item.sleeve_type !== 'N/A' && (
                                                                 <span style={{
                                                                     background: item.sleeve_type === 'Half Hand' ? '#fef3c7' : '#f0fdf4',
@@ -226,7 +228,7 @@ function Orders() {
                                                                     borderRadius: '4px',
                                                                     fontWeight: '800'
                                                                 }}>
-                                                                    {item.sleeve_type === 'Half Hand' ? '👕 Half Hand Dress' : '👔 Full Hand Dress'}
+                                                                    {item.sleeve_type === 'Half Hand' ? '👕 Half Hand' : '👔 Full Hand'}
                                                                 </span>
                                                             )}
                                                             {item.color && (

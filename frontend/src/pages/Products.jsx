@@ -5,17 +5,17 @@ import ProductCard from '../components/ProductCard';
 import { initialProducts } from '../data/initialProducts';
 
 const categoriesList = [
-    { id: '', name: "All Men's Dresses", icon: '🛍️' },
-    { id: '2', name: "Formal Dresses", icon: '👔', catId: '2' },
-    { id: 'shirts-full', name: "Full Hand Dresses", icon: '👔', catId: '2', sleeve: 'Full Hand' },
-    { id: 'shirts-half', name: "Half Hand Dresses", icon: '👕', catId: '2', sleeve: 'Half Hand' },
-    { id: '1', name: "Casual Dresses", icon: '👕', catId: '1' },
-    { id: 'tshirts-full', name: "Full Hand Casual Dresses", icon: '👔', catId: '1', sleeve: 'Full Hand' },
-    { id: 'tshirts-half', name: "Half Hand Casual Dresses", icon: '👕', catId: '1', sleeve: 'Half Hand' },
-    { id: '3', name: "Bottom Wear Dresses", icon: '👖', catId: '3' },
-    { id: '4', name: "Formal Fit Dresses", icon: '👖', catId: '4' },
-    { id: '7', name: "Winter Dresses", icon: '🧥', catId: '7' },
-    { id: '8', name: "Combo Dresses", icon: '👑', catId: '8' }
+    { id: '', name: 'All Products', icon: '🛍️' },
+    { id: '2', name: 'Shirts', icon: '👔', catId: '2' },
+    { id: 'shirts-full', name: 'Full Hand Shirts', icon: '👔', catId: '2', sleeve: 'Full Hand' },
+    { id: 'shirts-half', name: 'Half Hand Shirts', icon: '👕', catId: '2', sleeve: 'Half Hand' },
+    { id: '1', name: 'T-Shirts', icon: '👕', catId: '1' },
+    { id: 'tshirts-full', name: 'Full Hand T-Shirts', icon: '👔', catId: '1', sleeve: 'Full Hand' },
+    { id: 'tshirts-half', name: 'Half Hand T-Shirts', icon: '👕', catId: '1', sleeve: 'Half Hand' },
+    { id: '3', name: 'Pants', icon: '👖', catId: '3' },
+    { id: '4', name: 'Trousers', icon: '👖', catId: '4' },
+    { id: '7', name: 'Hoodies', icon: '🧥', catId: '7' },
+    { id: '8', name: 'Group Shirts', icon: '👔', catId: '8' }
 ];
 
 const colorOptions = [
@@ -236,10 +236,10 @@ function Products() {
     }, [filteredProducts, currentPage]);
 
     const getActiveCategoryTitle = () => {
-        if (!activeCategory) return "🛍️ All Men's Dresses Catalog";
+        if (!activeCategory) return '🛍️ All Products Catalog';
         const cat = categoriesList.find(c => String(c.id).toLowerCase() === String(activeCategory).toLowerCase()) ||
                     categoriesList.find(c => String(c.catId) === String(activeCategory) && !c.sleeve);
-        return cat ? `${cat.icon} ${cat.name} Catalog` : "🛍️ Men's Dresses Catalog";
+        return cat ? `${cat.icon} ${cat.name} Catalog` : '🛍️ Products Catalog';
     };
 
     const hasActiveFilters = productType !== 'All' || selectedColor !== 'All' || selectedSize !== 'All' || priceRange !== 'All' || activeCategory !== '' || searchQuery !== '' || search !== '';
@@ -258,7 +258,7 @@ function Products() {
                             </span>
                         </h1>
                         <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '14px' }}>
-                            Kiskintha Mens Wear — Search Men's Dresses and filter by exact Color and Style
+                            Kiskintha Mens Wear — Search products and filter by exact Color and Style
                         </p>
                     </div>
 
@@ -266,7 +266,7 @@ function Products() {
                     <form onSubmit={handleSearchSubmit} className="search-filter-form" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                         <input
                             type="text"
-                            placeholder="Search men's dresses, color, style..."
+                            placeholder="Search shirts, color, style..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             style={{
@@ -362,7 +362,7 @@ function Products() {
                     })}
                 </div>
 
-                {/* 1.5 Bottom Wear Sub-Category Filter Bar */}
+                {/* 1.5 Pants Sub-Category Filter Bar */}
                 {isPantsCategory && (
                     <div style={{
                         display: 'flex',
@@ -376,7 +376,7 @@ function Products() {
                         flexWrap: 'wrap'
                     }}>
                         <span style={{ fontSize: '14px', fontWeight: '800', color: '#1e40af', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span>👖</span> Bottom Wear Styles:
+                            <span>👖</span> Pants Sub-Categories:
                         </span>
                         {['All', 'Formal', 'Cotton', 'Baggy'].map(sub => (
                             <button
@@ -395,7 +395,7 @@ function Products() {
                                     transition: 'all 0.2s ease'
                                 }}
                             >
-                                {sub === 'All' ? 'All Bottom Wear' : `👖 ${sub} Style`}
+                                {sub === 'All' ? 'All Pants' : `👖 ${sub}`}
                             </button>
                         ))}
                     </div>
@@ -415,7 +415,7 @@ function Products() {
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
                         <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span>🎛️</span> FILTER & REFINE MEN'S DRESSES
+                            <span>🎛️</span> FILTER & REFINE PRODUCTS
                         </h3>
                         {hasActiveFilters && (
                             <button
@@ -442,24 +442,24 @@ function Products() {
                     {/* Filter Controls Row */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-                        {/* ROW 1: Product Type / Sleeve Style (Full Hand vs Half Hand - Hidden for Bottom Wear) */}
+                        {/* ROW 1: Product Type (Full Hand vs Half Hand - Hidden for Pants) */}
                         {!isPantsCategory && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                                 <span style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', minWidth: '110px' }}>
-                                    👔 Dress Style:
+                                    👔 {activeCategory === '2' ? 'Shirt Style:' : activeCategory === '1' ? 'T-Shirt Style:' : 'Product Type:'}
                                 </span>
                                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                     {[
                                         { 
-                                            label: 'All Dress Styles', 
+                                            label: activeCategory === '2' ? 'All Shirts' : activeCategory === '1' ? 'All T-Shirts' : 'All Types', 
                                             value: 'All' 
                                         },
                                         { 
-                                            label: '👔 Full Hand Dresses', 
+                                            label: activeCategory === '2' ? '👔 Full Hand Shirts' : activeCategory === '1' ? '👔 Full Hand T-Shirts' : '👔 Full Hand', 
                                             value: 'Full Hand' 
                                         },
                                         { 
-                                            label: '👕 Half Hand Dresses', 
+                                            label: activeCategory === '2' ? '👕 Half Hand Shirts' : activeCategory === '1' ? '👕 Half Hand T-Shirts' : '👕 Half Hand', 
                                             value: 'Half Hand' 
                                         }
                                     ].map(t => {
@@ -688,19 +688,19 @@ function Products() {
                     <div className="no-products" style={{ textAlign: 'center', padding: '60px 20px', background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
                         <div style={{ fontSize: '48px', marginBottom: '12px' }}>{selectedColor !== 'All' ? '🎨' : '🔍'}</div>
                         <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a', margin: '0 0 8px' }}>
-                            {selectedColor !== 'All' ? 'No dresses available in this color.' : "No Matching Men's Dresses Found"}
+                            {selectedColor !== 'All' ? 'No products available in this color.' : 'No Matching Products Found'}
                         </h3>
                         <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>
                             {selectedColor !== 'All' 
-                                ? `There are currently no dresses available in ${selectedColor}${productType !== 'All' ? ` (${productType})` : ''}.` 
-                                : `No dresses match your selected criteria.`}
+                                ? `There are currently no products available in ${selectedColor}${productType !== 'All' ? ` (${productType})` : ''}.` 
+                                : `No products match your selected criteria.`}
                         </p>
                         <button
                             onClick={handleResetAllFilters}
                             className="btn btn-primary"
                             style={{ marginTop: '16px' }}
                         >
-                            Reset Filters & View All Dresses
+                            Reset All Filters
                         </button>
                     </div>
                 )}

@@ -171,7 +171,7 @@ function ProductDetail() {
                         {/* Right: Product Info & Actions */}
                         <div className="product-detail-info">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                                <span className="badge badge-primary">{"Men's Dress"}</span>
+                                <span className="badge badge-primary">{product.category_name || 'Men Wear'}</span>
                                 {product.sleeve_type && (
                                     <span style={{
                                         background: product.sleeve_type === 'Half Hand' ? '#fef3c7' : '#f0fdf4',
@@ -182,7 +182,7 @@ function ProductDetail() {
                                         fontSize: '11px',
                                         fontWeight: '800'
                                     }}>
-                                        {product.sleeve_type === 'Half Hand' ? '👕 Half Hand Dress' : '👔 Full Hand Dress'}
+                                        {product.sleeve_type === 'Half Hand' ? '👕 Half Hand' : '👔 Full Hand'}
                                     </span>
                                 )}
                                 <a
@@ -228,7 +228,7 @@ function ProductDetail() {
                             </div>
 
                             <p className="description" style={{ color: '#475569', fontSize: '14px', lineHeight: '1.6', marginBottom: '20px' }}>
-                                {(product.description || '').replace(/(from\s+Kiskintha\s+Mens\s+Wear\s+)(Shirts|T-Shirts|Pants|Trousers|Hoodies|Group Shirts)(\s+collection)/gi, "$1Men's Dress$3")}
+                                {product.description}
                             </p>
 
                             {/* Stock Status */}
