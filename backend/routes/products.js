@@ -121,6 +121,54 @@ router.get('/', async (req, res) => {
 
         let products = Array.from(productMap.values());
 
+        // Clean up misplaced shirt in T-Shirts category (Product ID 218 / 'brown shirt  half hand.jpg')
+        products = products.filter(p => {
+            if (Number(p.id) === 218) return false;
+            if ((Number(p.category_id) === 1 || String(p.category_name).toLowerCase() === 't-shirts') && /brown shirt.*half hand/i.test(p.image || '')) {
+                return false;
+            }
+            return true;
+        });
+
+        // Ensure proper naming for T-Shirts items
+        products.forEach(p => {
+            if (Number(p.id) === 224 || (Number(p.category_id) === 1 && p.name === 'Kiskintha Full Hand Shirt 3')) {
+                p.name = 'Kiskintha Full Hand T-Shirt 3';
+            }
+            if (p.name && /Plain White T Short/i.test(p.name)) {
+                p.name = 'Kiskintha Plain White T-Shirt';
+            }
+            if (p.name && /Summer T Shrt/i.test(p.name)) {
+                p.name = 'Kiskintha Summer T-Shirt';
+            }
+        });
+
+        // Background cleanup of misplaced shirt from MongoDB if connected
+        if (getIsConnected()) {
+            Product.deleteMany({
+                $or: [
+                    { id: 218 },
+                    { category_id: 1, image: /brown shirt.*half hand/i },
+                    { category_id: 1, name: 'Kiskintha Brown Shirt Half Hand' }
+                ]
+            }).catch(() => {});
+
+            Product.updateMany(
+                { id: 224, name: 'Kiskintha Full Hand Shirt 3' },
+                { $set: { name: 'Kiskintha Full Hand T-Shirt 3' } }
+            ).catch(() => {});
+
+            Product.updateMany(
+                { name: /Plain White T Short/i },
+                { $set: { name: 'Kiskintha Plain White T-Shirt' } }
+            ).catch(() => {});
+
+            Product.updateMany(
+                { name: /Summer T Shrt/i },
+                { $set: { name: 'Kiskintha Summer T-Shirt' } }
+            ).catch(() => {});
+        }
+
         // Apply filters in-memory if query parameters are present
         if (req.query.category) {
             const catParam = req.query.category;
@@ -217,8 +265,22 @@ router.get('/:id', async (req, res) => {
             prod = initialData.products.find(p => Number(p.id) === Number(req.params.id));
         }
 
+        if (Number(req.params.id) === 218) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
         if (!prod) {
             return res.status(404).json({ message: 'Product not found' });
+        }
+
+        if (Number(prod.id) === 224 || (Number(prod.category_id) === 1 && prod.name === 'Kiskintha Full Hand Shirt 3')) {
+            prod.name = 'Kiskintha Full Hand T-Shirt 3';
+        }
+        if (prod.name && /Plain White T Short/i.test(prod.name)) {
+            prod.name = 'Kiskintha Plain White T-Shirt';
+        }
+        if (prod.name && /Summer T Shrt/i.test(prod.name)) {
+            prod.name = 'Kiskintha Summer T-Shirt';
         }
 
         if (!prod.category_name && prod.category_id) {

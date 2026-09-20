@@ -2246,8 +2246,8 @@ const initialData = {
         },
         {
                 "id": 132,
-                "name": "Kiskintha Plain White T Short",
-                "description": "Kiskintha Plain White T Short from Kiskintha Mens Wear T-Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
+                "name": "Kiskintha Plain White T-Shirt",
+                "description": "Kiskintha Plain White T-Shirt from Kiskintha Mens Wear T-Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
                 "price": 549,
                 "original_price": 769,
                 "image": "plain white t short.jpg",
@@ -3572,8 +3572,8 @@ const initialData = {
         },
         {
                 "id": 210,
-                "name": "Kiskintha Summer T Shrt",
-                "description": "Kiskintha Summer T Shrt from Kiskintha Mens Wear T-Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
+                "name": "Kiskintha Summer T-Shirt",
+                "description": "Kiskintha Summer T-Shirt from Kiskintha Mens Wear T-Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
                 "price": 449,
                 "original_price": 629,
                 "image": "summer t shrt.jpg",
@@ -3707,23 +3707,6 @@ const initialData = {
                 "created_at": "2026-09-06T15:40:36.509Z"
         },
         {
-                "id": 218,
-                "name": "Kiskintha Brown Shirt Half Hand",
-                "description": "Kiskintha Brown Shirt Half Hand from Kiskintha Mens Wear T-Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
-                "price": 899,
-                "original_price": 1259,
-                "image": "T-Shirts/brown shirt  half hand.jpg",
-                "category_id": 1,
-                "category_name": "T-Shirts",
-                "subcategory": "Casual T-Shirts",
-                "sleeve_type": "Half Hand",
-                "size": "S,M,L,XL,XXL",
-                "color": "Brown",
-                "rating": 4.9,
-                "stock": 36,
-                "created_at": "2026-09-06T15:40:36.509Z"
-        },
-        {
                 "id": 219,
                 "name": "Kiskintha Brown T Shirt Full Hand",
                 "description": "Kiskintha Brown T Shirt Full Hand from Kiskintha Mens Wear T-Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
@@ -3810,8 +3793,8 @@ const initialData = {
         },
         {
                 "id": 224,
-                "name": "Kiskintha Full Hand Shirt 3",
-                "description": "Kiskintha Full Hand Shirt 3 from Kiskintha Mens Wear T-Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
+                "name": "Kiskintha Full Hand T-Shirt 3",
+                "description": "Kiskintha Full Hand T-Shirt 3 from Kiskintha Mens Wear T-Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
                 "price": 1499,
                 "original_price": 2099,
                 "image": "T-Shirts/full hand shirt 3.jpg",
@@ -3997,8 +3980,8 @@ const initialData = {
         },
         {
                 "id": 235,
-                "name": "Kiskintha Plain White T Short",
-                "description": "Kiskintha Plain White T Short from Kiskintha Mens Wear T-Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
+                "name": "Kiskintha Plain White T-Shirt",
+                "description": "Kiskintha Plain White T-Shirt from Kiskintha Mens Wear T-Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
                 "price": 999,
                 "original_price": 1399,
                 "image": "T-Shirts/plain white t short.jpg",
@@ -4099,8 +4082,8 @@ const initialData = {
         },
         {
                 "id": 241,
-                "name": "Kiskintha Summer T Shrt",
-                "description": "Kiskintha Summer T Shrt from Kiskintha Mens Wear T-Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
+                "name": "Kiskintha Summer T-Shirt",
+                "description": "Kiskintha Summer T-Shirt from Kiskintha Mens Wear T-Shirts collection. Premium quality fabric with durable stitching, stylish fit, and high comfort.",
                 "price": 399,
                 "original_price": 559,
                 "image": "T-Shirts/summer t shrt.jpg",
