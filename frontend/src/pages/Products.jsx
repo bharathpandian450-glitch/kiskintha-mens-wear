@@ -266,7 +266,7 @@ function Products() {
                     <form onSubmit={handleSearchSubmit} className="search-filter-form" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                         <input
                             type="text"
-                            placeholder="Search shirts, color, style..."
+                            placeholder="Search products, color, style..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             style={{
