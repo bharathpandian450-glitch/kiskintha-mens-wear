@@ -132,6 +132,58 @@ function Home() {
                     )}
                 </div>
             </section>
+
+            {/* Store Information, About & Address Section */}
+            <section className="section" style={{ paddingTop: 0, paddingBottom: '40px' }}>
+                <div className="container">
+                    <div style={{
+                        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+                        borderRadius: '16px',
+                        padding: '32px 28px',
+                        color: '#ffffff',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '24px'
+                    }}>
+                        <div style={{ flex: '1 1 320px' }}>
+                            <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(212, 175, 55, 0.2)', border: '1px solid #d4af37', borderRadius: '20px', fontSize: '12px', color: '#fef08a', fontWeight: '700', marginBottom: '10px' }}>
+                                🏪 Flagship Store &amp; Showroom
+                            </div>
+                            <h3 style={{ fontSize: '22px', fontWeight: '800', margin: '0 0 10px', color: '#ffffff' }}>
+                                Visit Our Store in Rajapalayam
+                            </h3>
+                            <p style={{ margin: 0, color: '#cbd5e1', fontSize: '14px', lineHeight: '1.6' }}>
+                                Discover the finest men's apparel in person. Experience our premium fabrics, custom fits, and exclusive collections at our main branch.
+                            </p>
+                        </div>
+
+                        <div style={{
+                            background: 'rgba(255, 255, 255, 0.08)',
+                            border: '1px solid rgba(255, 255, 255, 0.15)',
+                            borderRadius: '12px',
+                            padding: '20px 24px',
+                            flex: '1 1 280px',
+                            fontSize: '14px',
+                            lineHeight: '1.7',
+                            color: '#f8fafc'
+                        }}>
+                            <div style={{ fontWeight: '800', color: '#d4af37', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span>📍</span> Store Address:
+                            </div>
+                            <div style={{ fontWeight: '700', color: '#ffffff' }}>Alagappa Nadar Complex,</div>
+                            <div>Near Old Bus Stand,</div>
+                            <div>Rajapalayam – 626117,</div>
+                            <div>Tamil Nadu, India.</div>
+                            <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '13px', color: '#94a3b8' }}>
+                                📞 +91 7094153640 &nbsp;|&nbsp; 📧 bharathpandian450@gmail.com
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
     );
 }

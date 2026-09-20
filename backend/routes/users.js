@@ -210,7 +210,7 @@ router.post('/login', async (req, res) => {
                 email: 'kiskinthaowner@kiskinthamenswear.com',
                 username: 'kiskinthowner',
                 phone: '9876543200',
-                address: 'Kiskintha Mens Wear Main Branch, Chennai',
+                address: 'Alagappa Nadar Complex, Near Old Bus Stand, Rajapalayam – 626117, Tamil Nadu, India.',
                 role: 'owner'
             };
 
@@ -243,7 +243,7 @@ router.post('/login', async (req, res) => {
                 email: 'admin@kiskinthamenswear.com',
                 username: 'kiskinthaadmin',
                 phone: '9876543201',
-                address: 'Kiskintha Mens Wear Admin Office, Chennai',
+                address: 'Alagappa Nadar Complex, Near Old Bus Stand, Rajapalayam – 626117, Tamil Nadu, India.',
                 role: 'admin'
             };
 

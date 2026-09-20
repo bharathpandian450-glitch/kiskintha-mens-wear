@@ -16,7 +16,7 @@ function Welcome() {
 
                     <div className="welcome-body">
                         <p className="welcome-intro">
-                            Welcome to Chennai's premier e-fashion destination. Experience curated clothing, exclusive discounts, and seamless shopping.
+                            Welcome to Kiskintha Mens Wear, Rajapalayam. Experience curated clothing, exclusive discounts, and seamless shopping.
                         </p>
 
                         <div className="welcome-actions">
@@ -34,6 +34,9 @@ function Welcome() {
                             <span>✨ 100% Genuine Quality</span>
                             <span>🚚 Fast COD Delivery</span>
                             <span>🛡️ Secure Shopping</span>
+                        </div>
+                        <div style={{ marginTop: '14px', fontSize: '11px', color: '#94a3b8', lineHeight: '1.4' }}>
+                            📍 Alagappa Nadar Complex, Near Old Bus Stand, Rajapalayam – 626117, Tamil Nadu, India.
                         </div>
                     </div>
                 </div>

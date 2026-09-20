@@ -6,7 +6,7 @@ const passOwner = bcrypt.hashSync(process.env.OWNER_PASSWORD || 'Gowtham@123', 1
 // Initial Seed Data for Kiskintha Mens Wear MongoDB Collections (Includes ALL picture files in garments)
 const initialData = {
     users: [
-        { id: 3, name: 'Kiskintha (Store Owner)', email: 'kiskinthaowner@kiskinthamenswear.com', username: 'kiskinthaowner', password: passOwner, phone: '9876543200', address: 'Kiskintha Mens Wear Main Branch, Chennai', role: 'owner', created_at: new Date() }
+        { id: 3, name: 'Kiskintha (Store Owner)', email: 'kiskinthaowner@kiskinthamenswear.com', username: 'kiskinthaowner', password: passOwner, phone: '9876543200', address: 'Alagappa Nadar Complex, Near Old Bus Stand, Rajapalayam – 626117, Tamil Nadu, India.', role: 'owner', created_at: new Date() }
     ],
     categories: [
         { id: 1, name: 'T-Shirts' },

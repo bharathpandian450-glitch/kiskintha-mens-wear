@@ -338,7 +338,7 @@ function OwnerDashboard() {
                                     Kiskintha Mens Wear • Executive Business Operations Dashboard
                                 </p>
                                 <p style={{ margin: '4px 0 0', color: '#e2e8f0', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    📍 Store Address: <strong style={{ color: '#ffffff' }}>{user?.address || 'Kiskintha Mens Wear Main Branch, Chennai'}</strong>
+                                    📍 Store Address: <strong style={{ color: '#ffffff' }}>{user?.address || 'Alagappa Nadar Complex, Near Old Bus Stand, Rajapalayam – 626117, Tamil Nadu, India.'}</strong>
                                 </p>
                             </div>
                         </div>
@@ -642,7 +642,7 @@ function OwnerDashboard() {
                                                         <td style={{ padding: '14px 12px', maxWidth: '220px', color: '#334155', fontSize: '12px', lineHeight: '1.4' }}>
                                                             <div style={{ fontWeight: '600', color: '#0f172a' }}>📍 {order.address || 'Standard Delivery Address'}</div>
                                                             <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                                                                🏙️ {order.city || 'Chennai'}, {order.state || 'Tamil Nadu'} - {order.pincode || '600040'}
+                                                                🏙️ {order.city || 'Rajapalayam'}, {order.state || 'Tamil Nadu'} - {order.pincode || '626117'}
                                                             </div>
                                                         </td>
 
@@ -1193,7 +1193,7 @@ function OwnerDashboard() {
                                     <div style={{ gridColumn: 'span 2' }}>
                                         <strong>Delivery Address:</strong> {selectedOrder.address || 'Standard Address'}
                                     </div>
-                                    <div><strong>City:</strong> {selectedOrder.city || 'Chennai'}</div>
+                                    <div><strong>City:</strong> {selectedOrder.city || 'Rajapalayam'}</div>
                                     <div><strong>State:</strong> {selectedOrder.state || 'Tamil Nadu'}</div>
                                     <div><strong>Pincode:</strong> {selectedOrder.pincode || '600040'}</div>
                                 </div>

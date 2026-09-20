@@ -23,7 +23,12 @@ function Footer() {
                         <ul>
                             <li>📧 bharathpandian450@gmail.com</li>
                             <li>📞 +91 7094153640</li>
-                            <li>📍 Chennai, Tamil Nadu, India</li>
+                            <li style={{ lineHeight: '1.6', marginTop: '6px' }}>
+                                📍 <strong>Alagappa Nadar Complex,</strong><br />
+                                &nbsp;&nbsp;&nbsp;&nbsp;Near Old Bus Stand,<br />
+                                &nbsp;&nbsp;&nbsp;&nbsp;Rajapalayam – 626117,<br />
+                                &nbsp;&nbsp;&nbsp;&nbsp;Tamil Nadu, India.
+                            </li>
                         </ul>
                     </div>
                 </div>

@@ -34,9 +34,9 @@ router.post('/', auth, async (req, res) => {
         const custName = name || (req.user ? req.user.name : 'Customer');
         const custEmail = email || (req.user ? req.user.email : '');
         const custPhone = phone || (req.user ? req.user.phone : '');
-        const custCity = city || 'Chennai';
+        const custCity = city || 'Rajapalayam';
         const custState = state || 'Tamil Nadu';
-        const custPincode = pincode || '600040';
+        const custPincode = pincode || '626117';
 
         // Determine unique next order ID in MongoDB
         let maxMongoId = 0;

@@ -152,6 +152,7 @@ function Checkout() {
                             <h4 style={{ margin: '0 0 10px', color: '#0f172a', fontSize: '15px' }}>💳 Payment Verification Details:</h4>
                             <div style={{ fontSize: '13px', color: '#334155', lineHeight: '1.8' }}>
                                 <div><strong>Store Payee:</strong> Kiskintha Mens Wear</div>
+                                <div><strong>Store Address:</strong> Alagappa Nadar Complex, Near Old Bus Stand, Rajapalayam – 626117, Tamil Nadu, India.</div>
                                 <div><strong>Store UPI ID:</strong> <code style={{ background: '#e2e8f0', padding: '2px 6px', borderRadius: '4px', color: '#0f172a', fontWeight: '700' }}>{STORE_UPI_ID}</code></div>
                                 <div><strong>Total Amount:</strong> ₹{totalAmount.toLocaleString('en-IN')}</div>
                                 {form.utrRef && <div><strong>UTR / Ref No:</strong> {form.utrRef}</div>}
