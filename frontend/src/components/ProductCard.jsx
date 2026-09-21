@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { getImageUrl } from '../api';
+import { getProductBadge } from '../utils/categoryHelper';
 
 const getImageSrc = (img) => getImageUrl(img);
 
@@ -25,10 +26,11 @@ function ProductCard({ product }) {
     const availableSizes = product.size ? product.size.split(',').slice(0, 5).join(', ') : 'S, M, L, XL, XXL';
 
     const isOutOfStock = !product.stock || Number(product.stock) <= 0;
+    const isPant = Number(product.category_id) === 3 || Number(product.category_id) === 4 || /pant|trouser/i.test(product.category_name || '');
 
     return (
         <div className="product-card" style={{ position: 'relative', background: '#ffffff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', opacity: isOutOfStock ? 0.85 : 1 }}>
-            <Link to={`/products/${product.id}`}>
+            <Link to={`/products/${product.id || product._id}`}>
                 <div className="product-card-image" style={{ position: 'relative', overflow: 'hidden', height: '260px', background: '#f8fafc' }}>
                     {product.image ? (
                         <img
@@ -71,9 +73,9 @@ function ProductCard({ product }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <span className="badge badge-primary category" style={{ background: '#eff6ff', color: '#1e40af', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700' }}>
-                            {product.subcategory || product.category_name || 'Men Wear'}
+                            {getProductBadge(product)}
                         </span>
-                        {product.sleeve_type && (
+                        {!isPant && product.sleeve_type && (
                             <span style={{
                                 background: product.sleeve_type === 'Half Hand' ? '#fef3c7' : '#f0fdf4',
                                 color: product.sleeve_type === 'Half Hand' ? '#b45309' : '#166534',

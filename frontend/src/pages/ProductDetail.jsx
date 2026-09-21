@@ -3,6 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import API, { getImageUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { initialProducts } from '../data/initialProducts';
+import { getProductBadge } from '../utils/categoryHelper';
 
 const getImageSrc = (img) => getImageUrl(img);
 
@@ -13,11 +15,12 @@ function ProductDetail() {
     const { addToCart } = useCart();
     const isOwnerOrAdmin = user && (user.role === 'owner' || user.role === 'admin');
 
-    const [product, setProduct] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [selectedSize, setSelectedSize] = useState('');
-    const [selectedColor, setSelectedColor] = useState('');
-    const [activeImage, setActiveImage] = useState('');
+    const localProduct = initialProducts.find(p => String(p.id) === String(id) || String(p._id) === String(id));
+    const [product, setProduct] = useState(localProduct || null);
+    const [loading, setLoading] = useState(!localProduct);
+    const [selectedSize, setSelectedSize] = useState(localProduct?.size ? localProduct.size.split(',')[0].trim() : 'M');
+    const [selectedColor, setSelectedColor] = useState(localProduct?.color || 'Assorted');
+    const [activeImage, setActiveImage] = useState(localProduct?.image || '');
     const [quantity, setQuantity] = useState(1);
     const [added, setAdded] = useState(false);
 
@@ -38,18 +41,26 @@ function ProductDetail() {
             ]);
 
             const data = pRes.data;
-            setProduct(data);
-            setActiveImage(data.image);
+            if (data && (data.id || data.name)) {
+                setProduct(data);
+                if (!activeImage) setActiveImage(data.image);
+                const sizes = data.size ? data.size.split(',').map(s => s.trim()) : ['M'];
+                if (sizes.length > 0 && !selectedSize) setSelectedSize(sizes[0]);
+                if (!selectedColor) setSelectedColor(data.color || 'Assorted');
+            } else if (!product && localProduct) {
+                setProduct(localProduct);
+                if (!activeImage) setActiveImage(localProduct.image);
+            }
 
-            const sizes = data.size ? data.size.split(',').map(s => s.trim()) : ['32'];
-            if (sizes.length > 0) setSelectedSize(sizes[0]);
-            setSelectedColor(data.color || 'Assorted');
-
-            if (rRes.data) {
+            if (rRes?.data) {
                 setReviewsData(rRes.data);
             }
         } catch (error) {
             console.error('Error fetching product details:', error);
+            if (!product && localProduct) {
+                setProduct(localProduct);
+                if (!activeImage) setActiveImage(localProduct.image);
+            }
         } finally {
             setLoading(false);
         }
@@ -136,6 +147,7 @@ function ProductDetail() {
     const sizes = product.size ? product.size.split(',').map(s => s.trim()) : ['S', 'M', 'L', 'XL', 'XXL'];
     const avgRating = reviewsData.average_rating || product.rating || 4.5;
     const totalReviews = reviewsData.total_reviews || (reviewsData.reviews ? reviewsData.reviews.length : 0);
+    const isPant = Number(product?.category_id) === 3 || Number(product?.category_id) === 4 || /pant|trouser/i.test(product?.category_name || '');
 
     return (
         <div className="product-detail" style={{ padding: '30px 12px', background: '#f8fafc', minHeight: '85vh' }}>
@@ -171,8 +183,8 @@ function ProductDetail() {
                         {/* Right: Product Info & Actions */}
                         <div className="product-detail-info">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                                <span className="badge badge-primary">{product.category_name || 'Men Wear'}</span>
-                                {product.sleeve_type && (
+                                <span className="badge badge-primary">{getProductBadge(product)}</span>
+                                {!isPant && product.sleeve_type && (
                                     <span style={{
                                         background: product.sleeve_type === 'Half Hand' ? '#fef3c7' : '#f0fdf4',
                                         color: product.sleeve_type === 'Half Hand' ? '#b45309' : '#166534',

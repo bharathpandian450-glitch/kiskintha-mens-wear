@@ -70,7 +70,7 @@ function Home() {
                 <div className="container">
                     <h2 className="section-title">Shop by Category</h2>
                     <div className="categories-grid">
-                        {categories.map(cat => (
+                        {categories.filter(cat => String(cat.name).toLowerCase() !== 'trousers' && String(cat.id) !== '4').map(cat => (
                             <Link
                                 to={`/products?category=${cat.id}`}
                                 key={cat.id}

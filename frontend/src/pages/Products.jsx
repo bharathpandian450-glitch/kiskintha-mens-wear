@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import API from '../api';
 import ProductCard from '../components/ProductCard';
 import { initialProducts } from '../data/initialProducts';
+import { getProductBadge } from '../utils/categoryHelper';
 
 const categoriesList = [
     { id: '', name: 'All Products', icon: '🛍️' },
@@ -13,7 +14,6 @@ const categoriesList = [
     { id: 'tshirts-full', name: 'Full Hand T-Shirts', icon: '👔', catId: '1', sleeve: 'Full Hand' },
     { id: 'tshirts-half', name: 'Half Hand T-Shirts', icon: '👕', catId: '1', sleeve: 'Half Hand' },
     { id: '3', name: 'Pants', icon: '👖', catId: '3' },
-    { id: '4', name: 'Trousers', icon: '👖', catId: '4' },
     { id: '7', name: 'Hoodies', icon: '🧥', catId: '7' },
     { id: '8', name: 'Group Shirts', icon: '👔', catId: '8' }
 ];
@@ -39,7 +39,10 @@ function Products() {
 
     const activeCategory = searchParams.get('category') || '';
     const searchQuery = searchParams.get('search') || '';
-    const isPantsCategory = String(activeCategory).toLowerCase() === '3' || String(activeCategory).toLowerCase() === 'pants';
+    const isPantsCategory = String(activeCategory).toLowerCase() === '3' || 
+                            String(activeCategory).toLowerCase() === '4' || 
+                            String(activeCategory).toLowerCase() === 'pants' || 
+                            String(activeCategory).toLowerCase() === 'trousers';
 
     useEffect(() => {
         if (isPantsCategory) {
@@ -141,10 +144,8 @@ function Products() {
                             return (pCatId === '2' || (pCatName.includes('shirt') && !pCatName.includes('t-shirt') && !pCatName.includes('tshirt') && !pCatName.includes('group')));
                         } else if (targetCatId === '1') {
                             return (pCatId === '1' || pCatName.includes('t-shirt') || pCatName.includes('tshirt'));
-                        } else if (targetCatId === '3') {
-                            return (pCatId === '3' || pCatName.includes('pant'));
-                        } else if (targetCatId === '4') {
-                            return (pCatId === '4' || pCatName.includes('trouser'));
+                        } else if (targetCatId === '3' || targetCatId === '4') {
+                            return (pCatId === '3' || pCatId === '4' || pCatName.includes('pant') || pCatName.includes('trouser'));
                         } else if (targetCatId === '7') {
                             return (pCatId === '7' || pCatName.includes('hoodie'));
                         } else if (targetCatId === '8') {
@@ -153,15 +154,20 @@ function Products() {
                         return pCatId === targetCatId || pCatName.includes(targetName);
                     });
                 }
+            } else if (isPantsCategory) {
+                list = list.filter(p => String(p.category_id) === '3' || String(p.category_id) === '4' || (p.category_name && /pant|trouser/i.test(p.category_name)));
             } else {
                 list = list.filter(p => String(p.category_id) === String(activeCategory));
             }
         }
 
-        // 2. Pants Sub-Category Filter: Jeans, Formal, Cotton (Applies when Pants category is selected)
+        // 2. Pants Sub-Category Filter: Formal, Cotton, Baggy (Applies when Pants category is selected)
         if (isPantsCategory && pantsSubCategory && pantsSubCategory !== 'All') {
             const targetSub = pantsSubCategory.toLowerCase();
-            list = list.filter(p => p.subcategory && p.subcategory.toLowerCase().includes(targetSub));
+            list = list.filter(p => {
+                const badge = getProductBadge(p).toLowerCase();
+                return badge === targetSub;
+            });
         }
 
         // 3. Product Type / Sleeve Filter: STRICT Full Hand vs Half Hand (Only for Shirts/T-Shirts, NEVER for Pants)
@@ -237,6 +243,7 @@ function Products() {
 
     const getActiveCategoryTitle = () => {
         if (!activeCategory) return '🛍️ All Products Catalog';
+        if (isPantsCategory) return '👖 Pants Catalog';
         const cat = categoriesList.find(c => String(c.id).toLowerCase() === String(activeCategory).toLowerCase()) ||
                     categoriesList.find(c => String(c.catId) === String(activeCategory) && !c.sleeve);
         return cat ? `${cat.icon} ${cat.name} Catalog` : '🛍️ Products Catalog';
@@ -333,7 +340,8 @@ function Products() {
                 }}>
                     {categoriesList.map(cat => {
                         const isActive = (cat.id === '' && activeCategory === '') || 
-                                         (cat.id !== '' && (String(activeCategory).toLowerCase() === String(cat.id).toLowerCase() || (String(cat.catId) === String(activeCategory) && !cat.sleeve)));
+                                         (cat.id === '3' && isPantsCategory) ||
+                                         (cat.id !== '' && cat.id !== '3' && (String(activeCategory).toLowerCase() === String(cat.id).toLowerCase() || (String(cat.catId) === String(activeCategory) && !cat.sleeve)));
                         return (
                             <button
                                 key={cat.id}

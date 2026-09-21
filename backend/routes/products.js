@@ -59,7 +59,11 @@ router.get('/', async (req, res) => {
                 filter.sleeve_type = 'Half Hand';
             } else if (!isNaN(Number(catParam))) {
                 const numCat = Number(catParam);
-                filter.$or = [{ category_id: numCat }, { category_id: String(numCat) }];
+                if (numCat === 3 || numCat === 4) {
+                    filter.$or = [{ category_id: 3 }, { category_id: '3' }, { category_id: 4 }, { category_id: '4' }, { category_name: /pant|trouser/i }];
+                } else {
+                    filter.$or = [{ category_id: numCat }, { category_id: String(numCat) }];
+                }
             } else {
                 const catLower = catParam.toLowerCase();
                 if (catLower.includes('group')) {
@@ -68,10 +72,8 @@ router.get('/', async (req, res) => {
                     filter.$or = [{ category_id: 1 }, { category_id: '1' }, { category_name: /t-shirt/i }];
                 } else if (catLower.includes('shirt')) {
                     filter.$or = [{ category_id: 2 }, { category_id: '2' }, { category_name: /^shirts$/i }];
-                } else if (catLower.includes('pant')) {
-                    filter.$or = [{ category_id: 3 }, { category_id: '3' }, { category_name: /pant/i }];
-                } else if (catLower.includes('trouser')) {
-                    filter.$or = [{ category_id: 4 }, { category_id: '4' }, { category_name: /trouser/i }];
+                } else if (catLower.includes('pant') || catLower.includes('trouser')) {
+                    filter.$or = [{ category_id: 3 }, { category_id: '3' }, { category_id: 4 }, { category_id: '4' }, { category_name: /pant|trouser/i }];
                 } else if (catLower.includes('hoodie')) {
                     filter.$or = [{ category_id: 7 }, { category_id: '7' }, { category_name: /hoodie/i }];
                 }
@@ -182,7 +184,11 @@ router.get('/', async (req, res) => {
                 products = products.filter(p => (Number(p.category_id) === 1 || /t-shirts/i.test(p.category_name)) && p.sleeve_type === 'Half Hand');
             } else if (!isNaN(Number(catParam))) {
                 const numCat = Number(catParam);
-                products = products.filter(p => Number(p.category_id) === numCat);
+                if (numCat === 3 || numCat === 4) {
+                    products = products.filter(p => Number(p.category_id) === 3 || Number(p.category_id) === 4 || /pant|trouser/i.test(p.category_name));
+                } else {
+                    products = products.filter(p => Number(p.category_id) === numCat);
+                }
             } else {
                 const catLower = catParam.toLowerCase();
                 if (catLower.includes('group')) {
@@ -191,10 +197,8 @@ router.get('/', async (req, res) => {
                     products = products.filter(p => Number(p.category_id) === 1 || /t-shirt/i.test(p.category_name));
                 } else if (catLower.includes('shirt')) {
                     products = products.filter(p => Number(p.category_id) === 2 || /shirts/i.test(p.category_name));
-                } else if (catLower.includes('pant')) {
-                    products = products.filter(p => Number(p.category_id) === 3 || /pant/i.test(p.category_name));
-                } else if (catLower.includes('trouser')) {
-                    products = products.filter(p => Number(p.category_id) === 4 || /trouser/i.test(p.category_name));
+                } else if (catLower.includes('pant') || catLower.includes('trouser')) {
+                    products = products.filter(p => Number(p.category_id) === 3 || Number(p.category_id) === 4 || /pant|trouser/i.test(p.category_name));
                 } else if (catLower.includes('hoodie')) {
                     products = products.filter(p => Number(p.category_id) === 7 || /hoodie/i.test(p.category_name));
                 }
@@ -207,7 +211,20 @@ router.get('/', async (req, res) => {
 
         if (req.query.subcategory && req.query.subcategory !== 'All') {
             const sub = req.query.subcategory.trim().toLowerCase();
-            products = products.filter(p => (p.subcategory || '').toLowerCase() === sub);
+            products = products.filter(p => {
+                const itemSub = (p.subcategory || '').toLowerCase();
+                const itemName = (p.name || '').toLowerCase();
+                if (sub === 'formal') {
+                    return itemSub.includes('formal') || itemName.includes('formal') || Number(p.category_id) === 4 || (p.category_name && /trouser/i.test(p.category_name));
+                }
+                if (sub === 'cotton') {
+                    return itemSub.includes('cotton') || itemName.includes('cotton');
+                }
+                if (sub === 'baggy') {
+                    return itemSub.includes('baggy') || itemName.includes('baggy') || itemSub.includes('jeans') || itemName.includes('jeans') || itemSub.includes('cargo') || itemName.includes('cargo');
+                }
+                return itemSub.includes(sub) || itemName.includes(sub);
+            });
         }
 
         if (req.query.color && req.query.color !== 'All') {
@@ -257,16 +274,28 @@ router.get('/', async (req, res) => {
 // GET single product by ID (Native MongoDB)
 router.get('/:id', async (req, res) => {
     try {
-        let prod = null;
-        if (getIsConnected()) {
-            try { prod = await Product.findOne({ id: Number(req.params.id) }).lean(); } catch (e) {}
-        }
-        if (!prod && initialData && initialData.products) {
-            prod = initialData.products.find(p => Number(p.id) === Number(req.params.id));
+        const idParam = req.params.id;
+        if (String(idParam) === '218') {
+            return res.status(404).json({ message: 'Product not found' });
         }
 
-        if (Number(req.params.id) === 218) {
-            return res.status(404).json({ message: 'Product not found' });
+        let prod = null;
+        if (getIsConnected()) {
+            try { 
+                prod = await Product.findOne({ 
+                    $or: [
+                        { id: Number(idParam) },
+                        { id: String(idParam) }
+                    ]
+                }).lean(); 
+            } catch (e) {}
+        }
+        if (!prod) {
+            const diskProds = loadPersistentProducts();
+            prod = diskProds.find(p => String(p.id) === String(idParam) || String(p._id) === String(idParam));
+        }
+        if (!prod && initialData && initialData.products) {
+            prod = initialData.products.find(p => String(p.id) === String(idParam) || String(p._id) === String(idParam));
         }
 
         if (!prod) {
