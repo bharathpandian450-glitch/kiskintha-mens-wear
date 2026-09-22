@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Product, Order, User, connectMongoDB, getIsConnected } = require('../config/mongodb');
+const { loadPersistentOrders } = require('../config/persistentOrders');
 const { initialData } = require('../config/db');
 const { auth, isOwner } = require('../middleware/auth');
 
@@ -39,6 +40,13 @@ router.get('/overview', auth, isOwner, async (req, res) => {
             totalProducts = initialData.products.length;
         }
 
+        const diskOrders = loadPersistentOrders();
+        if (diskOrders.length > totalOrders) {
+            totalOrders = diskOrders.length;
+            const validOrders = diskOrders.filter(o => (o.status || '').toLowerCase() !== 'cancelled');
+            totalRevenue = validOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+        }
+
         res.json({
             ownerName: req.user.name || 'Kiskintha (Store Owner)',
             shopName: 'Kiskintha Mens Wear',
@@ -50,15 +58,40 @@ router.get('/overview', auth, isOwner, async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching owner overview from MongoDB:', error);
+        const diskOrders = loadPersistentOrders();
+        const validOrders = diskOrders.filter(o => (o.status || '').toLowerCase() !== 'cancelled');
+        const fallbackRev = validOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
         res.json({
             ownerName: req.user.name || 'Kiskintha (Store Owner)',
             shopName: 'Kiskintha Mens Wear',
-            totalProducts: 153,
-            totalOrders: 0,
-            totalCustomers: 0,
+            totalProducts: initialData.products?.length || 153,
+            totalOrders: diskOrders.length || 0,
+            totalCustomers: 1,
             totalAdmins: 1,
-            totalRevenue: 0
+            totalRevenue: fallbackRev || 0
         });
+    }
+});
+
+// GET all customer orders for Store Owner (Native MongoDB + Persistent Backup)
+router.get('/orders', auth, isOwner, async (req, res) => {
+    try {
+        let mongoOrders = [];
+        if (getIsConnected()) {
+            try {
+                mongoOrders = await Order.find({}).sort({ created_at: -1 }).lean();
+            } catch (e) {}
+        }
+        const diskOrders = loadPersistentOrders();
+        const orderMap = new Map();
+        diskOrders.forEach(o => orderMap.set(Number(o.id), o));
+        mongoOrders.forEach(o => orderMap.set(Number(o.id), o));
+        const allOrders = Array.from(orderMap.values());
+        allOrders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        res.json(allOrders);
+    } catch (error) {
+        console.error('Error fetching owner orders:', error);
+        res.status(500).json({ message: 'Server error fetching owner orders' });
     }
 });
 

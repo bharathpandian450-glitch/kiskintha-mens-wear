@@ -1,1 +1,32 @@
-﻿[]
+[
+  {
+    "id": 1790055429789,
+    "name": "gokul",
+    "email": "gokul@123gamil.com",
+    "phone": "7822302689",
+    "password": "$2a$10$Wq00M.hl/T/3KlqKga7wgu0uT3esTJRNhh5JT6oO7KbF8HvsWJYay",
+    "address": "Chennai, Tamil Nadu",
+    "role": "customer",
+    "created_at": "2026-09-22T05:37:09.790Z"
+  },
+  {
+    "id": 1789969917443,
+    "name": "munish",
+    "email": "munish450@gmail.com",
+    "phone": "9876543211",
+    "password": "$2a$10$EHRCLXGBW3oAhgh3suIaJO7RRnNGWJYAEeNIH/7b/y/LmbH1GpX3O",
+    "address": "Chennai, Tamil Nadu",
+    "role": "customer",
+    "created_at": "2026-09-21T05:51:57.443Z"
+  },
+  {
+    "id": 1789969340377,
+    "name": "munish",
+    "email": "munish@gmail.com",
+    "phone": "6247402902",
+    "password": "$2a$10$2NFzta.l/m6V2byCDlgfRegzL21YGo6mbIMNaYW1h/lHAYbuFzZWy",
+    "address": "Chennai, Tamil Nadu",
+    "role": "customer",
+    "created_at": "2026-09-21T05:42:20.377Z"
+  }
+]

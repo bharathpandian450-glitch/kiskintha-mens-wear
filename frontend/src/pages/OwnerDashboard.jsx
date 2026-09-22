@@ -57,9 +57,13 @@ function OwnerDashboard() {
                     console.error('Overview error:', err);
                     return { data: null };
                 }),
-                API.get('/orders').catch(err => {
-                    console.error('Orders error:', err);
-                    return { data: [] };
+                API.get('/orders').catch(async (err) => {
+                    console.warn('Orders route note, trying /owner/orders:', err?.message);
+                    try {
+                        return await API.get('/owner/orders');
+                    } catch (e) {
+                        return { data: [] };
+                    }
                 }),
                 API.get('/admin/customers').catch(err => {
                     console.error('Customers error:', err);

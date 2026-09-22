@@ -33,11 +33,12 @@ function Orders() {
             return true;
         }
     });
-    const [error, setError] = useState('');
+    const [authError, setAuthError] = useState(false);
 
-    const fetchOrders = async () => {
+    const fetchOrders = async (retryCount = 0) => {
         try {
             setError('');
+            setAuthError(false);
             const res = await API.get('/orders/my');
             const data = res.data || [];
             setOrders(data);
@@ -46,9 +47,18 @@ function Orders() {
             } catch (e) {}
         } catch (err) {
             console.error('Fetch orders note:', err.message);
-            const saved = localStorage.getItem('cached_my_orders');
-            if (!saved || JSON.parse(saved).length === 0) {
-                setError(err.response?.data?.message || 'Unable to load orders right now.');
+            const isAuth = err.response && (err.response.status === 401 || err.response.status === 403);
+            if (isAuth) {
+                setAuthError(true);
+                setError(err.response?.data?.message || 'Your session has expired. Please sign in.');
+            } else if (retryCount < 1) {
+                // Auto-retry once after 800ms
+                setTimeout(() => fetchOrders(retryCount + 1), 800);
+            } else {
+                const saved = localStorage.getItem('cached_my_orders');
+                if (!saved || JSON.parse(saved).length === 0) {
+                    setError('Unable to load orders right now. Please check server connection.');
+                }
             }
         } finally {
             setLoading(false);
@@ -58,6 +68,13 @@ function Orders() {
     useEffect(() => {
         window.scrollTo(0, 0);
         fetchOrders();
+
+        // Background sync every 12 seconds for real-time delivery status updates
+        const interval = setInterval(() => {
+            fetchOrders(1);
+        }, 12000);
+
+        return () => clearInterval(interval);
     }, []);
 
     if (loading) {
@@ -75,11 +92,17 @@ function Orders() {
         return (
             <div className="orders-page" style={{ padding: '60px 20px', minHeight: '60vh' }}>
                 <div className="container" style={{ maxWidth: '700px', margin: '0 auto', textAlign: 'center', background: '#ffffff', padding: '40px 24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
-                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔐</div>
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>{authError ? '🔐' : '📡'}</div>
                     <div className="alert alert-error" style={{ marginBottom: '20px' }}>{error}</div>
-                    <Link to="/login" className="btn btn-primary" style={{ padding: '12px 28px', fontSize: '15px', fontWeight: '700', borderRadius: '10px' }}>
-                        Sign In Now →
-                    </Link>
+                    {authError ? (
+                        <Link to="/login" className="btn btn-primary" style={{ padding: '12px 28px', fontSize: '15px', fontWeight: '700', borderRadius: '10px' }}>
+                            Sign In Now →
+                        </Link>
+                    ) : (
+                        <button onClick={() => { setLoading(true); fetchOrders(); }} className="btn btn-primary" style={{ padding: '12px 28px', fontSize: '15px', fontWeight: '700', borderRadius: '10px' }}>
+                            🔄 Try Again
+                        </button>
+                    )}
                 </div>
             </div>
         );
