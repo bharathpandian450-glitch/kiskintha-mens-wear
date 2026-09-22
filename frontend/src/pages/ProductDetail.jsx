@@ -43,13 +43,13 @@ function ProductDetail() {
             const data = pRes.data;
             if (data && (data.id || data.name)) {
                 setProduct(data);
-                if (!activeImage) setActiveImage(data.image);
+                setActiveImage(data.image || '');
                 const sizes = data.size ? data.size.split(',').map(s => s.trim()) : ['M'];
-                if (sizes.length > 0 && !selectedSize) setSelectedSize(sizes[0]);
-                if (!selectedColor) setSelectedColor(data.color || 'Assorted');
+                if (sizes.length > 0) setSelectedSize(sizes[0]);
+                setSelectedColor(data.color || 'Assorted');
             } else if (!product && localProduct) {
                 setProduct(localProduct);
-                if (!activeImage) setActiveImage(localProduct.image);
+                setActiveImage(localProduct.image || '');
             }
 
             if (rRes?.data) {
@@ -59,7 +59,7 @@ function ProductDetail() {
             console.error('Error fetching product details:', error);
             if (!product && localProduct) {
                 setProduct(localProduct);
-                if (!activeImage) setActiveImage(localProduct.image);
+                setActiveImage(localProduct.image || '');
             }
         } finally {
             setLoading(false);
@@ -68,6 +68,14 @@ function ProductDetail() {
 
     useEffect(() => {
         window.scrollTo(0, 0);
+        const currentLocal = initialProducts.find(p => String(p.id) === String(id) || String(p._id) === String(id));
+        if (currentLocal) {
+            setProduct(currentLocal);
+            setActiveImage(currentLocal.image || '');
+            const sizes = currentLocal.size ? currentLocal.size.split(',').map(s => s.trim()) : ['M'];
+            setSelectedSize(sizes[0] || 'M');
+            setSelectedColor(currentLocal.color || 'Assorted');
+        }
         fetchProductAndReviews();
     }, [id]);
 

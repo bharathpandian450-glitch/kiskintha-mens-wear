@@ -530,20 +530,20 @@ function Products() {
                         {!isPantsCategory && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                                 <span style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', minWidth: '110px' }}>
-                                    👔 {activeCategory === '2' ? 'Shirt Style:' : activeCategory === '1' ? 'T-Shirt Style:' : 'Product Type:'}
+                                    👔 {(activeCategory === '2' || activeCategory === 'shirts') ? 'Shirt Style:' : (activeCategory === '1' || activeCategory === 't-shirts') ? 'T-Shirt Style:' : 'Product Type:'}
                                 </span>
                                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                     {[
                                         { 
-                                            label: activeCategory === '2' ? 'All Shirts' : activeCategory === '1' ? 'All T-Shirts' : 'All Types', 
+                                            label: (activeCategory === '2' || activeCategory === 'shirts') ? 'All Shirts' : (activeCategory === '1' || activeCategory === 't-shirts') ? 'All T-Shirts' : 'All Types', 
                                             value: 'All' 
                                         },
                                         { 
-                                            label: activeCategory === '2' ? '👔 Full Hand Shirts' : activeCategory === '1' ? '👔 Full Hand T-Shirts' : '👔 Full Hand', 
+                                            label: (activeCategory === '2' || activeCategory === 'shirts') ? '👔 Full Hand Shirts' : (activeCategory === '1' || activeCategory === 't-shirts') ? '👔 Full Hand T-Shirts' : '👔 Full Hand', 
                                             value: 'Full Hand' 
                                         },
                                         { 
-                                            label: activeCategory === '2' ? '👕 Half Hand Shirts' : activeCategory === '1' ? '👕 Half Hand T-Shirts' : '👕 Half Hand', 
+                                            label: (activeCategory === '2' || activeCategory === 'shirts') ? '👕 Half Hand Shirts' : (activeCategory === '1' || activeCategory === 't-shirts') ? '👕 Half Hand T-Shirts' : '👕 Half Hand', 
                                             value: 'Half Hand' 
                                         }
                                     ].map(t => {
