@@ -70,7 +70,12 @@ function Home() {
                 <div className="container">
                     <h2 className="section-title">Shop by Category</h2>
                     <div className="categories-grid">
-                        {categories.filter(cat => String(cat.name).toLowerCase() !== 'trousers' && String(cat.id) !== '4').map(cat => (
+                        {[
+                            { id: '2', name: 'Shirts', icon: '👔' },
+                            { id: '1', name: 'T-Shirts', icon: '👕' },
+                            { id: '3', name: 'Pants', icon: '👖' },
+                            { id: '7', name: 'Hoodies', icon: '🧥' }
+                        ].map(cat => (
                             <Link
                                 to={`/products?category=${cat.id}`}
                                 key={cat.id}
@@ -96,7 +101,7 @@ function Home() {
                                 }}>
                                     <div className="emoji" style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
                                         {categoryCustomIcons[cat.name] || (
-                                            <span style={{ fontSize: '36px' }}>{categoryEmojis[cat.name] || '🏷️'}</span>
+                                            <span style={{ fontSize: '36px' }}>{cat.icon}</span>
                                         )}
                                     </div>
                                     <div className="name" style={{ fontWeight: '700', color: '#0f172a', fontSize: '16px' }}>{cat.name}</div>

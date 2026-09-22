@@ -130,7 +130,9 @@ function Products() {
             if (activeCatObj) {
                 if (activeCatObj.sleeve) {
                     list = list.filter(p => 
-                        (String(p.category_id) === String(activeCatObj.catId) || (p.category_name && p.category_name.toLowerCase().includes(activeCatObj.catId === '2' ? 'shirt' : 't-shirt'))) && 
+                        (String(p.category_id) === String(activeCatObj.catId) || 
+                         (activeCatObj.catId === '2' && (String(p.category_id) === '8' || (/shirt/i.test(p.category_name || '') && !/t-shirt|tshirt/i.test(p.category_name || '')))) ||
+                         (activeCatObj.catId === '1' && /t-shirt|tshirt/i.test(p.category_name || ''))) && 
                         p.sleeve_type === activeCatObj.sleeve
                     );
                 } else if (activeCatObj.catId) {
@@ -141,7 +143,7 @@ function Products() {
                         const targetName = activeCatObj.name.toLowerCase();
 
                         if (targetCatId === '2') {
-                            return (pCatId === '2' || (pCatName.includes('shirt') && !pCatName.includes('t-shirt') && !pCatName.includes('tshirt') && !pCatName.includes('group')));
+                            return (pCatId === '2' || pCatId === '8' || (pCatName.includes('shirt') && !pCatName.includes('t-shirt') && !pCatName.includes('tshirt')));
                         } else if (targetCatId === '1') {
                             return (pCatId === '1' || pCatName.includes('t-shirt') || pCatName.includes('tshirt'));
                         } else if (targetCatId === '3' || targetCatId === '4') {
