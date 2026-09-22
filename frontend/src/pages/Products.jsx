@@ -3,19 +3,18 @@ import { useSearchParams } from 'react-router-dom';
 import API from '../api';
 import ProductCard from '../components/ProductCard';
 import { initialProducts } from '../data/initialProducts';
-import { getProductBadge } from '../utils/categoryHelper';
+import { getProductBadge, getProductCollection } from '../utils/categoryHelper';
 
 const categoriesList = [
     { id: '', name: 'All Products', icon: '🛍️' },
-    { id: '2', name: 'Shirts', icon: '👔', catId: '2' },
-    { id: 'shirts-full', name: 'Full Hand Shirts', icon: '👔', catId: '2', sleeve: 'Full Hand' },
-    { id: 'shirts-half', name: 'Half Hand Shirts', icon: '👕', catId: '2', sleeve: 'Half Hand' },
-    { id: '1', name: 'T-Shirts', icon: '👕', catId: '1' },
-    { id: 'tshirts-full', name: 'Full Hand T-Shirts', icon: '👔', catId: '1', sleeve: 'Full Hand' },
-    { id: 'tshirts-half', name: 'Half Hand T-Shirts', icon: '👕', catId: '1', sleeve: 'Half Hand' },
-    { id: '3', name: 'Pants', icon: '👖', catId: '3' },
-    { id: '7', name: 'Hoodies', icon: '🧥', catId: '7' },
-    { id: '8', name: 'Group Shirts', icon: '👔', catId: '8' }
+    { id: 'shirts', name: 'Shirts', icon: '👔' },
+    { id: 't-shirts', name: 'T-Shirts', icon: '👕' },
+    { id: 'pants', name: 'Pants', icon: '👖' },
+    { id: 'formal-pants', name: 'Formal Pants', icon: '👖' },
+    { id: 'cotton-pants', name: 'Cotton Pants', icon: '👖' },
+    { id: 'baggy-pants', name: 'Baggy Pants', icon: '👖' },
+    { id: 'group-shirts', name: 'Group Shirts', icon: '👔' },
+    { id: 'hoodies', name: 'Hoodies', icon: '🧥' }
 ];
 
 const colorOptions = [
@@ -33,16 +32,18 @@ const colorOptions = [
 ];
 
 function Products() {
-    const [products, setProducts] = useState(initialProducts);
-    const [loading, setLoading] = useState(false);
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchParams, setSearchParams] = useSearchParams();
 
     const activeCategory = searchParams.get('category') || '';
     const searchQuery = searchParams.get('search') || '';
-    const isPantsCategory = String(activeCategory).toLowerCase() === '3' || 
-                            String(activeCategory).toLowerCase() === '4' || 
-                            String(activeCategory).toLowerCase() === 'pants' || 
-                            String(activeCategory).toLowerCase() === 'trousers';
+    const isPantsCategory = [
+        '3', '4', 'pants', 'trousers', 
+        'formal-pants', 'formal', 
+        'cotton-pants', 'cotton', 
+        'baggy-pants', 'baggy'
+    ].includes(String(activeCategory).toLowerCase());
 
     useEffect(() => {
         if (isPantsCategory) {
@@ -53,8 +54,8 @@ function Products() {
     // Filter and Sort states
     const [search, setSearch] = useState(searchQuery);
     const [productType, setProductType] = useState('All'); // 'All', 'Full Hand', 'Half Hand'
-    const [pantsSubCategory, setPantsSubCategory] = useState('All'); // 'All', 'Jeans', 'Formal', 'Cotton'
-    const [selectedColor, setSelectedColor] = useState('All'); // 'All', 'Black', 'White', 'Blue', 'Red', ...
+    const [pantsSubCategory, setPantsSubCategory] = useState('All'); // 'All', 'Formal', 'Cotton', 'Baggy'
+    const [selectedColor, setSelectedColor] = useState('All');
     const [selectedSize, setSelectedSize] = useState('All');
     const [priceRange, setPriceRange] = useState('All');
     const [sortBy, setSortBy] = useState('featured');
@@ -68,12 +69,17 @@ function Products() {
     }, [searchQuery]);
 
     useEffect(() => {
+        let isCurrent = true;
+        setProducts([]); // Clear state immediately so previous products are NEVER displayed or reused
+        setLoading(true);
+
         const fetchProducts = async () => {
             try {
                 const params = {};
                 if (activeCategory) params.category = activeCategory;
                 if (searchQuery) params.search = searchQuery;
                 const response = await API.get('/products', { params });
+                if (!isCurrent) return;
                 const data = response.data;
                 let list = [];
                 if (Array.isArray(data)) {
@@ -81,14 +87,54 @@ function Products() {
                 } else if (data && Array.isArray(data.products)) {
                     list = data.products;
                 }
-                if (list && list.length > 0) {
-                    setProducts(list);
-                }
+                setProducts(list);
             } catch (error) {
                 console.error('Error fetching products:', error);
+                if (isCurrent) {
+                    // Fallback to initialProducts
+                    let fallback = [...initialProducts];
+                    if (activeCategory) {
+                        const catLower = String(activeCategory).toLowerCase();
+                        if (catLower === 'shirts' || catLower === '2') {
+                            fallback = fallback.filter(p => getProductCollection(p) === 'Shirts');
+                        } else if (catLower === 'shirts-full') {
+                            fallback = fallback.filter(p => getProductCollection(p) === 'Shirts' && p.sleeve_type === 'Full Hand');
+                        } else if (catLower === 'shirts-half') {
+                            fallback = fallback.filter(p => getProductCollection(p) === 'Shirts' && p.sleeve_type === 'Half Hand');
+                        } else if (catLower === 't-shirts' || catLower === 'tshirts' || catLower === '1') {
+                            fallback = fallback.filter(p => getProductCollection(p) === 'T-Shirts');
+                        } else if (catLower === 'tshirts-full') {
+                            fallback = fallback.filter(p => getProductCollection(p) === 'T-Shirts' && p.sleeve_type === 'Full Hand');
+                        } else if (catLower === 'tshirts-half') {
+                            fallback = fallback.filter(p => getProductCollection(p) === 'T-Shirts' && p.sleeve_type === 'Half Hand');
+                        } else if (catLower === 'group-shirts' || catLower === 'groupshirts' || catLower === '8') {
+                            fallback = fallback.filter(p => getProductCollection(p) === 'Group Shirts');
+                        } else if (catLower === 'formal-pants' || catLower === 'formal') {
+                            fallback = fallback.filter(p => getProductCollection(p) === 'Formal Pants');
+                        } else if (catLower === 'cotton-pants' || catLower === 'cotton') {
+                            fallback = fallback.filter(p => getProductCollection(p) === 'Cotton Pants');
+                        } else if (catLower === 'baggy-pants' || catLower === 'baggy') {
+                            fallback = fallback.filter(p => getProductCollection(p) === 'Baggy Pants');
+                        } else if (catLower === 'pants' || catLower === '3' || catLower === '4' || catLower === 'trousers') {
+                            fallback = fallback.filter(p => ['Formal Pants', 'Cotton Pants', 'Baggy Pants'].includes(getProductCollection(p)));
+                        } else if (catLower === 'hoodies' || catLower === '7') {
+                            fallback = fallback.filter(p => getProductCollection(p) === 'Hoodies');
+                        }
+                    }
+                    setProducts(fallback);
+                }
+            } finally {
+                if (isCurrent) {
+                    setLoading(false);
+                }
             }
         };
+
         fetchProducts();
+
+        return () => {
+            isCurrent = false;
+        };
     }, [activeCategory, searchQuery]);
 
     const handleCategoryClick = (catId) => {
@@ -96,6 +142,8 @@ function Products() {
         if (catId) newParams.category = catId;
         if (searchQuery) newParams.search = searchQuery;
         setSearchParams(newParams);
+        setPantsSubCategory('All');
+        setProductType('All');
         setCurrentPage(1);
     };
 
@@ -110,6 +158,7 @@ function Products() {
 
     const handleResetAllFilters = () => {
         setProductType('All');
+        setPantsSubCategory('All');
         setSelectedColor('All');
         setSelectedSize('All');
         setPriceRange('All');
@@ -119,51 +168,41 @@ function Products() {
         setCurrentPage(1);
     };
 
-    // Filter products dynamically (Category, Product Type: Full Hand/Half Hand, Color, Size, Rate, Search, Sort)
+    // Filter products dynamically (Strict Category Isolation, Sleeve, Color, Size, Rate, Search, Sort)
     const filteredProducts = useMemo(() => {
         let list = [...products];
 
-        // 1. Category Filter: Supports exact category + sleeve specifications (Full Hand Shirts vs Half Hand Shirts)
+        // 1. Strict Category / Collection Filter
         if (activeCategory) {
-            const activeCatObj = categoriesList.find(c => String(c.id).toLowerCase() === String(activeCategory).toLowerCase()) ||
-                                 categoriesList.find(c => String(c.catId) === String(activeCategory) && !c.sleeve);
-            if (activeCatObj) {
-                if (activeCatObj.sleeve) {
-                    list = list.filter(p => 
-                        (String(p.category_id) === String(activeCatObj.catId) || 
-                         (activeCatObj.catId === '2' && (String(p.category_id) === '8' || (/shirt/i.test(p.category_name || '') && !/t-shirt|tshirt/i.test(p.category_name || '')))) ||
-                         (activeCatObj.catId === '1' && /t-shirt|tshirt/i.test(p.category_name || ''))) && 
-                        p.sleeve_type === activeCatObj.sleeve
-                    );
-                } else if (activeCatObj.catId) {
-                    list = list.filter(p => {
-                        const pCatId = String(p.category_id);
-                        const targetCatId = String(activeCatObj.catId);
-                        const pCatName = (p.category_name || '').toLowerCase();
-                        const targetName = activeCatObj.name.toLowerCase();
-
-                        if (targetCatId === '2') {
-                            return (pCatId === '2' || pCatId === '8' || (pCatName.includes('shirt') && !pCatName.includes('t-shirt') && !pCatName.includes('tshirt')));
-                        } else if (targetCatId === '1') {
-                            return (pCatId === '1' || pCatName.includes('t-shirt') || pCatName.includes('tshirt'));
-                        } else if (targetCatId === '3' || targetCatId === '4') {
-                            return (pCatId === '3' || pCatId === '4' || pCatName.includes('pant') || pCatName.includes('trouser'));
-                        } else if (targetCatId === '7') {
-                            return (pCatId === '7' || pCatName.includes('hoodie'));
-                        } else if (targetCatId === '8') {
-                            return (pCatId === '8' || pCatName.includes('group'));
-                        }
-                        return pCatId === targetCatId || pCatName.includes(targetName);
-                    });
-                }
-            } else if (isPantsCategory) {
-                list = list.filter(p => String(p.category_id) === '3' || String(p.category_id) === '4' || (p.category_name && /pant|trouser/i.test(p.category_name)));
-            } else {
-                list = list.filter(p => String(p.category_id) === String(activeCategory));
+            const catLower = String(activeCategory).toLowerCase();
+            if (catLower === 'shirts' || catLower === '2') {
+                list = list.filter(p => getProductCollection(p) === 'Shirts');
+            } else if (catLower === 'shirts-full') {
+                list = list.filter(p => getProductCollection(p) === 'Shirts' && p.sleeve_type === 'Full Hand');
+            } else if (catLower === 'shirts-half') {
+                list = list.filter(p => getProductCollection(p) === 'Shirts' && p.sleeve_type === 'Half Hand');
+            } else if (catLower === 't-shirts' || catLower === 'tshirts' || catLower === '1') {
+                list = list.filter(p => getProductCollection(p) === 'T-Shirts');
+            } else if (catLower === 'tshirts-full') {
+                list = list.filter(p => getProductCollection(p) === 'T-Shirts' && p.sleeve_type === 'Full Hand');
+            } else if (catLower === 'tshirts-half') {
+                list = list.filter(p => getProductCollection(p) === 'T-Shirts' && p.sleeve_type === 'Half Hand');
+            } else if (catLower === 'group-shirts' || catLower === 'groupshirts' || catLower === '8') {
+                list = list.filter(p => getProductCollection(p) === 'Group Shirts');
+            } else if (catLower === 'formal-pants' || catLower === 'formal') {
+                list = list.filter(p => getProductCollection(p) === 'Formal Pants');
+            } else if (catLower === 'cotton-pants' || catLower === 'cotton') {
+                list = list.filter(p => getProductCollection(p) === 'Cotton Pants');
+            } else if (catLower === 'baggy-pants' || catLower === 'baggy') {
+                list = list.filter(p => getProductCollection(p) === 'Baggy Pants');
+            } else if (catLower === 'pants' || catLower === '3' || catLower === '4' || catLower === 'trousers') {
+                list = list.filter(p => ['Formal Pants', 'Cotton Pants', 'Baggy Pants'].includes(getProductCollection(p)));
+            } else if (catLower === 'hoodies' || catLower === '7') {
+                list = list.filter(p => getProductCollection(p) === 'Hoodies');
             }
         }
 
-        // 2. Pants Sub-Category Filter: Formal, Cotton, Baggy (Applies when Pants category is selected)
+        // 2. Pants Sub-Category Filter: Formal, Cotton, Baggy
         if (isPantsCategory && pantsSubCategory && pantsSubCategory !== 'All') {
             const targetSub = pantsSubCategory.toLowerCase();
             list = list.filter(p => {
@@ -179,7 +218,7 @@ function Products() {
             list = list.filter(p => p.sleeve_type === 'Half Hand');
         }
 
-        // 3. Color Filter: STRICT Exact Color Matching (Black, White, Blue, Red, Green, Yellow, Pink, Brown, Grey, Other)
+        // 4. Color Filter: STRICT Exact Color Matching
         if (selectedColor && selectedColor !== 'All') {
             if (selectedColor === 'Other') {
                 const standardColors = ['black', 'white', 'blue', 'red', 'green', 'yellow', 'pink', 'brown', 'grey', 'orange', 'sandal', 'multi'];
@@ -190,12 +229,12 @@ function Products() {
             }
         }
 
-        // 4. Size filter
+        // 5. Size filter
         if (selectedSize !== 'All') {
             list = list.filter(p => p.size && p.size.split(',').map(s => s.trim()).includes(selectedSize));
         }
 
-        // 5. Rate / Price filter
+        // 6. Rate / Price filter
         if (priceRange === 'under500') {
             list = list.filter(p => Number(p.price) <= 500);
         } else if (priceRange === '500-999') {
@@ -206,7 +245,7 @@ function Products() {
             list = list.filter(p => Number(p.price) >= 1500);
         }
 
-        // 6. Search Query (supports both submitted search param and active search input)
+        // 7. Search Query
         const q = (search || searchQuery || '').trim().toLowerCase();
         if (q) {
             list = list.filter(p =>
@@ -219,7 +258,7 @@ function Products() {
             );
         }
 
-        // 7. Sorting
+        // 8. Sorting
         if (sortBy === 'price-low') {
             list.sort((a, b) => Number(a.price) - Number(b.price));
         } else if (sortBy === 'price-high') {
@@ -229,12 +268,12 @@ function Products() {
         }
 
         return list;
-    }, [products, activeCategory, productType, pantsSubCategory, selectedColor, selectedSize, priceRange, search, searchQuery, sortBy]);
+    }, [products, activeCategory, productType, pantsSubCategory, selectedColor, selectedSize, priceRange, search, searchQuery, sortBy, isPantsCategory]);
 
     // Reset pagination on filter change
     useEffect(() => {
         setCurrentPage(1);
-    }, [activeCategory, productType, selectedColor, selectedSize, priceRange, search, searchQuery, sortBy]);
+    }, [activeCategory, productType, pantsSubCategory, selectedColor, selectedSize, priceRange, search, searchQuery, sortBy]);
 
     // Pagination calculations
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -245,13 +284,40 @@ function Products() {
 
     const getActiveCategoryTitle = () => {
         if (!activeCategory) return '🛍️ All Products Catalog';
-        if (isPantsCategory) return '👖 Pants Catalog';
-        const cat = categoriesList.find(c => String(c.id).toLowerCase() === String(activeCategory).toLowerCase()) ||
-                    categoriesList.find(c => String(c.catId) === String(activeCategory) && !c.sleeve);
-        return cat ? `${cat.icon} ${cat.name} Catalog` : '🛍️ Products Catalog';
+        const a = String(activeCategory).toLowerCase();
+        if (a === 'shirts' || a === '2') return '👔 Shirts Catalog';
+        if (a === 'shirts-full') return '👔 Full Hand Shirts Catalog';
+        if (a === 'shirts-half') return '👕 Half Hand Shirts Catalog';
+        if (a === 't-shirts' || a === 'tshirts' || a === '1') return '👕 T-Shirts Catalog';
+        if (a === 'tshirts-full') return '👔 Full Hand T-Shirts Catalog';
+        if (a === 'tshirts-half') return '👕 Half Hand T-Shirts Catalog';
+        if (a === 'formal-pants' || a === 'formal') return '👖 Formal Pants Catalog';
+        if (a === 'cotton-pants' || a === 'cotton') return '👖 Cotton Pants Catalog';
+        if (a === 'baggy-pants' || a === 'baggy') return '👖 Baggy Pants Catalog';
+        if (a === 'pants' || a === '3' || a === '4' || a === 'trousers') return '👖 Pants Catalog';
+        if (a === 'group-shirts' || a === 'groupshirts' || a === '8') return '👔 Group Shirts Catalog';
+        if (a === 'hoodies' || a === '7') return '🧥 Hoodies Catalog';
+        return '🛍️ Products Catalog';
     };
 
-    const hasActiveFilters = productType !== 'All' || selectedColor !== 'All' || selectedSize !== 'All' || priceRange !== 'All' || activeCategory !== '' || searchQuery !== '' || search !== '';
+    const isTabActive = (catId) => {
+        if (catId === '' && !activeCategory) return true;
+        if (!catId || !activeCategory) return false;
+        const c = String(catId).toLowerCase();
+        const a = String(activeCategory).toLowerCase();
+        if (c === a) return true;
+        if (c === 'shirts' && a === '2') return true;
+        if (c === 't-shirts' && (a === 'tshirts' || a === '1')) return true;
+        if (c === 'pants' && (a === '3' || a === '4' || a === 'trousers')) return true;
+        if (c === 'formal-pants' && a === 'formal') return true;
+        if (c === 'cotton-pants' && a === 'cotton') return true;
+        if (c === 'baggy-pants' && a === 'baggy') return true;
+        if (c === 'group-shirts' && (a === 'groupshirts' || a === '8')) return true;
+        if (c === 'hoodies' && a === '7') return true;
+        return false;
+    };
+
+    const hasActiveFilters = productType !== 'All' || pantsSubCategory !== 'All' || selectedColor !== 'All' || selectedSize !== 'All' || priceRange !== 'All' || activeCategory !== '' || searchQuery !== '' || search !== '';
 
     return (
         <div className="products-page" style={{ padding: '32px 16px', background: '#f8fafc', minHeight: '85vh' }}>
@@ -341,9 +407,7 @@ function Products() {
                     scrollbarWidth: 'thin'
                 }}>
                     {categoriesList.map(cat => {
-                        const isActive = (cat.id === '' && activeCategory === '') || 
-                                         (cat.id === '3' && isPantsCategory) ||
-                                         (cat.id !== '' && cat.id !== '3' && (String(activeCategory).toLowerCase() === String(cat.id).toLowerCase() || (String(cat.catId) === String(activeCategory) && !cat.sleeve)));
+                        const isActive = isTabActive(cat.id);
                         return (
                             <button
                                 key={cat.id}
@@ -388,26 +452,36 @@ function Products() {
                         <span style={{ fontSize: '14px', fontWeight: '800', color: '#1e40af', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span>👖</span> Pants Sub-Categories:
                         </span>
-                        {['All', 'Formal', 'Cotton', 'Baggy'].map(sub => (
-                            <button
-                                key={sub}
-                                onClick={() => setPantsSubCategory(sub)}
-                                style={{
-                                    padding: '6px 16px',
-                                    borderRadius: '20px',
-                                    fontSize: '13px',
-                                    fontWeight: '800',
-                                    border: pantsSubCategory === sub ? '2px solid #2563eb' : '1px solid #93c5fd',
-                                    background: pantsSubCategory === sub ? '#2563eb' : '#ffffff',
-                                    color: pantsSubCategory === sub ? '#ffffff' : '#1e3a8a',
-                                    cursor: 'pointer',
-                                    boxShadow: pantsSubCategory === sub ? '0 2px 8px rgba(37,99,235,0.3)' : 'none',
-                                    transition: 'all 0.2s ease'
-                                }}
-                            >
-                                {sub === 'All' ? 'All Pants' : `👖 ${sub}`}
-                            </button>
-                        ))}
+                        {[
+                            { label: 'All Pants', val: 'All', catId: 'pants' },
+                            { label: 'Formal', val: 'Formal', catId: 'formal-pants' },
+                            { label: 'Cotton', val: 'Cotton', catId: 'cotton-pants' },
+                            { label: 'Baggy', val: 'Baggy', catId: 'baggy-pants' }
+                        ].map(item => {
+                            const isSubActive = (item.val === 'All' && (activeCategory === 'pants' || activeCategory === '3' || activeCategory === '4' || (isPantsCategory && !['formal-pants', 'cotton-pants', 'baggy-pants'].includes(String(activeCategory).toLowerCase()) && pantsSubCategory === 'All'))) ||
+                                                (item.catId === String(activeCategory).toLowerCase()) ||
+                                                (pantsSubCategory.toLowerCase() === item.val.toLowerCase());
+                            return (
+                                <button
+                                    key={item.val}
+                                    onClick={() => handleCategoryClick(item.catId)}
+                                    style={{
+                                        padding: '6px 16px',
+                                        borderRadius: '20px',
+                                        fontSize: '13px',
+                                        fontWeight: '800',
+                                        border: isSubActive ? '2px solid #2563eb' : '1px solid #93c5fd',
+                                        background: isSubActive ? '#2563eb' : '#ffffff',
+                                        color: isSubActive ? '#ffffff' : '#1e3a8a',
+                                        cursor: 'pointer',
+                                        boxShadow: isSubActive ? '0 2px 8px rgba(37,99,235,0.3)' : 'none',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                >
+                                    {item.val === 'All' ? 'All Pants' : `👖 ${item.label}`}
+                                </button>
+                            );
+                        })}
                     </div>
                 )}
 

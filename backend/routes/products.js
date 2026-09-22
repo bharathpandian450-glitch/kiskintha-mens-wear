@@ -38,18 +38,57 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// Central deterministic collection classifier for backend products
+const classifyProduct = (p) => {
+    if (!p) return 'Other';
+    const catId = Number(p.category_id);
+    const catName = (p.category_name || '').toLowerCase();
+    const sub = (p.subcategory || '').toLowerCase();
+    const name = (p.name || '').toLowerCase();
+
+    // 1. Hoodies
+    if (catId === 7 || catName.includes('hoodie') || name.includes('hoodie')) {
+        return 'Hoodies';
+    }
+
+    // 2. Group Shirts
+    if (catId === 8 || catName.includes('group') || sub.includes('group') || name.includes('group shirt')) {
+        return 'Group Shirts';
+    }
+
+    // 3. T-Shirts
+    if (catId === 1 || catName.includes('t-shirt') || catName.includes('tshirt') || name.includes('t-shirt') || name.includes('tshirt')) {
+        return 'T-Shirts';
+    }
+
+    // 4. Pants (Formal Pants, Cotton Pants, Baggy Pants)
+    const isPant = catId === 3 || catId === 4 || /pant|trouser/i.test(catName) || /pant|trouser/i.test(sub) || /pant|trouser/i.test(name);
+    if (isPant) {
+        if (sub.includes('cotton') || name.includes('cotton')) return 'Cotton Pants';
+        if (sub.includes('baggy') || name.includes('baggy') || sub.includes('cargo') || name.includes('cargo') || sub.includes('jeans') || name.includes('jeans') || name.includes('wide leg') || name.includes('packet')) return 'Baggy Pants';
+        return 'Formal Pants';
+    }
+
+    // 5. Shirts (Regular Shirts only, never Group Shirts or T-Shirts)
+    if (catId === 2 || catName.includes('shirt') || name.includes('shirt')) {
+        return 'Shirts';
+    }
+
+    return 'Other';
+};
+
 // GET all products (Native MongoDB with filters for category, sleeve, color, search)
 router.get('/', async (req, res) => {
     try {
         const filter = {};
 
         if (req.query.category) {
-            const catParam = req.query.category;
+            const catParam = String(req.query.category).trim().toLowerCase();
             if (catParam === 'shirts-full') {
-                filter.$or = [{ category_id: 2 }, { category_id: '2' }, { category_id: 8 }, { category_id: '8' }, { category_name: /shirt/i }];
+                filter.$or = [{ category_id: 2 }, { category_id: '2' }, { category_name: /^shirts$/i }];
                 filter.sleeve_type = 'Full Hand';
             } else if (catParam === 'shirts-half') {
-                filter.$or = [{ category_id: 2 }, { category_id: '2' }, { category_id: 8 }, { category_id: '8' }, { category_name: /shirt/i }];
+                filter.$or = [{ category_id: 2 }, { category_id: '2' }, { category_name: /^shirts$/i }];
                 filter.sleeve_type = 'Half Hand';
             } else if (catParam === 'tshirts-full') {
                 filter.$or = [{ category_id: 1 }, { category_id: '1' }, { category_name: /^t-shirts$/i }];
@@ -57,28 +96,22 @@ router.get('/', async (req, res) => {
             } else if (catParam === 'tshirts-half') {
                 filter.$or = [{ category_id: 1 }, { category_id: '1' }, { category_name: /^t-shirts$/i }];
                 filter.sleeve_type = 'Half Hand';
-            } else if (!isNaN(Number(catParam))) {
-                const numCat = Number(catParam);
-                if (numCat === 3 || numCat === 4) {
-                    filter.$or = [{ category_id: 3 }, { category_id: '3' }, { category_id: 4 }, { category_id: '4' }, { category_name: /pant|trouser/i }];
-                } else if (numCat === 2) {
-                    filter.$or = [{ category_id: 2 }, { category_id: '2' }, { category_id: 8 }, { category_id: '8' }, { category_name: /shirt/i }];
-                } else {
-                    filter.$or = [{ category_id: numCat }, { category_id: String(numCat) }];
-                }
-            } else {
-                const catLower = catParam.toLowerCase();
-                if (catLower.includes('group')) {
-                    filter.$or = [{ category_id: 8 }, { category_id: '8' }, { category_name: /group/i }];
-                } else if (catLower.includes('t-shirt') || catLower.includes('tshirt')) {
-                    filter.$or = [{ category_id: 1 }, { category_id: '1' }, { category_name: /t-shirt/i }];
-                } else if (catLower.includes('shirt')) {
-                    filter.$or = [{ category_id: 2 }, { category_id: '2' }, { category_id: 8 }, { category_id: '8' }, { category_name: /shirt/i }];
-                } else if (catLower.includes('pant') || catLower.includes('trouser')) {
-                    filter.$or = [{ category_id: 3 }, { category_id: '3' }, { category_id: 4 }, { category_id: '4' }, { category_name: /pant|trouser/i }];
-                } else if (catLower.includes('hoodie')) {
-                    filter.$or = [{ category_id: 7 }, { category_id: '7' }, { category_name: /hoodie/i }];
-                }
+            } else if (catParam === 'shirts' || catParam === '2') {
+                filter.$or = [{ category_id: 2 }, { category_id: '2' }, { category_name: /^shirts$/i }];
+            } else if (catParam === 't-shirts' || catParam === 'tshirts' || catParam === '1') {
+                filter.$or = [{ category_id: 1 }, { category_id: '1' }, { category_name: /t-shirt/i }];
+            } else if (catParam === 'group-shirts' || catParam === 'groupshirts' || catParam === '8') {
+                filter.$or = [{ category_id: 8 }, { category_id: '8' }, { category_name: /group/i }];
+            } else if (catParam === 'formal-pants' || catParam === 'formal') {
+                filter.$or = [{ category_id: 4 }, { category_id: '4' }, { subcategory: /formal/i }];
+            } else if (catParam === 'cotton-pants' || catParam === 'cotton') {
+                filter.$or = [{ subcategory: /cotton/i }];
+            } else if (catParam === 'baggy-pants' || catParam === 'baggy') {
+                filter.$or = [{ subcategory: /baggy|jeans|cargo/i }];
+            } else if (catParam === 'pants' || catParam === '3' || catParam === '4' || catParam === 'trousers') {
+                filter.$or = [{ category_id: 3 }, { category_id: '3' }, { category_id: 4 }, { category_id: '4' }, { category_name: /pant|trouser/i }];
+            } else if (catParam === 'hoodies' || catParam === '7') {
+                filter.$or = [{ category_id: 7 }, { category_id: '7' }, { category_name: /hoodie/i }];
             }
         }
 
@@ -175,37 +208,31 @@ router.get('/', async (req, res) => {
 
         // Apply filters in-memory if query parameters are present
         if (req.query.category) {
-            const catParam = req.query.category;
+            const catParam = String(req.query.category).trim().toLowerCase();
             if (catParam === 'shirts-full') {
-                products = products.filter(p => (Number(p.category_id) === 2 || Number(p.category_id) === 8 || /shirt/i.test(p.category_name)) && p.sleeve_type === 'Full Hand');
+                products = products.filter(p => classifyProduct(p) === 'Shirts' && p.sleeve_type === 'Full Hand');
             } else if (catParam === 'shirts-half') {
-                products = products.filter(p => (Number(p.category_id) === 2 || Number(p.category_id) === 8 || /shirt/i.test(p.category_name)) && p.sleeve_type === 'Half Hand');
+                products = products.filter(p => classifyProduct(p) === 'Shirts' && p.sleeve_type === 'Half Hand');
             } else if (catParam === 'tshirts-full') {
-                products = products.filter(p => (Number(p.category_id) === 1 || /t-shirts/i.test(p.category_name)) && p.sleeve_type === 'Full Hand');
+                products = products.filter(p => classifyProduct(p) === 'T-Shirts' && p.sleeve_type === 'Full Hand');
             } else if (catParam === 'tshirts-half') {
-                products = products.filter(p => (Number(p.category_id) === 1 || /t-shirts/i.test(p.category_name)) && p.sleeve_type === 'Half Hand');
-            } else if (!isNaN(Number(catParam))) {
-                const numCat = Number(catParam);
-                if (numCat === 3 || numCat === 4) {
-                    products = products.filter(p => Number(p.category_id) === 3 || Number(p.category_id) === 4 || /pant|trouser/i.test(p.category_name));
-                } else if (numCat === 2) {
-                    products = products.filter(p => Number(p.category_id) === 2 || Number(p.category_id) === 8 || (p.category_name && /shirt/i.test(p.category_name) && !/t-shirt|tshirt/i.test(p.category_name)));
-                } else {
-                    products = products.filter(p => Number(p.category_id) === numCat);
-                }
-            } else {
-                const catLower = catParam.toLowerCase();
-                if (catLower.includes('group')) {
-                    products = products.filter(p => Number(p.category_id) === 8 || /group/i.test(p.category_name));
-                } else if (catLower.includes('t-shirt') || catLower.includes('tshirt')) {
-                    products = products.filter(p => Number(p.category_id) === 1 || /t-shirt/i.test(p.category_name));
-                } else if (catLower.includes('shirt')) {
-                    products = products.filter(p => Number(p.category_id) === 2 || Number(p.category_id) === 8 || (p.category_name && /shirt/i.test(p.category_name) && !/t-shirt|tshirt/i.test(p.category_name)));
-                } else if (catLower.includes('pant') || catLower.includes('trouser')) {
-                    products = products.filter(p => Number(p.category_id) === 3 || Number(p.category_id) === 4 || /pant|trouser/i.test(p.category_name));
-                } else if (catLower.includes('hoodie')) {
-                    products = products.filter(p => Number(p.category_id) === 7 || /hoodie/i.test(p.category_name));
-                }
+                products = products.filter(p => classifyProduct(p) === 'T-Shirts' && p.sleeve_type === 'Half Hand');
+            } else if (catParam === 'shirts' || catParam === '2') {
+                products = products.filter(p => classifyProduct(p) === 'Shirts');
+            } else if (catParam === 't-shirts' || catParam === 'tshirts' || catParam === '1') {
+                products = products.filter(p => classifyProduct(p) === 'T-Shirts');
+            } else if (catParam === 'group-shirts' || catParam === 'groupshirts' || catParam === '8') {
+                products = products.filter(p => classifyProduct(p) === 'Group Shirts');
+            } else if (catParam === 'formal-pants' || catParam === 'formal') {
+                products = products.filter(p => classifyProduct(p) === 'Formal Pants');
+            } else if (catParam === 'cotton-pants' || catParam === 'cotton') {
+                products = products.filter(p => classifyProduct(p) === 'Cotton Pants');
+            } else if (catParam === 'baggy-pants' || catParam === 'baggy') {
+                products = products.filter(p => classifyProduct(p) === 'Baggy Pants');
+            } else if (catParam === 'pants' || catParam === '3' || catParam === '4' || catParam === 'trousers') {
+                products = products.filter(p => ['Formal Pants', 'Cotton Pants', 'Baggy Pants'].includes(classifyProduct(p)));
+            } else if (catParam === 'hoodies' || catParam === '7') {
+                products = products.filter(p => classifyProduct(p) === 'Hoodies');
             }
         }
 

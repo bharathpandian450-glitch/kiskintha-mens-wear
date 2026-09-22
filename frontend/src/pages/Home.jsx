@@ -71,10 +71,13 @@ function Home() {
                     <h2 className="section-title">Shop by Category</h2>
                     <div className="categories-grid">
                         {[
-                            { id: '2', name: 'Shirts', icon: '👔' },
-                            { id: '1', name: 'T-Shirts', icon: '👕' },
-                            { id: '3', name: 'Pants', icon: '👖' },
-                            { id: '7', name: 'Hoodies', icon: '🧥' }
+                            { id: 'shirts', name: 'Shirts', icon: '👔' },
+                            { id: 't-shirts', name: 'T-Shirts', icon: '👕' },
+                            { id: 'formal-pants', name: 'Formal Pants', icon: '👖' },
+                            { id: 'cotton-pants', name: 'Cotton Pants', icon: '👖' },
+                            { id: 'baggy-pants', name: 'Baggy Pants', icon: '👖' },
+                            { id: 'group-shirts', name: 'Group Shirts', icon: '👔' },
+                            { id: 'hoodies', name: 'Hoodies', icon: '🧥' }
                         ].map(cat => (
                             <Link
                                 to={`/products?category=${cat.id}`}

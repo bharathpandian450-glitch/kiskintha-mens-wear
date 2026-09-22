@@ -1,29 +1,53 @@
-﻿// Utility for formatting customer-facing category and subcategory badges
-export const getProductBadge = (product) => {
-    if (!product) return 'Men Wear';
-    const isPant = Number(product.category_id) === 3 || 
-                   Number(product.category_id) === 4 || 
-                   /pant|trouser/i.test(product.category_name || '') ||
-                   /pant|trouser/i.test(product.subcategory || '');
+// Central Utility for Kiskintha Mens Wear Product Collections & Badges
 
-    if (isPant) {
-        const sub = (product.subcategory || '').toLowerCase();
-        const name = (product.name || '').toLowerCase();
+export const getProductCollection = (product) => {
+    if (!product) return 'Other';
+    const catId = Number(product.category_id);
+    const catName = (product.category_name || '').toLowerCase();
+    const sub = (product.subcategory || '').toLowerCase();
+    const name = (product.name || '').toLowerCase();
 
-        // Check for Cotton Pants
-        if (sub.includes('cotton') || name.includes('cotton')) {
-            return 'Cotton';
-        }
-        // Check for Baggy / Jeans / Cargo Pants
-        if (sub.includes('baggy') || name.includes('baggy') || sub.includes('cargo') || name.includes('cargo') || sub.includes('jeans') || name.includes('jeans') || name.includes('wide leg') || name.includes('packet')) {
-            return 'Baggy';
-        }
-        // Check for Formal Pants / Formal Trousers
-        if (sub.includes('formal') || name.includes('formal') || name.includes('suit') || name.includes('gurka') || name.includes('touser') || name.includes('trouser') || Number(product.category_id) === 4) {
-            return 'Formal';
-        }
-        return 'Formal';
+    // 1. Hoodies
+    if (catId === 7 || catName.includes('hoodie') || name.includes('hoodie')) {
+        return 'Hoodies';
     }
 
+    // 2. Group Shirts
+    if (catId === 8 || catName.includes('group') || sub.includes('group') || name.includes('group shirt')) {
+        return 'Group Shirts';
+    }
+
+    // 3. T-Shirts
+    if (catId === 1 || catName.includes('t-shirt') || catName.includes('tshirt') || name.includes('t-shirt') || name.includes('tshirt')) {
+        return 'T-Shirts';
+    }
+
+    // 4. Pants (Formal, Cotton, Baggy)
+    const isPant = catId === 3 || catId === 4 || /pant|trouser/i.test(catName) || /pant|trouser/i.test(sub) || /pant|trouser/i.test(name);
+    if (isPant) {
+        if (sub.includes('cotton') || name.includes('cotton')) return 'Cotton Pants';
+        if (sub.includes('baggy') || name.includes('baggy') || sub.includes('cargo') || name.includes('cargo') || sub.includes('jeans') || name.includes('jeans') || name.includes('wide leg') || name.includes('packet')) return 'Baggy Pants';
+        return 'Formal Pants';
+    }
+
+    // 5. Shirts (Regular Shirts)
+    if (catId === 2 || catName.includes('shirt') || name.includes('shirt')) {
+        return 'Shirts';
+    }
+
+    return 'Other';
+};
+
+export const getProductBadge = (product) => {
+    if (!product) return 'Men Wear';
+    const collection = getProductCollection(product);
+    if (collection === 'Cotton Pants') return 'Cotton';
+    if (collection === 'Baggy Pants') return 'Baggy';
+    if (collection === 'Formal Pants') return 'Formal';
+    if (collection === 'Group Shirts') return 'Group Shirt';
+    if (collection === 'T-Shirts') return 'T-Shirt';
+    if (collection === 'Shirts') return 'Shirt';
+    if (collection === 'Hoodies') return 'Hoodie';
     return product.subcategory || product.category_name || 'Men Wear';
 };
+
