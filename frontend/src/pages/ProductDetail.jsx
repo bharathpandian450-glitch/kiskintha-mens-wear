@@ -24,22 +24,9 @@ function ProductDetail() {
     const [quantity, setQuantity] = useState(1);
     const [added, setAdded] = useState(false);
 
-    // Reviews State
-    const [reviewsData, setReviewsData] = useState({ total_reviews: 0, average_rating: 4.5, reviews: [] });
-    const [reviewRating, setReviewRating] = useState(5);
-    const [hoverRating, setHoverRating] = useState(0);
-    const [reviewComment, setReviewComment] = useState('');
-    const [submittingReview, setSubmittingReview] = useState(false);
-    const [reviewSuccessMsg, setReviewSuccessMsg] = useState('');
-    const [reviewErrorMsg, setReviewErrorMsg] = useState('');
-
-    const fetchProductAndReviews = async () => {
+    const fetchProduct = async () => {
         try {
-            const [pRes, rRes] = await Promise.all([
-                API.get(`/products/${id}`),
-                API.get(`/reviews/product/${id}`).catch(() => ({ data: { total_reviews: 0, average_rating: 4.5, reviews: [] } }))
-            ]);
-
+            const pRes = await API.get(`/products/${id}`);
             const data = pRes.data;
             if (data && (data.id || data.name)) {
                 setProduct(data);
@@ -50,10 +37,6 @@ function ProductDetail() {
             } else if (!product && localProduct) {
                 setProduct(localProduct);
                 setActiveImage(localProduct.image || '');
-            }
-
-            if (rRes?.data) {
-                setReviewsData(rRes.data);
             }
         } catch (error) {
             console.error('Error fetching product details:', error);
@@ -76,7 +59,7 @@ function ProductDetail() {
             setSelectedSize(sizes[0] || 'M');
             setSelectedColor(currentLocal.color || 'Assorted');
         }
-        fetchProductAndReviews();
+        fetchProduct();
     }, [id]);
 
     const handleAddToCart = () => {
@@ -98,43 +81,6 @@ function ProductDetail() {
         navigate('/checkout');
     };
 
-    const handleReviewSubmit = async (e) => {
-        e.preventDefault();
-        if (!user) {
-            alert('Please sign in to your customer account to post a review.');
-            navigate('/login');
-            return;
-        }
-        if (!reviewComment.trim()) {
-            setReviewErrorMsg('Please enter your review comment.');
-            return;
-        }
-
-        try {
-            setSubmittingReview(true);
-            setReviewErrorMsg('');
-            setReviewSuccessMsg('');
-
-            const res = await API.post('/reviews', {
-                product_id: product.id,
-                rating: reviewRating,
-                comment: reviewComment.trim()
-            });
-
-            setReviewSuccessMsg(res.data?.message || 'Thank you! Your customer review has been published.');
-            setReviewComment('');
-            setReviewRating(5);
-
-            // Refresh product and reviews list
-            const rRes = await API.get(`/reviews/product/${id}`);
-            if (rRes.data) setReviewsData(rRes.data);
-        } catch (err) {
-            setReviewErrorMsg(err.response?.data?.message || 'Failed to submit review. Please try again.');
-        } finally {
-            setSubmittingReview(false);
-        }
-    };
-
     if (loading) {
         return (
             <div className="loading" style={{ textAlign: 'center', padding: '80px' }}>
@@ -153,8 +99,6 @@ function ProductDetail() {
     }
 
     const sizes = product.size ? product.size.split(',').map(s => s.trim()) : ['S', 'M', 'L', 'XL', 'XXL'];
-    const avgRating = reviewsData.average_rating || product.rating || 4.5;
-    const totalReviews = reviewsData.total_reviews || (reviewsData.reviews ? reviewsData.reviews.length : 0);
     const isPant = Number(product?.category_id) === 3 || Number(product?.category_id) === 4 || /pant|trouser/i.test(product?.category_name || '');
 
     return (
@@ -205,12 +149,7 @@ function ProductDetail() {
                                         {product.sleeve_type === 'Half Hand' ? '👕 Half Hand' : '👔 Full Hand'}
                                     </span>
                                 )}
-                                <a
-                                    href="#reviews-section"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' });
-                                    }}
+                                <span
                                     style={{
                                         fontSize: '12px',
                                         color: '#b45309',
@@ -218,17 +157,14 @@ function ProductDetail() {
                                         display: 'inline-flex',
                                         alignItems: 'center',
                                         gap: '4px',
-                                        textDecoration: 'none',
-                                        cursor: 'pointer',
                                         background: '#fef3c7',
                                         padding: '3px 10px',
                                         borderRadius: '12px',
                                         border: '1px solid #fde68a'
                                     }}
-                                    title="Click to view & write customer reviews"
                                 >
-                                    ⭐ {avgRating} ({totalReviews} Customer Reviews) ⬇️
-                                </a>
+                                    ⭐ {product.rating || 4.5} Rating
+                                </span>
                             </div>
 
                             <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#0f172a', margin: '8px 0 12px', lineHeight: '1.3' }}>
@@ -370,187 +306,6 @@ function ProductDetail() {
 
                         </div>
                     </div>
-                </div>
-
-                {/* 🌟 CUSTOMER REVIEWS & RATINGS SECTION 🌟 */}
-                <div id="reviews-section" style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', padding: '28px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-                        <div>
-                            <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span>💬</span> Customer Ratings & Reviews
-                            </h2>
-                            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '14px' }}>
-                                Real feedback from verified Kiskintha Mens Wear customers
-                            </p>
-                        </div>
-
-                        {/* Overall Rating Box */}
-                        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{ fontSize: '32px', fontWeight: '800', color: '#0f172a', lineHeight: 1 }}>{avgRating}</div>
-                            <div>
-                                <div style={{ color: '#eab308', fontSize: '16px', letterSpacing: '2px' }}>
-                                    {'★'.repeat(Math.round(avgRating))}{'☆'.repeat(5 - Math.round(avgRating))}
-                                </div>
-                                <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '700', marginTop: '2px' }}>
-                                    Based on {totalReviews} reviews
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Write a Review Form */}
-                    <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '14px', padding: '20px', marginBottom: '28px' }}>
-                        <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span>✍️</span> Write a Customer Review
-                        </h3>
-
-                        {reviewSuccessMsg && (
-                            <div style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '10px 14px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px', fontWeight: '700' }}>
-                                {reviewSuccessMsg}
-                            </div>
-                        )}
-                        {reviewErrorMsg && (
-                            <div style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca', padding: '10px 14px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px', fontWeight: '700' }}>
-                                {reviewErrorMsg}
-                            </div>
-                        )}
-
-                        <form onSubmit={handleReviewSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            {/* Star Rating Interactive Selector */}
-                            <div>
-                                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
-                                    Your Rating:
-                                </label>
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <button
-                                            key={star}
-                                            type="button"
-                                            onClick={() => setReviewRating(star)}
-                                            onMouseEnter={() => setHoverRating(star)}
-                                            onMouseLeave={() => setHoverRating(0)}
-                                            style={{
-                                                background: 'none',
-                                                border: 'none',
-                                                fontSize: '28px',
-                                                cursor: 'pointer',
-                                                color: (hoverRating || reviewRating) >= star ? '#eab308' : '#cbd5e1',
-                                                padding: '0 2px',
-                                                transition: 'transform 0.15s ease'
-                                            }}
-                                            title={`${star} Star${star > 1 ? 's' : ''}`}
-                                        >
-                                            ★
-                                        </button>
-                                    ))}
-                                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginLeft: '8px' }}>
-                                        {hoverRating || reviewRating} / 5 Stars
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Comment Textarea */}
-                            <div>
-                                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
-                                    Your Review Feedback:
-                                </label>
-                                <textarea
-                                    value={reviewComment}
-                                    onChange={(e) => setReviewComment(e.target.value)}
-                                    placeholder="Share your experience about cloth fitting, quality, material, color, stitching..."
-                                    rows="3"
-                                    style={{
-                                        width: '100%',
-                                        padding: '12px',
-                                        borderRadius: '8px',
-                                        border: '1px solid #cbd5e1',
-                                        fontSize: '14px',
-                                        fontFamily: 'inherit',
-                                        outline: 'none',
-                                        resize: 'vertical'
-                                    }}
-                                />
-                            </div>
-
-                            {/* Submit Button */}
-                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                {user ? (
-                                    <button
-                                        type="submit"
-                                        disabled={submittingReview}
-                                        className="btn btn-primary"
-                                        style={{ padding: '10px 24px', fontWeight: '800', borderRadius: '8px', fontSize: '14px' }}
-                                    >
-                                        {submittingReview ? 'Submitting Review...' : '⭐ Submit Review'}
-                                    </button>
-                                ) : (
-                                    <Link
-                                        to="/login"
-                                        className="btn btn-primary"
-                                        style={{ padding: '10px 24px', fontWeight: '800', borderRadius: '8px', fontSize: '14px', textDecoration: 'none' }}
-                                    >
-                                        🔐 Sign In to Write a Review
-                                    </Link>
-                                )}
-                            </div>
-                        </form>
-                    </div>
-
-                    {/* Reviews List */}
-                    {reviewsData.reviews && reviewsData.reviews.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            {reviewsData.reviews.map((rev) => {
-                                const revDate = rev.created_at
-                                    ? new Date(rev.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })
-                                    : 'Recently';
-
-                                return (
-                                    <div
-                                        key={rev.id}
-                                        style={{
-                                            padding: '16px 20px',
-                                            borderRadius: '12px',
-                                            border: '1px solid #f1f5f9',
-                                            background: '#ffffff',
-                                            boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
-                                        }}
-                                    >
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#2563eb', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '14px' }}>
-                                                    {rev.customer_name ? rev.customer_name.charAt(0).toUpperCase() : 'C'}
-                                                </div>
-                                                <div>
-                                                    <div style={{ fontWeight: '800', color: '#0f172a', fontSize: '14px' }}>
-                                                        {rev.customer_name || 'Verified Customer'}
-                                                    </div>
-                                                    <div style={{ fontSize: '11px', color: '#166534', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                        ✓ Verified Buyer
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div style={{ textAlign: 'right' }}>
-                                                <div style={{ color: '#eab308', fontSize: '14px' }}>
-                                                    {'★'.repeat(Number(rev.rating || 5))}{'☆'.repeat(5 - Number(rev.rating || 5))}
-                                                </div>
-                                                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>{revDate}</div>
-                                            </div>
-                                        </div>
-
-                                        <p style={{ margin: 0, fontSize: '14px', color: '#334155', lineHeight: '1.5' }}>
-                                            "{rev.comment}"
-                                        </p>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
-                            <div style={{ fontSize: '36px', marginBottom: '8px' }}>💬</div>
-                            <p style={{ margin: 0, fontSize: '14px', fontWeight: '600' }}>No customer reviews yet. Be the first customer to leave a review!</p>
-                        </div>
-                    )}
                 </div>
 
             </div>
