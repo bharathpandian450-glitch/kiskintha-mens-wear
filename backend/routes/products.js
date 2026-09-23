@@ -45,6 +45,8 @@ const classifyProduct = (p) => {
     const catName = (p.category_name || '').toLowerCase();
     const sub = (p.subcategory || '').toLowerCase();
     const name = (p.name || '').toLowerCase();
+    const img = (p.image || '').toLowerCase();
+    const baseImg = img.split('/').pop().split('\\').pop();
 
     // 1. Hoodies
     if (catId === 7 || catName.includes('hoodie') || name.includes('hoodie')) {
@@ -61,22 +63,28 @@ const classifyProduct = (p) => {
         return 'T-Shirts';
     }
 
-    // 4. Trousers (Category 4 or name/cat matching 'trouser' or 'touser')
-    if (catId === 4 || catName.includes('trouser') || sub.includes('trouser') || /trouser|touser/i.test(name)) {
-        return 'Trousers';
+    // 4. Shirts (Regular Shirts only, never Group Shirts, T-Shirts, Pants or Trousers)
+    if ((catId === 2 || catName.includes('shirt') || name.includes('shirt')) && !/pant|trouser|touser/i.test(name)) {
+        return 'Shirts';
     }
 
-    // 5. Pants (Formal Pants, Cotton Pants, Baggy Pants)
-    const isPant = catId === 3 || /pant/i.test(catName) || /pant/i.test(sub) || /pant/i.test(name);
-    if (isPant) {
-        if (sub.includes('cotton') || name.includes('cotton')) return 'Cotton Pants';
-        if (sub.includes('baggy') || name.includes('baggy') || sub.includes('cargo') || name.includes('cargo') || sub.includes('jeans') || name.includes('jeans') || name.includes('wide leg') || name.includes('packet')) return 'Baggy Pants';
+    // 5. PANTS: Any item with 'pant' in its name or image is STRICTLY A PANT (NEVER a Trouser!)
+    if (/pant/i.test(name) || /pant/i.test(baseImg)) {
+        if (sub.includes('cotton') || name.includes('cotton') || baseImg.includes('cotton')) return 'Cotton Pants';
+        if (sub.includes('baggy') || name.includes('baggy') || sub.includes('cargo') || name.includes('cargo') || sub.includes('jeans') || name.includes('jeans') || name.includes('wide leg') || name.includes('packet') || baseImg.includes('jeans') || baseImg.includes('cargo')) return 'Baggy Pants';
         return 'Formal Pants';
     }
 
-    // 6. Shirts (Regular Shirts only, never Group Shirts or T-Shirts)
-    if (catId === 2 || catName.includes('shirt') || name.includes('shirt')) {
-        return 'Shirts';
+    // 6. TROUSERS: ONLY products where name or base image contains 'trouser', 'touser', or 'touoser' (and NOT pant!)
+    if (/trouser|touser|touoser/i.test(name) || /trouser|touser|touoser/i.test(baseImg)) {
+        return 'Trousers';
+    }
+
+    // 7. Remaining Pants (e.g. Jeans, Model, Suit)
+    if (catId === 3 || catId === 4 || /pant|jeans|suit/i.test(catName) || /jeans|baggy|cargo/i.test(sub)) {
+        if (sub.includes('cotton') || name.includes('cotton')) return 'Cotton Pants';
+        if (sub.includes('baggy') || name.includes('baggy') || /jeans|cargo|packet|model/i.test(name)) return 'Baggy Pants';
+        return 'Formal Pants';
     }
 
     return 'Other';
@@ -108,7 +116,11 @@ router.get('/', async (req, res) => {
             } else if (catParam === 'group-shirts' || catParam === 'groupshirts' || catParam === '8') {
                 filter.$or = [{ category_id: 8 }, { category_id: '8' }, { category_name: /group/i }];
             } else if (catParam === 'trousers' || catParam === 'trouser' || catParam === '4') {
-                filter.$or = [{ category_id: 4 }, { category_id: '4' }, { category_name: /trouser/i }, { name: /trouser|touser/i }];
+                filter.$and = [
+                    { $or: [{ name: /trouser|touser|touoser/i }, { image: /trouser|touser|touoser/i }] },
+                    { name: { $not: /pant/i } },
+                    { image: { $not: /pant/i } }
+                ];
             } else if (catParam === 'formal-pants' || catParam === 'formal') {
                 filter.$or = [{ subcategory: /formal/i }];
             } else if (catParam === 'cotton-pants' || catParam === 'cotton') {
@@ -233,7 +245,7 @@ router.get('/', async (req, res) => {
             } else if (catParam === 'trousers' || catParam === 'trouser' || catParam === '4') {
                 products = products.filter(p => classifyProduct(p) === 'Trousers');
             } else if (catParam === 'formal-pants' || catParam === 'formal') {
-                products = products.filter(p => classifyProduct(p) === 'Formal Pants' || classifyProduct(p) === 'Trousers');
+                products = products.filter(p => classifyProduct(p) === 'Formal Pants');
             } else if (catParam === 'cotton-pants' || catParam === 'cotton') {
                 products = products.filter(p => classifyProduct(p) === 'Cotton Pants');
             } else if (catParam === 'baggy-pants' || catParam === 'baggy') {

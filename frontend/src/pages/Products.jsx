@@ -113,7 +113,7 @@ function Products() {
                         } else if (catLower === 'trousers' || catLower === 'trouser' || catLower === '4') {
                             fallback = fallback.filter(p => getProductCollection(p) === 'Trousers');
                         } else if (catLower === 'formal-pants' || catLower === 'formal') {
-                            fallback = fallback.filter(p => getProductCollection(p) === 'Formal Pants' || getProductCollection(p) === 'Trousers');
+                            fallback = fallback.filter(p => getProductCollection(p) === 'Formal Pants');
                         } else if (catLower === 'cotton-pants' || catLower === 'cotton') {
                             fallback = fallback.filter(p => getProductCollection(p) === 'Cotton Pants');
                         } else if (catLower === 'baggy-pants' || catLower === 'baggy') {
@@ -195,7 +195,7 @@ function Products() {
             } else if (catLower === 'trousers' || catLower === 'trouser' || catLower === '4') {
                 list = list.filter(p => getProductCollection(p) === 'Trousers');
             } else if (catLower === 'formal-pants' || catLower === 'formal') {
-                list = list.filter(p => getProductCollection(p) === 'Formal Pants' || getProductCollection(p) === 'Trousers');
+                list = list.filter(p => getProductCollection(p) === 'Formal Pants');
             } else if (catLower === 'cotton-pants' || catLower === 'cotton') {
                 list = list.filter(p => getProductCollection(p) === 'Cotton Pants');
             } else if (catLower === 'baggy-pants' || catLower === 'baggy') {
