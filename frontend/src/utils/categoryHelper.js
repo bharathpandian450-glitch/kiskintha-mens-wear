@@ -22,15 +22,20 @@ export const getProductCollection = (product) => {
         return 'T-Shirts';
     }
 
-    // 4. Pants (Formal, Cotton, Baggy)
-    const isPant = catId === 3 || catId === 4 || /pant|trouser/i.test(catName) || /pant|trouser/i.test(sub) || /pant|trouser/i.test(name);
+    // 4. Trousers (Category 4 or name/category/subcategory matching trouser or touser)
+    if (catId === 4 || catName.includes('trouser') || sub.includes('trouser') || /trouser|touser/i.test(name)) {
+        return 'Trousers';
+    }
+
+    // 5. Pants (Formal, Cotton, Baggy)
+    const isPant = catId === 3 || /pant/i.test(catName) || /pant/i.test(sub) || /pant/i.test(name);
     if (isPant) {
         if (sub.includes('cotton') || name.includes('cotton')) return 'Cotton Pants';
         if (sub.includes('baggy') || name.includes('baggy') || sub.includes('cargo') || name.includes('cargo') || sub.includes('jeans') || name.includes('jeans') || name.includes('wide leg') || name.includes('packet')) return 'Baggy Pants';
         return 'Formal Pants';
     }
 
-    // 5. Shirts (Regular Shirts)
+    // 6. Shirts (Regular Shirts)
     if (catId === 2 || catName.includes('shirt') || name.includes('shirt')) {
         return 'Shirts';
     }
@@ -41,6 +46,7 @@ export const getProductCollection = (product) => {
 export const getProductBadge = (product) => {
     if (!product) return 'Men Wear';
     const collection = getProductCollection(product);
+    if (collection === 'Trousers') return 'Trouser';
     if (collection === 'Cotton Pants') return 'Cotton';
     if (collection === 'Baggy Pants') return 'Baggy';
     if (collection === 'Formal Pants') return 'Formal';
@@ -50,4 +56,3 @@ export const getProductBadge = (product) => {
     if (collection === 'Hoodies') return 'Hoodie';
     return product.subcategory || product.category_name || 'Men Wear';
 };
-

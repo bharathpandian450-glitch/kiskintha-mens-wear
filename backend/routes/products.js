@@ -61,15 +61,20 @@ const classifyProduct = (p) => {
         return 'T-Shirts';
     }
 
-    // 4. Pants (Formal Pants, Cotton Pants, Baggy Pants)
-    const isPant = catId === 3 || catId === 4 || /pant|trouser/i.test(catName) || /pant|trouser/i.test(sub) || /pant|trouser/i.test(name);
+    // 4. Trousers (Category 4 or name/cat matching 'trouser' or 'touser')
+    if (catId === 4 || catName.includes('trouser') || sub.includes('trouser') || /trouser|touser/i.test(name)) {
+        return 'Trousers';
+    }
+
+    // 5. Pants (Formal Pants, Cotton Pants, Baggy Pants)
+    const isPant = catId === 3 || /pant/i.test(catName) || /pant/i.test(sub) || /pant/i.test(name);
     if (isPant) {
         if (sub.includes('cotton') || name.includes('cotton')) return 'Cotton Pants';
         if (sub.includes('baggy') || name.includes('baggy') || sub.includes('cargo') || name.includes('cargo') || sub.includes('jeans') || name.includes('jeans') || name.includes('wide leg') || name.includes('packet')) return 'Baggy Pants';
         return 'Formal Pants';
     }
 
-    // 5. Shirts (Regular Shirts only, never Group Shirts or T-Shirts)
+    // 6. Shirts (Regular Shirts only, never Group Shirts or T-Shirts)
     if (catId === 2 || catName.includes('shirt') || name.includes('shirt')) {
         return 'Shirts';
     }
@@ -102,14 +107,16 @@ router.get('/', async (req, res) => {
                 filter.$or = [{ category_id: 1 }, { category_id: '1' }, { category_name: /t-shirt/i }];
             } else if (catParam === 'group-shirts' || catParam === 'groupshirts' || catParam === '8') {
                 filter.$or = [{ category_id: 8 }, { category_id: '8' }, { category_name: /group/i }];
+            } else if (catParam === 'trousers' || catParam === 'trouser' || catParam === '4') {
+                filter.$or = [{ category_id: 4 }, { category_id: '4' }, { category_name: /trouser/i }, { name: /trouser|touser/i }];
             } else if (catParam === 'formal-pants' || catParam === 'formal') {
-                filter.$or = [{ category_id: 4 }, { category_id: '4' }, { subcategory: /formal/i }];
+                filter.$or = [{ subcategory: /formal/i }];
             } else if (catParam === 'cotton-pants' || catParam === 'cotton') {
                 filter.$or = [{ subcategory: /cotton/i }];
             } else if (catParam === 'baggy-pants' || catParam === 'baggy') {
                 filter.$or = [{ subcategory: /baggy|jeans|cargo/i }];
-            } else if (catParam === 'pants' || catParam === '3' || catParam === '4' || catParam === 'trousers') {
-                filter.$or = [{ category_id: 3 }, { category_id: '3' }, { category_id: 4 }, { category_id: '4' }, { category_name: /pant|trouser/i }];
+            } else if (catParam === 'pants' || catParam === '3') {
+                filter.$or = [{ category_id: 3 }, { category_id: '3' }, { category_name: /pant/i }];
             } else if (catParam === 'hoodies' || catParam === '7') {
                 filter.$or = [{ category_id: 7 }, { category_id: '7' }, { category_name: /hoodie/i }];
             }
@@ -223,13 +230,15 @@ router.get('/', async (req, res) => {
                 products = products.filter(p => classifyProduct(p) === 'T-Shirts');
             } else if (catParam === 'group-shirts' || catParam === 'groupshirts' || catParam === '8') {
                 products = products.filter(p => classifyProduct(p) === 'Group Shirts');
+            } else if (catParam === 'trousers' || catParam === 'trouser' || catParam === '4') {
+                products = products.filter(p => classifyProduct(p) === 'Trousers');
             } else if (catParam === 'formal-pants' || catParam === 'formal') {
-                products = products.filter(p => classifyProduct(p) === 'Formal Pants');
+                products = products.filter(p => classifyProduct(p) === 'Formal Pants' || classifyProduct(p) === 'Trousers');
             } else if (catParam === 'cotton-pants' || catParam === 'cotton') {
                 products = products.filter(p => classifyProduct(p) === 'Cotton Pants');
             } else if (catParam === 'baggy-pants' || catParam === 'baggy') {
                 products = products.filter(p => classifyProduct(p) === 'Baggy Pants');
-            } else if (catParam === 'pants' || catParam === '3' || catParam === '4' || catParam === 'trousers') {
+            } else if (catParam === 'pants' || catParam === '3') {
                 products = products.filter(p => ['Formal Pants', 'Cotton Pants', 'Baggy Pants'].includes(classifyProduct(p)));
             } else if (catParam === 'hoodies' || catParam === '7') {
                 products = products.filter(p => classifyProduct(p) === 'Hoodies');

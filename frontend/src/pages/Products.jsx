@@ -9,6 +9,7 @@ const categoriesList = [
     { id: '', name: 'All Products', icon: '🛍️' },
     { id: 'shirts', name: 'Shirts', icon: '👔' },
     { id: 't-shirts', name: 'T-Shirts', icon: '👕' },
+    { id: 'trousers', name: 'Trousers', icon: '👖' },
     { id: 'pants', name: 'Pants', icon: '👖' },
     { id: 'formal-pants', name: 'Formal Pants', icon: '👖' },
     { id: 'cotton-pants', name: 'Cotton Pants', icon: '👖' },
@@ -109,13 +110,15 @@ function Products() {
                             fallback = fallback.filter(p => getProductCollection(p) === 'T-Shirts' && p.sleeve_type === 'Half Hand');
                         } else if (catLower === 'group-shirts' || catLower === 'groupshirts' || catLower === '8') {
                             fallback = fallback.filter(p => getProductCollection(p) === 'Group Shirts');
+                        } else if (catLower === 'trousers' || catLower === 'trouser' || catLower === '4') {
+                            fallback = fallback.filter(p => getProductCollection(p) === 'Trousers');
                         } else if (catLower === 'formal-pants' || catLower === 'formal') {
-                            fallback = fallback.filter(p => getProductCollection(p) === 'Formal Pants');
+                            fallback = fallback.filter(p => getProductCollection(p) === 'Formal Pants' || getProductCollection(p) === 'Trousers');
                         } else if (catLower === 'cotton-pants' || catLower === 'cotton') {
                             fallback = fallback.filter(p => getProductCollection(p) === 'Cotton Pants');
                         } else if (catLower === 'baggy-pants' || catLower === 'baggy') {
                             fallback = fallback.filter(p => getProductCollection(p) === 'Baggy Pants');
-                        } else if (catLower === 'pants' || catLower === '3' || catLower === '4' || catLower === 'trousers') {
+                        } else if (catLower === 'pants' || catLower === '3') {
                             fallback = fallback.filter(p => ['Formal Pants', 'Cotton Pants', 'Baggy Pants'].includes(getProductCollection(p)));
                         } else if (catLower === 'hoodies' || catLower === '7') {
                             fallback = fallback.filter(p => getProductCollection(p) === 'Hoodies');
@@ -189,13 +192,15 @@ function Products() {
                 list = list.filter(p => getProductCollection(p) === 'T-Shirts' && p.sleeve_type === 'Half Hand');
             } else if (catLower === 'group-shirts' || catLower === 'groupshirts' || catLower === '8') {
                 list = list.filter(p => getProductCollection(p) === 'Group Shirts');
+            } else if (catLower === 'trousers' || catLower === 'trouser' || catLower === '4') {
+                list = list.filter(p => getProductCollection(p) === 'Trousers');
             } else if (catLower === 'formal-pants' || catLower === 'formal') {
-                list = list.filter(p => getProductCollection(p) === 'Formal Pants');
+                list = list.filter(p => getProductCollection(p) === 'Formal Pants' || getProductCollection(p) === 'Trousers');
             } else if (catLower === 'cotton-pants' || catLower === 'cotton') {
                 list = list.filter(p => getProductCollection(p) === 'Cotton Pants');
             } else if (catLower === 'baggy-pants' || catLower === 'baggy') {
                 list = list.filter(p => getProductCollection(p) === 'Baggy Pants');
-            } else if (catLower === 'pants' || catLower === '3' || catLower === '4' || catLower === 'trousers') {
+            } else if (catLower === 'pants' || catLower === '3') {
                 list = list.filter(p => ['Formal Pants', 'Cotton Pants', 'Baggy Pants'].includes(getProductCollection(p)));
             } else if (catLower === 'hoodies' || catLower === '7') {
                 list = list.filter(p => getProductCollection(p) === 'Hoodies');

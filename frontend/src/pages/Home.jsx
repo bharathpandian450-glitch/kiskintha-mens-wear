@@ -21,6 +21,11 @@ const categoryCustomIcons = {
             👖
         </span>
     ),
+    'Trousers': (
+        <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', borderRadius: '50%', background: '#eff6ff', border: '2px solid #2563eb', fontSize: '28px' }}>
+            👖
+        </span>
+    ),
     'Hoodies': (
         <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', borderRadius: '50%', background: '#fef2f2', border: '2px solid #ef4444', fontSize: '28px', position: 'relative' }}>
             🧥<span style={{ position: 'absolute', bottom: '2px', right: '2px', fontSize: '12px', background: '#ef4444', color: '#fff', borderRadius: '50%', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>H</span>
@@ -60,7 +65,7 @@ function Home() {
             <section className="hero">
                 <div className="container">
                     <h1>Kiskintha Mens Wear</h1>
-                    <p>Premium Men's Clothing Store — Shop the latest collection of T-Shirts, Shirts, Group Shirts, Pants, and Hoodies at the best prices.</p>
+                    <p>Premium Men's Clothing Store — Shop the latest collection of T-Shirts, Shirts, Trousers, Group Shirts, Pants, and Hoodies at the best prices.</p>
                     <Link to="/products" className="btn">Shop Now →</Link>
                 </div>
             </section>
@@ -73,6 +78,7 @@ function Home() {
                         {[
                             { id: 'shirts', name: 'Shirts', icon: '👔' },
                             { id: 't-shirts', name: 'T-Shirts', icon: '👕' },
+                            { id: 'trousers', name: 'Trousers', icon: '👖' },
                             { id: 'formal-pants', name: 'Formal Pants', icon: '👖' },
                             { id: 'cotton-pants', name: 'Cotton Pants', icon: '👖' },
                             { id: 'baggy-pants', name: 'Baggy Pants', icon: '👖' },
