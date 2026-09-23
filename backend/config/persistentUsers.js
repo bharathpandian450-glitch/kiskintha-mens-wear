@@ -1,4 +1,4 @@
-﻿const fs = require('fs');
+const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
@@ -33,11 +33,11 @@ function savePersistentUser(userObj) {
     try {
         const users = loadPersistentUsers();
         const cleanEmail = (userObj.email || '').toLowerCase().trim();
-        const cleanPhone = (userObj.phone || '').trim();
+        const cleanPhone = (userObj.phone || '').trim().replace(/\D/g, '').slice(-10);
 
         const idx = users.findIndex(u => 
             (cleanEmail && u.email && u.email.toLowerCase().trim() === cleanEmail) ||
-            (cleanPhone && u.phone && u.phone.trim() === cleanPhone) ||
+            (cleanPhone && cleanPhone.length === 10 && u.phone && u.phone.replace(/\D/g, '').slice(-10) === cleanPhone) ||
             (u.id && userObj.id && Number(u.id) === Number(userObj.id))
         );
 
@@ -58,12 +58,22 @@ function savePersistentUser(userObj) {
 function findPersistentUser(credential) {
     if (!credential) return null;
     const clean = credential.toString().toLowerCase().trim();
+    const cleanDigits = clean.replace(/\D/g, '').slice(-10);
     const users = loadPersistentUsers();
-    return users.find(u => 
-        (u.email && u.email.toLowerCase().trim() === clean) ||
-        (u.phone && u.phone.trim() === clean) ||
-        (u.username && u.username.toLowerCase().trim() === clean)
-    ) || null;
+    return users.find(u => {
+        const uEmail = (u.email || '').toLowerCase().trim();
+        const uPhone = (u.phone || '').trim();
+        const uPhoneDigits = uPhone.replace(/\D/g, '').slice(-10);
+        const uUsername = (u.username || '').toLowerCase().trim();
+        const uName = (u.name || '').toLowerCase().trim();
+
+        if (uEmail && uEmail === clean) return true;
+        if (cleanDigits && cleanDigits.length === 10 && uPhoneDigits === cleanDigits) return true;
+        if (uPhone && uPhone === clean) return true;
+        if (uUsername && uUsername === clean) return true;
+        if (uName && uName === clean) return true;
+        return false;
+    }) || null;
 }
 
 module.exports = {

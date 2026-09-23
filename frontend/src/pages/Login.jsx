@@ -184,8 +184,13 @@ function Login() {
 
 
                     {error && (
-                        <div className="alert alert-danger" style={{ marginBottom: '16px' }}>
-                            ⚠️ {error}
+                        <div className="alert alert-danger" style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <div>⚠️ {error}</div>
+                            {error.toLowerCase().includes('register') && (
+                                <Link to="/register" style={{ fontWeight: '700', textDecoration: 'underline', color: '#b91c1c' }}>
+                                    👉 Click here to Create an Account / Register
+                                </Link>
+                            )}
                         </div>
                     )}
 
