@@ -34,34 +34,36 @@ function Orders() {
         }
     });
     const [authError, setAuthError] = useState(false);
+    const [error, setError] = useState('');
 
     const fetchOrders = async (retryCount = 0) => {
         try {
             setError('');
             setAuthError(false);
             const res = await API.get('/orders/my');
-            const data = res.data || [];
+            const data = Array.isArray(res.data) ? res.data : [];
             setOrders(data);
             try {
                 localStorage.setItem('cached_my_orders', JSON.stringify(data));
             } catch (e) {}
+            setLoading(false);
         } catch (err) {
-            console.error('Fetch orders note:', err.message);
+            console.error('Fetch orders note:', err?.message || err);
             const isAuth = err.response && (err.response.status === 401 || err.response.status === 403);
             if (isAuth) {
                 setAuthError(true);
                 setError(err.response?.data?.message || 'Your session has expired. Please sign in.');
+                setLoading(false);
             } else if (retryCount < 1) {
-                // Auto-retry once after 800ms
-                setTimeout(() => fetchOrders(retryCount + 1), 800);
+                // Auto-retry once after 600ms without prematurely hiding loader
+                setTimeout(() => fetchOrders(retryCount + 1), 600);
             } else {
                 const saved = localStorage.getItem('cached_my_orders');
                 if (!saved || JSON.parse(saved).length === 0) {
                     setError('Unable to load orders right now. Please check server connection.');
                 }
+                setLoading(false);
             }
-        } finally {
-            setLoading(false);
         }
     };
 

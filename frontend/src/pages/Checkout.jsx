@@ -124,6 +124,9 @@ function Checkout() {
             setOrderId(res.data.orderId);
             setOrderPlaced(true);
             clearCart();
+            try {
+                localStorage.removeItem('cached_my_orders');
+            } catch (e) {}
             window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to place order. Please try again.');
