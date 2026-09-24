@@ -7,6 +7,8 @@ const DATA_DIR = process.env.VERCEL
     : path.join(__dirname, '../data');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 
+const BUNDLED_USERS_FILE = path.join(__dirname, '../data/users.json');
+
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
     try {
@@ -14,14 +16,45 @@ if (!fs.existsSync(DATA_DIR)) {
     } catch (e) {}
 }
 
-// Load persistent users from JSON file
+// Ensure initial file is seeded from bundled data on serverless startup
+if (process.env.VERCEL && !fs.existsSync(USERS_FILE) && fs.existsSync(BUNDLED_USERS_FILE)) {
+    try {
+        fs.copyFileSync(BUNDLED_USERS_FILE, USERS_FILE);
+    } catch (e) {}
+}
+
+// Load persistent users from JSON file with bundled fallback
 function loadPersistentUsers() {
     try {
+        let users = [];
         if (fs.existsSync(USERS_FILE)) {
             const raw = fs.readFileSync(USERS_FILE, 'utf8');
             const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed)) return parsed;
+            if (Array.isArray(parsed)) users = parsed;
+        } else if (fs.existsSync(BUNDLED_USERS_FILE)) {
+            const raw = fs.readFileSync(BUNDLED_USERS_FILE, 'utf8');
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) users = parsed;
         }
+
+        // Also merge any bundled users that might be missing
+        if (fs.existsSync(BUNDLED_USERS_FILE)) {
+            try {
+                const bRaw = fs.readFileSync(BUNDLED_USERS_FILE, 'utf8');
+                const bParsed = JSON.parse(bRaw);
+                if (Array.isArray(bParsed)) {
+                    const existingEmails = new Set(users.map(u => (u.email || '').toLowerCase().trim()));
+                    bParsed.forEach(bUser => {
+                        const bEmail = (bUser.email || '').toLowerCase().trim();
+                        if (bEmail && !existingEmails.has(bEmail)) {
+                            users.push(bUser);
+                        }
+                    });
+                }
+            } catch (bErr) {}
+        }
+
+        return users;
     } catch (err) {
         console.error('Error reading persistent users.json:', err.message);
     }

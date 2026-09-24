@@ -15,10 +15,12 @@ module.exports = async (req, res) => {
         return;
     }
 
-    // Connect to MongoDB asynchronously in background without delaying HTTP responses
+    // Ensure MongoDB connection is established for serverless execution
     try {
-        connectMongoDB(initialData).catch(() => {});
-    } catch (err) {}
+        await connectMongoDB();
+    } catch (err) {
+        console.error('Serverless MongoDB connection note:', err?.message || err);
+    }
 
     return app(req, res);
 };

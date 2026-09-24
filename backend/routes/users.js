@@ -6,10 +6,10 @@ const { mongoose, User, connectMongoDB, getIsConnected } = require('../config/mo
 const { auth, JWT_SECRET } = require('../middleware/auth');
 const { savePersistentUser, findPersistentUser, loadPersistentUsers } = require('../config/persistentUsers');
 
-// Middleware to ensure MongoDB connection is triggered in background without blocking requests
-router.use((req, res, next) => {
+// Middleware to ensure MongoDB connection is established for user auth requests
+router.use(async (req, res, next) => {
     if (!getIsConnected()) {
-        connectMongoDB().catch(() => {});
+        try { await connectMongoDB(); } catch (e) {}
     }
     next();
 });
@@ -146,6 +146,9 @@ router.post('/register', async (req, res) => {
         savePersistentUser(userObj);
 
         // 2. Save / Upsert to live MongoDB User collection if connected
+        if (!getIsConnected()) {
+            try { await connectMongoDB(); } catch (e) {}
+        }
         if (getIsConnected()) {
             await User.findOneAndUpdate(
                 { $or: [{ email: cleanEmail }, ...(cleanPhone ? [{ phone: cleanPhone }] : [])] },

@@ -127,8 +127,8 @@ const connectMongoDB = async () => {
 
     const uri = getMongoURI();
     const opts = {
-        serverSelectionTimeoutMS: 2500,
-        connectTimeoutMS: 2500,
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000,
         maxPoolSize: 10,
         bufferCommands: false
     };

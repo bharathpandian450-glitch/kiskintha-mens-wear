@@ -7,21 +7,53 @@ const DATA_DIR = process.env.VERCEL
     : path.join(__dirname, '../data');
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
 
-// Ensure data directory exists
+const BUNDLED_ORDERS_FILE = path.join(__dirname, '../data/orders.json');
+
+// Ensure data directory and initial file exists
 if (!fs.existsSync(DATA_DIR)) {
     try {
         fs.mkdirSync(DATA_DIR, { recursive: true });
     } catch (e) {}
 }
 
-// Load persistent orders from JSON file
+// Ensure initial file is seeded from bundled data on serverless startup
+if (process.env.VERCEL && !fs.existsSync(ORDERS_FILE) && fs.existsSync(BUNDLED_ORDERS_FILE)) {
+    try {
+        fs.copyFileSync(BUNDLED_ORDERS_FILE, ORDERS_FILE);
+    } catch (e) {}
+}
+
+// Load persistent orders from JSON file with bundled fallback
 function loadPersistentOrders() {
     try {
+        let orders = [];
         if (fs.existsSync(ORDERS_FILE)) {
             const raw = fs.readFileSync(ORDERS_FILE, 'utf8');
             const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed)) return parsed;
+            if (Array.isArray(parsed)) orders = parsed;
+        } else if (fs.existsSync(BUNDLED_ORDERS_FILE)) {
+            const raw = fs.readFileSync(BUNDLED_ORDERS_FILE, 'utf8');
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) orders = parsed;
         }
+
+        // Also merge any bundled orders that might be missing
+        if (fs.existsSync(BUNDLED_ORDERS_FILE)) {
+            try {
+                const bRaw = fs.readFileSync(BUNDLED_ORDERS_FILE, 'utf8');
+                const bParsed = JSON.parse(bRaw);
+                if (Array.isArray(bParsed)) {
+                    const existingIds = new Set(orders.map(o => Number(o.id)));
+                    bParsed.forEach(bOrder => {
+                        if (!existingIds.has(Number(bOrder.id))) {
+                            orders.push(bOrder);
+                        }
+                    });
+                }
+            } catch (bErr) {}
+        }
+
+        return orders;
     } catch (err) {
         console.error('Error reading persistent orders.json:', err.message);
     }

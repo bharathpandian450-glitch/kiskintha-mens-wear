@@ -5,9 +5,9 @@ const { loadPersistentOrders } = require('../config/persistentOrders');
 const { initialData } = require('../config/db');
 const { auth, isOwner } = require('../middleware/auth');
 
-router.use((req, res, next) => {
+router.use(async (req, res, next) => {
     if (!getIsConnected()) {
-        connectMongoDB(initialData).catch(() => {});
+        try { await connectMongoDB(); } catch (e) {}
     }
     next();
 });
