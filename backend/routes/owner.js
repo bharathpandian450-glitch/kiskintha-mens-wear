@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Product, Order, User, connectMongoDB, getIsConnected } = require('../config/mongodb');
 const { loadPersistentOrders } = require('../config/persistentOrders');
+const { loadPersistentUsers } = require('../config/persistentUsers');
 const { initialData } = require('../config/db');
 const { auth, isOwner } = require('../middleware/auth');
 
@@ -47,6 +48,11 @@ router.get('/overview', auth, isOwner, async (req, res) => {
             totalRevenue = validOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
         }
 
+        const diskCustomers = loadPersistentUsers().filter(u => u.role === 'customer' || (!u.role && u.role !== 'owner' && u.role !== 'admin'));
+        if (diskCustomers.length > totalCustomers) {
+            totalCustomers = diskCustomers.length;
+        }
+
         res.json({
             ownerName: req.user.name || 'Kiskintha (Store Owner)',
             shopName: 'Kiskintha Mens Wear',
@@ -76,6 +82,9 @@ router.get('/overview', auth, isOwner, async (req, res) => {
 // GET all customer orders for Store Owner (Native MongoDB + Persistent Backup)
 router.get('/orders', auth, isOwner, async (req, res) => {
     try {
+        if (!getIsConnected()) {
+            try { await connectMongoDB(); } catch (e) {}
+        }
         let mongoOrders = [];
         if (getIsConnected()) {
             try {

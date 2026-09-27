@@ -271,7 +271,7 @@ router.get('/my', auth, async (req, res) => {
 router.get('/', auth, isAdmin, async (req, res) => {
     try {
         if (!getIsConnected()) {
-            connectMongoDB().catch(() => {});
+            try { await connectMongoDB(); } catch (e) {}
         }
         let mongoOrders = [];
         if (getIsConnected()) {
