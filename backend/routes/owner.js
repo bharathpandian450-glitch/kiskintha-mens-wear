@@ -104,16 +104,30 @@ router.get('/orders', auth, isOwner, async (req, res) => {
     }
 });
 
-// GET all admins and staff (Owner only - Native MongoDB)
+// GET store owner account details (Owner only)
 router.get('/staff', auth, isOwner, async (req, res) => {
     try {
-        const staff = await User.find({ role: { $in: ['admin', 'owner'] } })
-            .sort({ id: 1 })
-            .select('-password')
-            .lean();
-        res.json(staff || []);
+        let staff = [];
+        if (getIsConnected()) {
+            try {
+                staff = await User.find({ role: 'owner' })
+                    .sort({ id: 1 })
+                    .select('-password')
+                    .lean();
+            } catch (e) {}
+        }
+        if (!staff || staff.length === 0) {
+            staff = [{
+                id: 3,
+                name: 'Kiskintha (Store Owner)',
+                email: 'kiskinthaowner@kiskinthamenswear.com',
+                phone: '9876543200',
+                role: 'owner'
+            }];
+        }
+        res.json(staff);
     } catch (error) {
-        console.error('Error fetching staff from MongoDB:', error);
+        console.error('Error fetching owner staff:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

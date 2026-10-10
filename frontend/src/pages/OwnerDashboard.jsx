@@ -480,7 +480,7 @@ function OwnerDashboard() {
                             color: activeTab === 'staff' ? '#fef08a' : '#475569'
                         }}
                     >
-                        🛡️ Staff Roles ({staff.length})
+                        👑 Store Owner Account
                     </button>
                     <button
                         onClick={() => { setActiveTab('reviews'); fetchReviews(); }}
@@ -1160,18 +1160,18 @@ function OwnerDashboard() {
                 {/* TAB 4: STAFF & AUTHORITY ROLES */}
                 {activeTab === 'staff' && (
                     <div style={{ background: '#ffffff', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
-                        <h3 style={{ margin: '0 0 16px', fontSize: '20px', color: '#0f172a' }}>🛡️ Store Staff & System Accounts</h3>
+                        <h3 style={{ margin: '0 0 16px', fontSize: '20px', color: '#0f172a' }}>👑 Store Owner Account</h3>
                         <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                             <thead>
                                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textTransform: 'uppercase', fontSize: '11px' }}>
-                                    <th style={{ padding: '12px', textAlign: 'left' }}>Staff Name</th>
+                                    <th style={{ padding: '12px', textAlign: 'left' }}>Owner Name</th>
                                     <th style={{ padding: '12px', textAlign: 'left' }}>Email Address</th>
                                     <th style={{ padding: '12px', textAlign: 'left' }}>Phone</th>
                                     <th style={{ padding: '12px', textAlign: 'left' }}>Role Authority</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {staff.map(s => (
+                                {(staff.filter(s => s.role === 'owner').length > 0 ? staff.filter(s => s.role === 'owner') : [{ id: 3, name: 'Kiskintha (Store Owner)', email: 'kiskinthaowner@kiskinthamenswear.com', phone: '9876543200', role: 'owner' }]).map(s => (
                                     <tr key={s.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                                         <td style={{ padding: '12px', fontWeight: '700' }}>{s.name}</td>
                                         <td style={{ padding: '12px', color: '#1e40af' }}>{s.email}</td>
