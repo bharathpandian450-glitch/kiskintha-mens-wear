@@ -1454,11 +1454,6 @@ function OwnerDashboard() {
                     </div>
                 </div>
             )}
-        </div>
-    );
-}
-
-
             {/* REVIEWS TAB */}
             {activeTab === 'reviews' && (
                 <div>
@@ -1509,7 +1504,8 @@ function OwnerDashboard() {
                     )}
                 </div>
             )}
+        </div>
+    );
+}
+
 export default OwnerDashboard;
-
-
-
