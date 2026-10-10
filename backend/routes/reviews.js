@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Review, Product, Order, getIsConnected } = require('../config/mongodb');
-const { auth } = require('../middleware/auth');
+const { auth, isAdmin } = require('../middleware/auth');
 const { initialData } = require('../config/db');
 const { loadPersistentOrders } = require('../config/persistentOrders');
 
@@ -223,6 +223,24 @@ router.post('/', auth, async (req, res) => {
     } catch (error) {
         console.error('Error submitting review:', error);
         res.status(500).json({ message: 'Server error submitting customer review' });
+    }
+});
+
+// DELETE a review (Admin & Owner only)
+router.delete('/:id', auth, isAdmin, async (req, res) => {
+    try {
+        const reviewId = Number(req.params.id);
+        if (getIsConnected()) {
+            try { await Review.deleteOne({ id: reviewId }); } catch (e) {}
+        }
+        // Remove from in-memory array too
+        if (initialData.reviews) {
+            initialData.reviews = initialData.reviews.filter(r => Number(r.id) !== reviewId);
+        }
+        res.json({ message: `Review #${reviewId} deleted successfully` });
+    } catch (error) {
+        console.error('Error deleting review:', error);
+        res.status(500).json({ message: 'Server error deleting review' });
     }
 });
 

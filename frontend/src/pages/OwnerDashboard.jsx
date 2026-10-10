@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import API, { getImageUrl } from '../api';
@@ -17,7 +17,9 @@ function OwnerDashboard() {
     const [staff, setStaff] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [activeTab, setActiveTab] = useState('orders'); // 'orders', 'customers', 'products', 'overview', 'staff'
+    const [activeTab, setActiveTab] = useState('orders'); // 'orders', 'customers', 'products', 'overview', 'staff', 'reviews'
+    const [reviews, setReviews] = useState([]);
+    const [reviewsLoading, setReviewsLoading] = useState(false);
 
     // Selected order for detailed purchase items breakdown modal
     const [selectedOrder, setSelectedOrder] = useState(null);
@@ -160,7 +162,7 @@ function OwnerDashboard() {
     const handleStatusChange = async (orderId, newStatus) => {
         try {
             await API.put(`/orders/${orderId}`, { status: newStatus });
-            setStatusUpdateMsg(`✓ Order #${orderId} status updated to ${newStatus}`);
+            setStatusUpdateMsg(`âœ“ Order #${orderId} status updated to ${newStatus}`);
             setTimeout(() => setStatusUpdateMsg(''), 3000);
             fetchData();
         } catch (err) {
@@ -173,7 +175,7 @@ function OwnerDashboard() {
         if (!window.confirm(`Are you sure you want to delete Order #${orderId}? This will remove it permanently.`)) return;
         try {
             await API.delete(`/orders/${orderId}`);
-            setStatusUpdateMsg(`✓ Order #${orderId} deleted successfully!`);
+            setStatusUpdateMsg(`âœ“ Order #${orderId} deleted successfully!`);
             setTimeout(() => setStatusUpdateMsg(''), 3000);
             fetchData();
         } catch (err) {
@@ -255,10 +257,10 @@ function OwnerDashboard() {
 
             if (editingProduct) {
                 await API.put(`/products/${editingProduct.id}`, formData);
-                setProdMsg('✓ Product updated successfully in MongoDB!');
+                setProdMsg('âœ“ Product updated successfully in MongoDB!');
             } else {
                 await API.post('/products', formData);
-                setProdMsg('✓ Product added to catalog & saved to MongoDB!');
+                setProdMsg('âœ“ Product added to catalog & saved to MongoDB!');
             }
 
             setTimeout(() => {
@@ -267,7 +269,7 @@ function OwnerDashboard() {
             }, 1200);
         } catch (err) {
             const errDetail = err.response?.data?.message || err.message || 'Error saving product';
-            setProdMsg('⚠️ ' + errDetail);
+            setProdMsg('âš ï¸ ' + errDetail);
         } finally {
             setProdLoading(false);
         }
@@ -276,7 +278,7 @@ function OwnerDashboard() {
     const handleSavePrice = async (prodId, newPrice) => {
         const num = parseFloat(newPrice);
         if (isNaN(num) || num <= 0) {
-            alert('Please enter a valid price greater than ₹0');
+            alert('Please enter a valid price greater than â‚¹0');
             return;
         }
         setUpdatingPrice(true);
@@ -284,7 +286,7 @@ function OwnerDashboard() {
             await API.patch(`/products/${prodId}/price`, { price: num });
             const updatedProd = products.find(p => p.id === prodId);
             setProducts(prev => prev.map(p => p.id === prodId ? { ...p, price: num } : p));
-            setStatusUpdateMsg(`✓ Price updated successfully for "${updatedProd?.name || 'Product'}" to ₹${num.toLocaleString('en-IN')}`);
+            setStatusUpdateMsg(`âœ“ Price updated successfully for "${updatedProd?.name || 'Product'}" to â‚¹${num.toLocaleString('en-IN')}`);
             setEditingPriceId(null);
             setEditingPriceVal('');
             setTimeout(() => setStatusUpdateMsg(''), 4000);
@@ -333,16 +335,16 @@ function OwnerDashboard() {
                 }}>
                     <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '32px' }}>👑</span>
+                            <span style={{ fontSize: '32px' }}>ðŸ‘‘</span>
                             <div>
                                 <h1 style={{ margin: 0, fontSize: '26px', color: '#fef08a', letterSpacing: '-0.5px' }}>
                                     Store Owner Control Portal
                                 </h1>
                                 <p style={{ margin: '4px 0 0', color: '#d4af37', fontSize: '14px', fontWeight: '600' }}>
-                                    Kiskintha Mens Wear • Executive Business Operations Dashboard
+                                    Kiskintha Mens Wear â€¢ Executive Business Operations Dashboard
                                 </p>
                                 <p style={{ margin: '4px 0 0', color: '#e2e8f0', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    📍 Store Address: <strong style={{ color: '#ffffff' }}>{user?.address || 'Alagappa Nadar Complex, Near Old Bus Stand, Rajapalayam – 626117, Tamil Nadu, India.'}</strong>
+                                    ðŸ“ Store Address: <strong style={{ color: '#ffffff' }}>{user?.address || 'Alagappa Nadar Complex, Near Old Bus Stand, Rajapalayam â€“ 626117, Tamil Nadu, India.'}</strong>
                                 </p>
                             </div>
                         </div>
@@ -361,7 +363,7 @@ function OwnerDashboard() {
                                 boxShadow: '0 4px 12px rgba(212,175,55,0.4)'
                             }}
                         >
-                            ➕ Add New Product
+                            âž• Add New Product
                         </button>
                     </div>
                 </div>
@@ -378,9 +380,9 @@ function OwnerDashboard() {
                     <div style={{ background: '#ffffff', padding: '22px', borderRadius: '14px', borderLeft: '5px solid #d4af37', boxShadow: '0 4px 14px rgba(0,0,0,0.05)' }}>
                         <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>TOTAL REVENUE</div>
                         <div style={{ fontSize: '28px', fontWeight: '800', color: '#111111', marginTop: '6px' }}>
-                            ₹{Number(overview?.totalRevenue || 0).toLocaleString('en-IN')}
+                            â‚¹{Number(overview?.totalRevenue || 0).toLocaleString('en-IN')}
                         </div>
-                        <div style={{ fontSize: '12px', color: '#059669', marginTop: '4px', fontWeight: '600' }}>✓ Confirmed & Delivered Sales</div>
+                        <div style={{ fontSize: '12px', color: '#059669', marginTop: '4px', fontWeight: '600' }}>âœ“ Confirmed & Delivered Sales</div>
                     </div>
 
                     <div style={{ background: '#ffffff', padding: '22px', borderRadius: '14px', borderLeft: '5px solid #1a56db', boxShadow: '0 4px 14px rgba(0,0,0,0.05)' }}>
@@ -423,7 +425,7 @@ function OwnerDashboard() {
                             border: activeTab === 'orders' ? '1px solid #d4af37' : '1px solid #cbd5e1'
                         }}
                     >
-                        🛍️ Customer Orders ({orders.length})
+                        ðŸ›ï¸ Customer Orders ({orders.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('customers')}
@@ -438,7 +440,7 @@ function OwnerDashboard() {
                             boxShadow: activeTab === 'customers' ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
                         }}
                     >
-                        👥 Registered Customers ({customers.length})
+                        ðŸ‘¥ Registered Customers ({customers.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('products')}
@@ -453,7 +455,7 @@ function OwnerDashboard() {
                             boxShadow: activeTab === 'products' ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
                         }}
                     >
-                        👔 Product Catalog & Stock ({products.length})
+                        ðŸ‘” Product Catalog & Stock ({products.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('staff')}
@@ -466,8 +468,23 @@ function OwnerDashboard() {
                             background: activeTab === 'staff' ? 'linear-gradient(135deg, #111111 0%, #1e1e1e 100%)' : '#ffffff',
                             color: activeTab === 'staff' ? '#fef08a' : '#475569'
                         }}
+                    <button
+                        onClick={() => { setActiveTab('reviews'); fetchReviews(); }}
+                        style={{
+                            padding: '10px 20px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: activeTab === 'reviews' ? '#f59e0b' : '#f1f5f9',
+                            color: activeTab === 'reviews' ? '#fff' : '#334155',
+                            fontWeight: '800',
+                            cursor: 'pointer',
+                            fontSize: '14px'
+                        }}
                     >
-                        🛡️ Staff Roles ({staff.length})
+                        ⭐ Reviews
+                    </button>
+                    >
+                        ðŸ›¡ï¸ Staff Roles ({staff.length})
                     </button>
                 </div>
 
@@ -476,7 +493,7 @@ function OwnerDashboard() {
                     <div style={{ background: '#ffffff', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
                             <div>
-                                <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a' }}>🛍️ Customer Orders Management</h3>
+                                <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a' }}>ðŸ›ï¸ Customer Orders Management</h3>
                                 <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '13px' }}>
                                     View all customer orders, product details, address, payment method, and update order status in real time.
                                 </p>
@@ -484,13 +501,13 @@ function OwnerDashboard() {
                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                                 <input
                                     type="text"
-                                    placeholder="🔍 Search order ID, customer, phone..."
+                                    placeholder="ðŸ” Search order ID, customer, phone..."
                                     value={orderSearch}
                                     onChange={(e) => setOrderSearch(e.target.value)}
                                     style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', width: '230px' }}
                                 />
                                 <span style={{ fontSize: '13px', background: '#ecfdf5', color: '#047857', padding: '6px 12px', borderRadius: '20px', fontWeight: '700', border: '1px solid #a7f3d0' }}>
-                                    ⚡ Live Sync Active
+                                    âš¡ Live Sync Active
                                 </span>
                             </div>
                         </div>
@@ -498,23 +515,23 @@ function OwnerDashboard() {
                         {/* Order Statistics Summary Bar */}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px', marginBottom: '18px' }}>
                             <div style={{ background: '#eff6ff', padding: '12px 16px', borderRadius: '10px', border: '1px solid #bfdbfe' }}>
-                                <div style={{ fontSize: '11px', color: '#1e40af', fontWeight: '700', textTransform: 'uppercase' }}>📊 Total Orders</div>
+                                <div style={{ fontSize: '11px', color: '#1e40af', fontWeight: '700', textTransform: 'uppercase' }}>ðŸ“Š Total Orders</div>
                                 <div style={{ fontSize: '22px', fontWeight: '800', color: '#1d4ed8', marginTop: '2px' }}>{orders.length}</div>
                             </div>
                             <div style={{ background: '#fffbeb', padding: '12px 16px', borderRadius: '10px', border: '1px solid #fde68a' }}>
-                                <div style={{ fontSize: '11px', color: '#b45309', fontWeight: '700', textTransform: 'uppercase' }}>⏳ Pending Orders</div>
+                                <div style={{ fontSize: '11px', color: '#b45309', fontWeight: '700', textTransform: 'uppercase' }}>â³ Pending Orders</div>
                                 <div style={{ fontSize: '22px', fontWeight: '800', color: '#d97706', marginTop: '2px' }}>
                                     {orders.filter(o => (o.status || 'Pending') === 'Pending' || o.status === 'Pending Approval').length}
                                 </div>
                             </div>
                             <div style={{ background: '#f0fdf4', padding: '12px 16px', borderRadius: '10px', border: '1px solid #bbf7d0' }}>
-                                <div style={{ fontSize: '11px', color: '#15803d', fontWeight: '700', textTransform: 'uppercase' }}>🎉 Delivered Orders</div>
+                                <div style={{ fontSize: '11px', color: '#15803d', fontWeight: '700', textTransform: 'uppercase' }}>ðŸŽ‰ Delivered Orders</div>
                                 <div style={{ fontSize: '22px', fontWeight: '800', color: '#059669', marginTop: '2px' }}>
                                     {orders.filter(o => o.status === 'Delivered').length}
                                 </div>
                             </div>
                             <div style={{ background: '#fef2f2', padding: '12px 16px', borderRadius: '10px', border: '1px solid #fecaca' }}>
-                                <div style={{ fontSize: '11px', color: '#b91c1c', fontWeight: '700', textTransform: 'uppercase' }}>❌ Cancelled Orders</div>
+                                <div style={{ fontSize: '11px', color: '#b91c1c', fontWeight: '700', textTransform: 'uppercase' }}>âŒ Cancelled Orders</div>
                                 <div style={{ fontSize: '22px', fontWeight: '800', color: '#dc2626', marginTop: '2px' }}>
                                     {orders.filter(o => (o.status || '').toLowerCase().includes('cancel') || (o.status || '').toLowerCase().includes('reject')).length}
                                 </div>
@@ -525,12 +542,12 @@ function OwnerDashboard() {
                         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', marginBottom: '16px', scrollbarWidth: 'thin' }}>
                             {[
                                 { id: 'All', label: 'All Orders', count: orders.length },
-                                { id: 'Pending', label: '⏳ Pending', count: orders.filter(o => (o.status || 'Pending') === 'Pending' || o.status === 'Pending Approval').length },
-                                { id: 'Confirmed', label: '✅ Confirmed', count: orders.filter(o => o.status === 'Confirmed' || o.status === 'Approved & Confirmed').length },
-                                { id: 'Packed', label: '📦 Packed', count: orders.filter(o => o.status === 'Packed').length },
-                                { id: 'Shipped', label: '🚚 Shipped', count: orders.filter(o => o.status === 'Shipped').length },
-                                { id: 'Delivered', label: '🎉 Delivered', count: orders.filter(o => o.status === 'Delivered').length },
-                                { id: 'Cancelled', label: '❌ Cancelled', count: orders.filter(o => (o.status || '').toLowerCase().includes('cancel') || (o.status || '').toLowerCase().includes('reject')).length }
+                                { id: 'Pending', label: 'â³ Pending', count: orders.filter(o => (o.status || 'Pending') === 'Pending' || o.status === 'Pending Approval').length },
+                                { id: 'Confirmed', label: 'âœ… Confirmed', count: orders.filter(o => o.status === 'Confirmed' || o.status === 'Approved & Confirmed').length },
+                                { id: 'Packed', label: 'ðŸ“¦ Packed', count: orders.filter(o => o.status === 'Packed').length },
+                                { id: 'Shipped', label: 'ðŸšš Shipped', count: orders.filter(o => o.status === 'Shipped').length },
+                                { id: 'Delivered', label: 'ðŸŽ‰ Delivered', count: orders.filter(o => o.status === 'Delivered').length },
+                                { id: 'Cancelled', label: 'âŒ Cancelled', count: orders.filter(o => (o.status || '').toLowerCase().includes('cancel') || (o.status || '').toLowerCase().includes('reject')).length }
                             ].map(st => {
                                 const isSelected = orderStatusFilter === st.id;
                                 return (
@@ -623,30 +640,30 @@ function OwnerDashboard() {
                                                                 #{order.id}
                                                             </div>
                                                             <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-                                                                📅 {formattedDate}
+                                                                ðŸ“… {formattedDate}
                                                             </div>
                                                         </td>
 
                                                         {/* Customer Name & Phone */}
                                                         <td style={{ padding: '14px 12px' }}>
                                                             <div style={{ fontWeight: '700', color: '#0f172a' }}>
-                                                                👤 {order.customer_name || 'Customer'}
+                                                                ðŸ‘¤ {order.customer_name || 'Customer'}
                                                             </div>
                                                             <div style={{ fontSize: '11px', color: '#1e293b', marginTop: '2px' }}>
-                                                                📞 {order.phone || order.customer_phone || 'N/A'}
+                                                                ðŸ“ž {order.phone || order.customer_phone || 'N/A'}
                                                             </div>
                                                             {order.customer_email && (
                                                                 <div style={{ fontSize: '10px', color: '#64748b' }}>
-                                                                    ✉️ {order.customer_email}
+                                                                    âœ‰ï¸ {order.customer_email}
                                                                 </div>
                                                             )}
                                                         </td>
 
                                                         {/* Delivery Address, City, State, Pincode */}
                                                         <td style={{ padding: '14px 12px', maxWidth: '220px', color: '#334155', fontSize: '12px', lineHeight: '1.4' }}>
-                                                            <div style={{ fontWeight: '600', color: '#0f172a' }}>📍 {order.address || 'Standard Delivery Address'}</div>
+                                                            <div style={{ fontWeight: '600', color: '#0f172a' }}>ðŸ“ {order.address || 'Standard Delivery Address'}</div>
                                                             <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                                                                🏙️ {order.city || 'Rajapalayam'}, {order.state || 'Tamil Nadu'} - {order.pincode || '626117'}
+                                                                ðŸ™ï¸ {order.city || 'Rajapalayam'}, {order.state || 'Tamil Nadu'} - {order.pincode || '626117'}
                                                             </div>
                                                         </td>
 
@@ -673,10 +690,10 @@ function OwnerDashboard() {
                                                                                  <div style={{ fontSize: '11px', color: '#64748b', display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '1px' }}>
                                                                                     {item.category_name && <span style={{ color: '#1e40af', fontWeight: '700' }}>{item.category_name}</span>}
                                                                                     {item.sleeve_type && item.sleeve_type !== 'N/A' && <span style={{ color: '#166534', fontWeight: '700' }}>{item.sleeve_type}</span>}
-                                                                                    {item.color && <span>🎨 {item.color}</span>}
-                                                                                    <span>📏 {item.size || 'M'}</span>
+                                                                                    {item.color && <span>ðŸŽ¨ {item.color}</span>}
+                                                                                    <span>ðŸ“ {item.size || 'M'}</span>
                                                                                     <span style={{ fontWeight: '700', color: '#059669' }}>
-                                                                                        {item.quantity} × ₹{Number(item.price).toLocaleString('en-IN')}
+                                                                                        {item.quantity} Ã— â‚¹{Number(item.price).toLocaleString('en-IN')}
                                                                                     </span>
                                                                                 </div>
                                                                             </div>
@@ -688,7 +705,7 @@ function OwnerDashboard() {
                                                                     onClick={() => handleViewOrderDetails(order)}
                                                                     style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: '600' }}
                                                                 >
-                                                                    🔍 View Items
+                                                                    ðŸ” View Items
                                                                 </button>
                                                             )}
                                                         </td>
@@ -696,10 +713,10 @@ function OwnerDashboard() {
                                                         {/* Total Amount & Payment Method */}
                                                         <td style={{ padding: '14px 12px' }}>
                                                             <div style={{ fontWeight: '800', color: '#059669', fontSize: '16px' }}>
-                                                                ₹{Number(order.total || 0).toLocaleString('en-IN')}
+                                                                â‚¹{Number(order.total || 0).toLocaleString('en-IN')}
                                                             </div>
                                                             <div style={{ fontSize: '11px', color: '#475569', fontWeight: '600', marginTop: '2px' }}>
-                                                                💳 {order.payment_method || 'Cash on Delivery (COD)'}
+                                                                ðŸ’³ {order.payment_method || 'Cash on Delivery (COD)'}
                                                             </div>
                                                         </td>
 
@@ -731,12 +748,12 @@ function OwnerDashboard() {
                                                                     width: '130px'
                                                                 }}
                                                             >
-                                                                <option value="Pending">⏳ Pending</option>
-                                                                <option value="Confirmed">✅ Confirmed</option>
-                                                                <option value="Packed">📦 Packed</option>
-                                                                <option value="Shipped">🚚 Shipped</option>
-                                                                <option value="Delivered">🎉 Delivered</option>
-                                                                <option value="Cancelled">❌ Cancelled</option>
+                                                                <option value="Pending">â³ Pending</option>
+                                                                <option value="Confirmed">âœ… Confirmed</option>
+                                                                <option value="Packed">ðŸ“¦ Packed</option>
+                                                                <option value="Shipped">ðŸšš Shipped</option>
+                                                                <option value="Delivered">ðŸŽ‰ Delivered</option>
+                                                                <option value="Cancelled">âŒ Cancelled</option>
                                                             </select>
                                                         </td>
 
@@ -757,7 +774,7 @@ function OwnerDashboard() {
                                                                         whiteSpace: 'nowrap'
                                                                     }}
                                                                 >
-                                                                    👁️ Breakdown
+                                                                    ðŸ‘ï¸ Breakdown
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleDeleteOrder(order.id)}
@@ -774,7 +791,7 @@ function OwnerDashboard() {
                                                                     }}
                                                                     title="Delete Order"
                                                                 >
-                                                                    🗑️ Delete
+                                                                    ðŸ—‘ï¸ Delete
                                                                 </button>
                                                             </div>
                                                         </td>
@@ -792,7 +809,7 @@ function OwnerDashboard() {
                 {activeTab === 'customers' && (
                     <div style={{ background: '#ffffff', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
                         <div style={{ marginBottom: '18px' }}>
-                            <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a' }}>👥 Registered Customers Directory</h3>
+                            <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a' }}>ðŸ‘¥ Registered Customers Directory</h3>
                             <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '13px' }}>
                                 Live real-time register list of all customers creating an account on Kiskintha Mens Wear
                             </p>
@@ -822,27 +839,27 @@ function OwnerDashboard() {
                                                     CUST-{cust.id}
                                                 </td>
                                                 <td style={{ padding: '14px 12px', fontWeight: '700', color: '#0f172a' }}>
-                                                    👤 {cust.name}
+                                                    ðŸ‘¤ {cust.name}
                                                 </td>
                                                 <td style={{ padding: '14px 12px', color: '#1e40af', fontWeight: '600' }}>
-                                                    📧 {cust.email}
+                                                    ðŸ“§ {cust.email}
                                                 </td>
                                                 <td style={{ padding: '14px 12px', color: '#0f172a' }}>
-                                                    📞 {cust.phone || 'N/A'}
+                                                    ðŸ“ž {cust.phone || 'N/A'}
                                                 </td>
                                                 <td style={{ padding: '14px 12px' }}>
                                                     {cust.address && cust.address.length > 3 ? (
                                                         <span style={{ color: '#059669', fontWeight: '600' }}>
-                                                            📍 {cust.address}
+                                                            ðŸ“ {cust.address}
                                                         </span>
                                                     ) : (
                                                         <span style={{ color: '#d97706', fontSize: '12px', fontStyle: 'italic' }}>
-                                                            ⚠️ Pending address entry
+                                                            âš ï¸ Pending address entry
                                                         </span>
                                                     )}
                                                 </td>
                                                 <td style={{ padding: '14px 12px', color: '#64748b' }}>
-                                                    📅 {cust.created_at ? new Date(cust.created_at).toLocaleDateString('en-IN') : 'Recently'}
+                                                    ðŸ“… {cust.created_at ? new Date(cust.created_at).toLocaleDateString('en-IN') : 'Recently'}
                                                 </td>
                                             </tr>
                                         ))}
@@ -858,7 +875,7 @@ function OwnerDashboard() {
                     <div style={{ background: '#ffffff', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
                             <div>
-                                <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a' }}>👔 Product Catalog & Price Management</h3>
+                                <h3 style={{ margin: 0, fontSize: '20px', color: '#0f172a' }}>ðŸ‘” Product Catalog & Price Management</h3>
                                 <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '13px' }}>
                                     Select a category below to filter products and edit individual product prices in real time.
                                 </p>
@@ -866,7 +883,7 @@ function OwnerDashboard() {
                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                                 <input
                                     type="text"
-                                    placeholder="🔍 Search name or color..."
+                                    placeholder="ðŸ” Search name or color..."
                                     value={prodSearch}
                                     onChange={(e) => setProdSearch(e.target.value)}
                                     style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', width: '200px' }}
@@ -883,7 +900,7 @@ function OwnerDashboard() {
                                         cursor: 'pointer'
                                     }}
                                 >
-                                    ➕ Add Product
+                                    âž• Add Product
                                 </button>
                             </div>
                         </div>
@@ -891,13 +908,13 @@ function OwnerDashboard() {
                         {/* Category Filter Pills for Owner */}
                         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', marginBottom: '16px', scrollbarWidth: 'thin' }}>
                             {[
-                                { id: 'All', name: 'All Products', icon: '🛍️', count: products.length },
-                                { id: '2', name: 'Shirts', icon: '👔', count: products.filter(p => String(p.category_id) === '2').length },
-                                { id: '1', name: 'T-Shirts', icon: '👕', count: products.filter(p => String(p.category_id) === '1').length },
-                                { id: '4', name: 'Trousers', icon: '👖', count: products.filter(p => String(p.category_id) === '4').length },
-                                { id: '3', name: 'Pants', icon: '👖', count: products.filter(p => String(p.category_id) === '3').length },
-                                { id: '8', name: 'Group Shirts', icon: '👔', count: products.filter(p => String(p.category_id) === '8').length },
-                                { id: '7', name: 'Hoodies', icon: '🧥', count: products.filter(p => String(p.category_id) === '7').length }
+                                { id: 'All', name: 'All Products', icon: 'ðŸ›ï¸', count: products.length },
+                                { id: '2', name: 'Shirts', icon: 'ðŸ‘”', count: products.filter(p => String(p.category_id) === '2').length },
+                                { id: '1', name: 'T-Shirts', icon: 'ðŸ‘•', count: products.filter(p => String(p.category_id) === '1').length },
+                                { id: '4', name: 'Trousers', icon: 'ðŸ‘–', count: products.filter(p => String(p.category_id) === '4').length },
+                                { id: '3', name: 'Pants', icon: 'ðŸ‘–', count: products.filter(p => String(p.category_id) === '3').length },
+                                { id: '8', name: 'Group Shirts', icon: 'ðŸ‘”', count: products.filter(p => String(p.category_id) === '8').length },
+                                { id: '7', name: 'Hoodies', icon: 'ðŸ§¥', count: products.filter(p => String(p.category_id) === '7').length }
                             ].map(cat => {
                                 const isSelected = ownerProdCategory === cat.id;
                                 return (
@@ -936,7 +953,7 @@ function OwnerDashboard() {
                                         <th style={{ padding: '12px', textAlign: 'left' }}>Title</th>
                                         <th style={{ padding: '12px', textAlign: 'left' }}>Category</th>
                                         <th style={{ padding: '12px', textAlign: 'left' }}>Color</th>
-                                        <th style={{ padding: '12px', textAlign: 'left' }}>Price (₹)</th>
+                                        <th style={{ padding: '12px', textAlign: 'left' }}>Price (â‚¹)</th>
                                         <th style={{ padding: '12px', textAlign: 'left' }}>Stock</th>
                                         <th style={{ padding: '12px', textAlign: 'center' }}>Actions</th>
                                     </tr>
@@ -989,13 +1006,13 @@ function OwnerDashboard() {
                                                     </td>
                                                     <td style={{ padding: '10px 12px' }}>
                                                         <span style={{ background: '#f8fafc', color: '#334155', border: '1px solid #cbd5e1', padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700' }}>
-                                                            🎨 {prod.color || 'Assorted'}
+                                                            ðŸŽ¨ {prod.color || 'Assorted'}
                                                         </span>
                                                     </td>
                                                     <td style={{ padding: '10px 12px' }}>
                                                         {isEditingThis ? (
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                                <span style={{ fontWeight: '800', color: '#059669', fontSize: '15px' }}>₹</span>
+                                                                <span style={{ fontWeight: '800', color: '#059669', fontSize: '15px' }}>â‚¹</span>
                                                                 <input
                                                                     type="number"
                                                                     min="1"
@@ -1021,7 +1038,7 @@ function OwnerDashboard() {
                                                             </div>
                                                         ) : (
                                                             <span style={{ fontSize: '15px', fontWeight: '800', color: '#059669' }}>
-                                                                ₹{Number(prod.price).toLocaleString('en-IN')}
+                                                                â‚¹{Number(prod.price).toLocaleString('en-IN')}
                                                             </span>
                                                         )}
                                                     </td>
@@ -1050,7 +1067,7 @@ function OwnerDashboard() {
                                                                         boxShadow: '0 2px 6px rgba(5,150,105,0.3)'
                                                                     }}
                                                                 >
-                                                                    {updatingPrice ? 'Saving...' : '💾 Save Price'}
+                                                                    {updatingPrice ? 'Saving...' : 'ðŸ’¾ Save Price'}
                                                                 </button>
                                                                 <button
                                                                     onClick={() => setEditingPriceId(null)}
@@ -1065,7 +1082,7 @@ function OwnerDashboard() {
                                                                         fontSize: '12px'
                                                                     }}
                                                                 >
-                                                                    ✕ Cancel
+                                                                    âœ• Cancel
                                                                 </button>
                                                             </div>
                                                         ) : (
@@ -1086,7 +1103,7 @@ function OwnerDashboard() {
                                                                         fontSize: '12px'
                                                                     }}
                                                                 >
-                                                                    ✏️ Edit Price
+                                                                    âœï¸ Edit Price
                                                                 </button>
                                                                 <button
                                                                     onClick={() => openEditProductModal(prod)}
@@ -1101,7 +1118,7 @@ function OwnerDashboard() {
                                                                         fontSize: '12px'
                                                                     }}
                                                                 >
-                                                                    ⚙️ Edit All
+                                                                    âš™ï¸ Edit All
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleDeleteProduct(prod.id)}
@@ -1116,7 +1133,7 @@ function OwnerDashboard() {
                                                                         fontSize: '12px'
                                                                     }}
                                                                 >
-                                                                    🗑️ Delete
+                                                                    ðŸ—‘ï¸ Delete
                                                                 </button>
                                                             </div>
                                                         )}
@@ -1133,7 +1150,7 @@ function OwnerDashboard() {
                 {/* TAB 4: STAFF & AUTHORITY ROLES */}
                 {activeTab === 'staff' && (
                     <div style={{ background: '#ffffff', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
-                        <h3 style={{ margin: '0 0 16px', fontSize: '20px', color: '#0f172a' }}>🛡️ Store Staff & System Accounts</h3>
+                        <h3 style={{ margin: '0 0 16px', fontSize: '20px', color: '#0f172a' }}>ðŸ›¡ï¸ Store Staff & System Accounts</h3>
                         <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                             <thead>
                                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textTransform: 'uppercase', fontSize: '11px' }}>
@@ -1159,7 +1176,7 @@ function OwnerDashboard() {
                                                 background: s.role === 'owner' ? '#7c3aed' : s.role === 'admin' ? '#059669' : '#0284c7',
                                                 color: '#fff'
                                             }}>
-                                                {s.role === 'owner' ? '👑 Store Owner' : s.role === 'admin' ? '🛡️ Store Admin' : '👤 Customer'}
+                                                {s.role === 'owner' ? 'ðŸ‘‘ Store Owner' : s.role === 'admin' ? 'ðŸ›¡ï¸ Store Admin' : 'ðŸ‘¤ Customer'}
                                             </span>
                                         </td>
                                     </tr>
@@ -1176,19 +1193,19 @@ function OwnerDashboard() {
                     <div className="modal-content shadow-gold" style={{ maxWidth: '720px', borderRadius: '16px', padding: '24px', maxHeight: '90vh', overflowY: 'auto' }}>
                         <div className="modal-header" style={{ borderBottom: '2px solid #f1f5f9', paddingBottom: '14px', marginBottom: '18px' }}>
                             <div>
-                                <h3 style={{ margin: 0, color: '#0f172a', fontSize: '20px' }}>🛍️ Order #{selectedOrder.id} Complete Purchase Record</h3>
+                                <h3 style={{ margin: 0, color: '#0f172a', fontSize: '20px' }}>ðŸ›ï¸ Order #{selectedOrder.id} Complete Purchase Record</h3>
                                 <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
-                                    📅 Order Date & Time: <strong>{selectedOrder.created_at ? new Date(selectedOrder.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'Recently'}</strong>
+                                    ðŸ“… Order Date & Time: <strong>{selectedOrder.created_at ? new Date(selectedOrder.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'Recently'}</strong>
                                 </p>
                             </div>
-                            <button className="close-btn" onClick={() => setSelectedOrder(null)}>×</button>
+                            <button className="close-btn" onClick={() => setSelectedOrder(null)}>Ã—</button>
                         </div>
 
                         <div className="modal-body">
-                            {/* 👤 CUSTOMER DETAILS CARD */}
+                            {/* ðŸ‘¤ CUSTOMER DETAILS CARD */}
                             <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #cbd5e1', marginBottom: '20px' }}>
                                 <h4 style={{ margin: '0 0 12px', fontSize: '14px', color: '#1e40af', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #e2e8f0', paddingBottom: '6px' }}>
-                                    👤 CUSTOMER DETAILS
+                                    ðŸ‘¤ CUSTOMER DETAILS
                                 </h4>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', fontSize: '13px', color: '#334155' }}>
                                     <div><strong>Customer Name:</strong> {selectedOrder.customer_name || 'Customer'}</div>
@@ -1203,21 +1220,21 @@ function OwnerDashboard() {
                                 </div>
                             </div>
 
-                            {/* 💳 ORDER DETAILS CARD */}
+                            {/* ðŸ’³ ORDER DETAILS CARD */}
                             <div style={{ background: '#fafaf9', padding: '16px', borderRadius: '12px', border: '1px solid #e7e5e4', marginBottom: '20px' }}>
                                 <h4 style={{ margin: '0 0 12px', fontSize: '14px', color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #e7e5e4', paddingBottom: '6px' }}>
-                                    📋 ORDER SUMMARY & PAYMENT DETAILS
+                                    ðŸ“‹ ORDER SUMMARY & PAYMENT DETAILS
                                 </h4>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', fontSize: '13px', color: '#44403c' }}>
                                     <div><strong>Order ID:</strong> #{selectedOrder.id}</div>
                                     <div><strong>Payment Method:</strong> {selectedOrder.payment_method || 'Cash on Delivery (COD)'}</div>
                                     <div><strong>Order Status:</strong> <span style={{ fontWeight: '800', color: selectedOrder.status === 'Delivered' ? '#15803d' : '#b45309' }}>{selectedOrder.status || 'Pending'}</span></div>
-                                    <div><strong>Total Order Amount:</strong> <span style={{ fontWeight: '800', color: '#059669', fontSize: '15px' }}>₹{Number(selectedOrder.total || 0).toLocaleString('en-IN')}</span></div>
+                                    <div><strong>Total Order Amount:</strong> <span style={{ fontWeight: '800', color: '#059669', fontSize: '15px' }}>â‚¹{Number(selectedOrder.total || 0).toLocaleString('en-IN')}</span></div>
                                 </div>
                             </div>
 
-                            {/* 📦 PURCHASED PRODUCTS BREAKDOWN */}
-                            <h4 style={{ margin: '0 0 12px', fontSize: '15px', color: '#0f172a' }}>📦 Purchased Products Breakdown ({orderItems.length || (selectedOrder.items || []).length} items):</h4>
+                            {/* ðŸ“¦ PURCHASED PRODUCTS BREAKDOWN */}
+                            <h4 style={{ margin: '0 0 12px', fontSize: '15px', color: '#0f172a' }}>ðŸ“¦ Purchased Products Breakdown ({orderItems.length || (selectedOrder.items || []).length} items):</h4>
 
                             {loadingItems ? (
                                 <div className="loading"><div className="spinner"></div><p>Fetching order items breakdown...</p></div>
@@ -1236,25 +1253,25 @@ function OwnerDashboard() {
                                                 <div>
                                                     <div style={{ fontWeight: '700', color: '#0f172a', fontSize: '14px' }}>{item.product_name || item.name || 'Kiskintha Item'}</div>
                                                     <div style={{ fontSize: '12px', color: '#64748b', display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '3px' }}>
-                                                        {item.category_name && <span style={{ color: '#1e40af', fontWeight: '700', background: '#eff6ff', padding: '2px 6px', borderRadius: '4px' }}>🏷️ {item.category_name}</span>}
-                                                        {item.sleeve_type && item.sleeve_type !== 'N/A' && <span style={{ color: '#166534', fontWeight: '700', background: '#f0fdf4', padding: '2px 6px', borderRadius: '4px' }}>👔 {item.sleeve_type}</span>}
-                                                        {item.color && <span>🎨 Color: <strong>{item.color}</strong></span>}
-                                                        <span>📏 Size: <strong>{item.size || 'M'}</strong></span>
+                                                        {item.category_name && <span style={{ color: '#1e40af', fontWeight: '700', background: '#eff6ff', padding: '2px 6px', borderRadius: '4px' }}>ðŸ·ï¸ {item.category_name}</span>}
+                                                        {item.sleeve_type && item.sleeve_type !== 'N/A' && <span style={{ color: '#166534', fontWeight: '700', background: '#f0fdf4', padding: '2px 6px', borderRadius: '4px' }}>ðŸ‘” {item.sleeve_type}</span>}
+                                                        {item.color && <span>ðŸŽ¨ Color: <strong>{item.color}</strong></span>}
+                                                        <span>ðŸ“ Size: <strong>{item.size || 'M'}</strong></span>
                                                     </div>
                                                     <div style={{ fontSize: '12px', color: '#334155', marginTop: '3px' }}>
-                                                        Qty: <strong>{item.quantity}</strong> × Unit Price: <strong>₹{Number(item.price).toLocaleString('en-IN')}</strong>
+                                                        Qty: <strong>{item.quantity}</strong> Ã— Unit Price: <strong>â‚¹{Number(item.price).toLocaleString('en-IN')}</strong>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div style={{ fontWeight: '800', color: '#059669', fontSize: '16px' }}>
-                                                ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                                                â‚¹{(item.price * item.quantity).toLocaleString('en-IN')}
                                             </div>
                                         </div>
                                     ))}
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '2px solid #e2e8f0', paddingTop: '14px', marginTop: '10px', fontSize: '16px', fontWeight: '800' }}>
                                         <span>Grand Total Amount:</span>
-                                        <span style={{ color: '#059669', fontSize: '20px' }}>₹{Number(selectedOrder.total || 0).toLocaleString('en-IN')}</span>
+                                        <span style={{ color: '#059669', fontSize: '20px' }}>â‚¹{Number(selectedOrder.total || 0).toLocaleString('en-IN')}</span>
                                     </div>
                                 </div>
                             )}
@@ -1274,8 +1291,8 @@ function OwnerDashboard() {
                 <div className="modal-overlay" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
                     <div className="modal-content shadow-gold" style={{ maxWidth: '580px', borderRadius: '16px', padding: '24px' }}>
                         <div className="modal-header" style={{ borderBottom: '2px solid #f1f5f9', paddingBottom: '12px', marginBottom: '16px' }}>
-                            <h3>{editingProduct ? '✏️ Edit Catalog Product' : '➕ Add New Product to Catalog'}</h3>
-                            <button className="close-btn" onClick={() => setShowProductModal(false)}>×</button>
+                            <h3>{editingProduct ? 'âœï¸ Edit Catalog Product' : 'âž• Add New Product to Catalog'}</h3>
+                            <button className="close-btn" onClick={() => setShowProductModal(false)}>Ã—</button>
                         </div>
                         <div className="modal-body">
                             {prodMsg && <div className="alert alert-info" style={{ marginBottom: '14px' }}>{prodMsg}</div>}
@@ -1294,7 +1311,7 @@ function OwnerDashboard() {
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                                     <div className="form-group">
-                                        <label style={{ fontWeight: '600', fontSize: '13px' }}>Price (₹) *</label>
+                                        <label style={{ fontWeight: '600', fontSize: '13px' }}>Price (â‚¹) *</label>
                                         <input
                                             type="number"
                                             className="form-control"
@@ -1319,16 +1336,16 @@ function OwnerDashboard() {
 
                                 {String(prodForm.category_id) === '3' && (
                                     <div className="form-group" style={{ marginBottom: '12px', background: '#eff6ff', padding: '10px 14px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
-                                        <label style={{ fontWeight: '800', fontSize: '13px', color: '#1e40af' }}>👖 Pants Sub-Category *</label>
+                                        <label style={{ fontWeight: '800', fontSize: '13px', color: '#1e40af' }}>ðŸ‘– Pants Sub-Category *</label>
                                         <select
                                             className="form-control"
                                             value={prodForm.subcategory || 'Formal'}
                                             onChange={(e) => setProdForm({ ...prodForm, subcategory: e.target.value })}
                                             style={{ fontWeight: '700' }}
                                         >
-                                            <option value="Formal">👔 Formal Pants</option>
-                                            <option value="Cotton">👕 Cotton Pants</option>
-                                            <option value="Baggy">👖 Baggy Pants</option>
+                                            <option value="Formal">ðŸ‘” Formal Pants</option>
+                                            <option value="Cotton">ðŸ‘• Cotton Pants</option>
+                                            <option value="Baggy">ðŸ‘– Baggy Pants</option>
                                         </select>
                                     </div>
                                 )}
@@ -1431,4 +1448,59 @@ function OwnerDashboard() {
     );
 }
 
+
+            {/* ── Reviews Tab ────────────────────────────────── */}
+            {activeTab === 'reviews' && (
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#0f172a', margin: 0 }}>⭐ Customer Reviews</h2>
+                        <button onClick={fetchReviews} style={{ padding: '8px 16px', borderRadius: '8px', background: '#f59e0b', color: '#fff', border: 'none', fontWeight: '700', cursor: 'pointer' }}>🔄 Refresh</button>
+                    </div>
+                    {reviewsLoading ? (
+                        <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Loading reviews...</div>
+                    ) : reviews.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '60px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                            <div style={{ fontSize: '48px', marginBottom: '12px' }}>⭐</div>
+                            <h3 style={{ color: '#0f172a', marginBottom: '8px' }}>No Reviews Yet</h3>
+                            <p style={{ color: '#64748b' }}>Customer reviews will appear here after purchases.</p>
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                            <div style={{ fontSize: '13px', color: '#64748b', fontWeight: '600' }}>Total: {reviews.length} reviews</div>
+                            {reviews.map((review, idx) => (
+                                <div key={review.id || idx} style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '16px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' }}>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                                                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '16px', color: '#b45309' }}>
+                                                    {(review.customer_name || 'C')[0].toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: '800', fontSize: '14px', color: '#0f172a' }}>{review.customer_name || 'Customer'}</div>
+                                                    <div style={{ fontSize: '11px', color: '#94a3b8' }}>Product ID: {review.product_id} • {review.created_at ? new Date(review.created_at).toLocaleDateString('en-IN') : 'N/A'}</div>
+                                                </div>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '2px', marginBottom: '8px' }}>
+                                                {[1,2,3,4,5].map(s => (
+                                                    <span key={s} style={{ fontSize: '18px', color: s <= review.rating ? '#f59e0b' : '#d1d5db' }}>★</span>
+                                                ))}
+                                                <span style={{ fontSize: '13px', fontWeight: '700', color: '#f59e0b', marginLeft: '6px', alignSelf: 'center' }}>{review.rating}/5</span>
+                                            </div>
+                                            <p style={{ fontSize: '14px', color: '#334155', margin: 0, lineHeight: '1.5', background: '#f8fafc', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                                "{review.comment}"
+                                            </p>
+                                        </div>
+                                        <button onClick={() => deleteReview(review.id)} style={{ padding: '6px 12px', borderRadius: '6px', background: '#fee2e2', color: '#b91c1c', border: 'none', fontWeight: '700', fontSize: '12px', cursor: 'pointer', flexShrink: 0 }}>
+                                            🗑️ Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
 export default OwnerDashboard;
+
+
